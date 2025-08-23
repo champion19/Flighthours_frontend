@@ -1,0 +1,61 @@
+import 'package:equatable/equatable.dart';
+import 'package:flight_hours_app/features/register/domain/entities/Employee_Entity_Register.dart';
+
+abstract class RegisterState extends Equatable {
+  final EmployeeEntityRegister? employee;
+
+  const RegisterState({this.employee});
+
+  @override
+  List<Object?> get props => [employee];
+}
+
+class RegisterInitial extends RegisterState {
+  RegisterInitial() : super(employee: EmployeeEntityRegister.empty());
+}
+
+class RegisterLoading extends RegisterState {
+  const RegisterLoading({required EmployeeEntityRegister employee}) : super(employee: employee);
+}
+
+class RegisterSuccess extends RegisterState {
+  const RegisterSuccess({required EmployeeEntityRegister employee}) : super(employee: employee);
+}
+
+class RegisterError extends RegisterState {
+  final String message;
+
+  const RegisterError({required this.message, required EmployeeEntityRegister employee}) : super(employee: employee);
+
+  @override
+  List<Object?> get props => [message, employee];
+}
+
+class PersonalInfoCompleted extends RegisterState {
+  const PersonalInfoCompleted({required EmployeeEntityRegister employee}) : super(employee: employee);
+}
+
+class PilotInfoCompleted extends RegisterState {
+  const PilotInfoCompleted({required EmployeeEntityRegister employee}) : super(employee: employee);
+}
+
+class RecoveryCodeSent extends RegisterState {
+  RecoveryCodeSent() : super(employee: EmployeeEntityRegister.empty());
+}
+
+class RecoveryCodeVerified extends RegisterState {
+  RecoveryCodeVerified() : super(employee: EmployeeEntityRegister.empty());
+}
+
+class PasswordResetSuccess extends RegisterState {
+  PasswordResetSuccess() : super(employee: EmployeeEntityRegister.empty());
+}
+
+class RecoveryError extends RegisterState {
+  final String message;
+
+  const RecoveryError({required this.message}) : super();
+
+  @override
+  List<Object> get props => [message];
+}
