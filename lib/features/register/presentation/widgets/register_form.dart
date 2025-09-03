@@ -56,19 +56,15 @@ class _RegisterFormState extends State<RegisterForm> {
 
       _formKey.currentState!.save();
       context.read<RegisterBloc>().add(
-        EnterPersonalInformation(
+        RegisterSubmitted(
           employment: EmployeeEntityRegister(
             id: "0",
             password: _passwordController.text.trim(),
-            bp: 0,
-            fechaFin: "0",
-            fechaInicio: "0",
-            vigente: "0",
+            fechaFin: DateTime.now().toIso8601String(),
+            fechaInicio: DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
             email: _emailController.text.trim(),
-            emailConfirmed: true,
             name: _nameController.text.trim(),
             idNumber: _idNumberController.text.trim(),
-            airline: '3f9d5e8c-7f0e-4c3a-aabc-91a1f5e937d9',
           ),
         ),
       );

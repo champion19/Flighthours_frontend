@@ -2,14 +2,14 @@ class EmployeeEntityRegister {
   final String id;
   final String name;
   final String email;
-  final String password;
+  final String? password;
   final bool? emailConfirmed;
-  final String? idNumber;
-  final int? bp;
+  final String idNumber;
+  final String? bp;
   final String fechaInicio;
   final String fechaFin;
-  final String vigente;
-  final String airline;
+  final bool? vigente;
+  final String? airline;
 
   EmployeeEntityRegister({
     required this.id,
@@ -17,12 +17,12 @@ class EmployeeEntityRegister {
     required this.idNumber,
     required this.email,
     required this.password,
-    required this.emailConfirmed,
-    required this.bp,
+    this.emailConfirmed,
+    this.bp,
     required this.fechaInicio,
     required this.fechaFin,
-    required this.vigente,
-    required this.airline,    // <-- NUEVO
+    this.vigente,
+    this.airline,
   });
 
   factory EmployeeEntityRegister.empty() {
@@ -33,10 +33,10 @@ class EmployeeEntityRegister {
       email: '',
       password: '',
       emailConfirmed: false,
-      bp: 0,
+      bp: '',
       fechaInicio: '',
       fechaFin: '',
-      vigente: '',
+      vigente: false,
       airline: '',
     );
   }
@@ -48,10 +48,10 @@ class EmployeeEntityRegister {
     String? email,
     String? password,
     bool? emailConfirmed,
-    int? bp,
+    String? bp,
     String? fechaInicio,
     String? fechaFin,
-    String? vigente,
+    bool? vigente,
     String? airline,
   }) {
     return EmployeeEntityRegister(

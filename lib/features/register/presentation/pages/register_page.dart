@@ -60,21 +60,26 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           }
         },
-        child: PageView(
-          controller: pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            Personalinfo(
-              onSwitchToLogin: widget.onSwitchToLogin,
-              pageController: pageController,
-            ),
-            Pilotinfo(
-              pageController: pageController,
-              onSwitchToLogin: widget.onSwitchToLogin,
-            ),
-            VerificationPage(email: "",),
-
-          ],
+        child: BlocBuilder<RegisterBloc, RegisterState>(
+          builder: (context, state) {
+            final email = state.employee?.email ?? '';
+            
+            return PageView(
+              controller: pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                Personalinfo(
+                  onSwitchToLogin: widget.onSwitchToLogin,
+                  pageController: pageController,
+                ),
+                Pilotinfo(
+                  pageController: pageController,
+                  onSwitchToLogin: widget.onSwitchToLogin,
+                ),
+                VerificationPage(email: email),
+              ],
+            );
+          },
         ),
       ),
     );
