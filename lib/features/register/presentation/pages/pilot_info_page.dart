@@ -48,10 +48,10 @@ class PilotinfoState extends State<Pilotinfo> {
       context.read<RegisterBloc>().add(
         EnterPilotInformation(
           employment: currentEmployee.copyWith(
-            bp: int.tryParse(_bpController.text) ?? 0,
+            bp: _bpController.text.trim().isEmpty ? null : _bpController.text.trim(),
             fechaInicio: _fechaInicioController.text,
             fechaFin: _fechaFinController.text,
-            vigente: _vigente ? 'si' : 'no',
+            vigente: _vigente ? true : false,
             airline: _selectedAirline,
           ),
         ),

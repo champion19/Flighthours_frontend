@@ -17,10 +17,10 @@ class RegisterDatasource {
       'password': employee.password,
       'emailconfirmed': employee.emailConfirmed,
       'identificationNumber': employee.idNumber,
-      'bp': employee.bp.toString(),
+      'bp': employee.bp,
       'start_date': employee.fechaInicio,
       'end_date': employee.fechaFin,
-      'active': employee.vigente.toLowerCase() == 'true',
+      'active': employee.vigente,
     };
 
     final response = await http.post(
@@ -31,7 +31,9 @@ class RegisterDatasource {
     debugPrint(response.body);
 
     if (response.statusCode == 201) {
-      return RegisterModel.fromJson(json.decode(response.body));
+      final data = json.decode(response.body);
+      final employee = (data as Map<String, dynamic>)['employee'];
+      return RegisterModel.fromMap(employee);
     } else {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }

@@ -13,40 +13,41 @@ class RegisterModel extends EmployeeEntityRegister {
   final String email;
 
   @override
-  final String password;
+  final String? password;
 
   @override
-  final bool emailConfirmed;
+  final bool? emailConfirmed;
 
   @override
   final String idNumber;
 
   @override
-  final int bp;
+  final String? bp;
 
   @override
   final String fechaInicio;
 
   @override
   final String fechaFin;
-  @override
-  final String vigente;
 
   @override
-  final String airline;
+  final bool? vigente;
+
+  @override
+  final String? airline;
 
   RegisterModel({
     required this.id,
     required this.name,
     required this.email,
-    required this.emailConfirmed,
+    this.emailConfirmed,
     required this.idNumber,
-    required this.bp,
+    this.bp,
     required this.fechaInicio,
     required this.fechaFin,
-    required this.vigente,
-    required this.password,
-    required this.airline,
+    this.vigente,
+    this.password,
+    this.airline,
   }) : super(
          id: id,
          name: name,
@@ -67,17 +68,18 @@ class RegisterModel extends EmployeeEntityRegister {
   String toJson() => json.encode(toMap());
 
   factory RegisterModel.fromMap(Map<String, dynamic> json) => RegisterModel(
-    id: json["id"],
-    name: json["name"],
-    email: json["email"],
-    password: json["password"],
-    emailConfirmed: json["emailConfirmed"],
-    idNumber: json["idNumber"],
-    bp: json["bp"],
-    fechaInicio: json["fechaInicio"],
-    fechaFin: json["fechaFin"],
-    vigente: json["vigente"],
-    airline: json["airline"],
+    id: json["id"] ?? '',
+    name: json["name"]?? '',
+    airline:json["airline"]?? '',
+    email: json["email"] ?? '',
+    password: json["password"] ?? '',
+    emailConfirmed: json["emailConfirmed"] ?? false,
+    idNumber: json["identification_number"] ?? '',
+    bp: json["bp"] ?? '',
+    fechaInicio: json["start_date"] ?? DateTime.now().toIso8601String(),
+    fechaFin: json["end_date"]?? DateTime.now().toIso8601String(),
+    vigente: json["active"] ?? false,
+
   );
 
   Map<String, dynamic> toMap() => {
