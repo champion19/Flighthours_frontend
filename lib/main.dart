@@ -1,5 +1,6 @@
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_list_page.dart';
+import 'package:flight_hours_app/features/email_verification/presentation/bloc/email_verification_bloc.dart';
 import 'package:flight_hours_app/features/login/presentation/pages/hello_employee_loginpage.dart';
 import 'package:flight_hours_app/features/login/presentation/pages/login_page.dart';
 import 'package:flight_hours_app/features/register/presentation/pages/email_info_page.dart';
@@ -18,6 +19,7 @@ void main() {
         BlocProvider<RegisterBloc>(create: (_) => RegisterBloc()),
         BlocProvider(create: (_) => LoginBloc()),
         BlocProvider(create: (_) => AirlineBloc()),
+        BlocProvider(create: (_) => EmailVerificationBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',

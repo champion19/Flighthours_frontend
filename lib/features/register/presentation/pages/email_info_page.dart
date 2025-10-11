@@ -1,6 +1,7 @@
+import 'dart:async';
+
+import 'package:flight_hours_app/features/email_verification/presentation/bloc/email_verification_bloc.dart';
 import 'package:flight_hours_app/features/login/presentation/pages/login_page.dart';
-import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
-import 'package:flight_hours_app/features/register/presentation/bloc/register_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,6 +14,29 @@ class VerificationPage extends StatefulWidget {
 }
 
 class _VerificationPageState extends State<VerificationPage> {
+  Timer? _timer;
+
+  Future<void> callVerifyEmail() async {
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 5), (_) {
+      context.read<EmailVerificationBloc>().add(
+        VerifyEmailEvent(email: widget.email)
+      );
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    callVerifyEmail();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -34,9 +58,9 @@ class _VerificationPageState extends State<VerificationPage> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: BlocConsumer<RegisterBloc, RegisterState>(
+      body: BlocConsumer<EmailVerificationBloc, EmailVerificationState>(
         listener: (context, state) {
-          if (state is RegisterSuccess) {
+          if (state is EmailVerificationSuccess) {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -45,7 +69,7 @@ class _VerificationPageState extends State<VerificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('¡Email verificado correctamente!')),
             );
-          } else if (state is RegisterError) {
+          } else if (state is  EmailVerificationError) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(state.message)));
