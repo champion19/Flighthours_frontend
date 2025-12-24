@@ -42,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro'), centerTitle: true),
+      appBar: AppBar(title: const Text('Register'), centerTitle: true),
       body: BlocListener<RegisterBloc, RegisterState>(
         listener: (context, state) {
           if (state is PersonalInfoCompleted) {
@@ -63,7 +63,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: BlocBuilder<RegisterBloc, RegisterState>(
           builder: (context, state) {
             final email = state.employee?.email ?? '';
-            
+
             return PageView(
               controller: pageController,
               physics: const NeverScrollableScrollPhysics(),

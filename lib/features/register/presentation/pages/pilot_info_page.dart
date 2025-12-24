@@ -32,7 +32,7 @@ class PilotinfoState extends State<Pilotinfo> {
   String? _selectedAirline;
   bool _vigente = false;
 
-  final List<String> opciones = ['Opción 1', 'Opción 2', 'Opción 3'];
+  final List<String> opciones = ['Option 1', 'Option 2', 'Option 3'];
 
   @override
   void dispose() {
@@ -48,7 +48,10 @@ class PilotinfoState extends State<Pilotinfo> {
       context.read<RegisterBloc>().add(
         EnterPilotInformation(
           employment: currentEmployee.copyWith(
-            bp: _bpController.text.trim().isEmpty ? null : _bpController.text.trim(),
+            bp:
+                _bpController.text.trim().isEmpty
+                    ? null
+                    : _bpController.text.trim(),
             fechaInicio: _fechaInicioController.text,
             fechaFin: _fechaFinController.text,
             vigente: _vigente ? true : false,
@@ -88,7 +91,7 @@ class PilotinfoState extends State<Pilotinfo> {
 
         return Column(
           children: [
-            Text("Información del piloto"),
+            Text("Pilot Information"),
             Expanded(
               child: Form(
                 key: _formKey,
@@ -98,7 +101,7 @@ class PilotinfoState extends State<Pilotinfo> {
                     TextFormField(
                       controller: _bpController,
                       decoration: const InputDecoration(
-                        labelText: 'Codigo BP',
+                        labelText: 'BP Code',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
@@ -108,10 +111,10 @@ class PilotinfoState extends State<Pilotinfo> {
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'El código BP es requerido';
+                          return 'BP code is required';
                         }
                         if (int.tryParse(value.trim()) == null) {
-                          return 'Por favor ingrese un número válido';
+                          return 'Please enter a valid number';
                         }
                         return null;
                       },
@@ -120,7 +123,7 @@ class PilotinfoState extends State<Pilotinfo> {
                     TextFormField(
                       controller: _fechaInicioController,
                       decoration: const InputDecoration(
-                        labelText: 'Fecha inicio',
+                        labelText: 'Start Date',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
@@ -130,7 +133,7 @@ class PilotinfoState extends State<Pilotinfo> {
                       onTap: () => _selectDate(context, _fechaInicioController),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'La fecha de inicio es requerida';
+                          return 'Start date is required';
                         }
                         return null;
                       },
@@ -139,7 +142,7 @@ class PilotinfoState extends State<Pilotinfo> {
                     TextFormField(
                       controller: _fechaFinController,
                       decoration: const InputDecoration(
-                        labelText: 'Fecha fin',
+                        labelText: 'End Date',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.calendar_today),
                       ),
@@ -147,7 +150,7 @@ class PilotinfoState extends State<Pilotinfo> {
                       onTap: () => _selectDate(context, _fechaFinController),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'La fecha de fin es requerida';
+                          return 'End date is required';
                         }
                         if (_fechaInicioController.text.isNotEmpty) {
                           final startDate = DateFormat(
@@ -155,7 +158,7 @@ class PilotinfoState extends State<Pilotinfo> {
                           ).parse(_fechaInicioController.text);
                           final endDate = DateFormat('yyyy-MM-dd').parse(value);
                           if (endDate.isBefore(startDate)) {
-                            return 'La fecha de fin no puede ser anterior a la de inicio';
+                            return 'End date cannot be before start date';
                           }
                         }
                         return null;
@@ -163,7 +166,7 @@ class PilotinfoState extends State<Pilotinfo> {
                     ),
                     const SizedBox(height: 16.0),
                     CheckboxListTile(
-                      title: const Text('Vigente'),
+                      title: const Text('Active'),
                       value: _vigente,
                       onChanged: (bool? value) {
                         setState(() {
@@ -182,7 +185,7 @@ class PilotinfoState extends State<Pilotinfo> {
                         } else if (state is AirlineSuccess) {
                           return DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
-                              labelText: 'Aerolinea',
+                              labelText: 'Airline',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(12),
@@ -190,7 +193,7 @@ class PilotinfoState extends State<Pilotinfo> {
                               ),
                             ),
                             value: _selectedAirline,
-                            hint: const Text('Seleccione la Aerolinea'),
+                            hint: const Text('Select Airline'),
                             items:
                                 state.airlines.map((airline) {
                                   return DropdownMenuItem<String>(
@@ -205,7 +208,7 @@ class PilotinfoState extends State<Pilotinfo> {
                             },
                             validator: (value) {
                               if (value == null) {
-                                return 'Por favor seleccione una aerolinea';
+                                return 'Please select an airline';
                               }
                               return null;
                             },
@@ -213,7 +216,7 @@ class PilotinfoState extends State<Pilotinfo> {
                         } else if (state is AirlineError) {
                           return Text(state.message);
                         } else {
-                          return const Text('No se encontraron aerolineas');
+                          return const Text('No airlines found');
                         }
                       },
                     ),
@@ -243,7 +246,7 @@ class PilotinfoState extends State<Pilotinfo> {
                                   ),
                                 )
                                 : const Text(
-                                  'Continuar',
+                                  'Continue',
                                   style: TextStyle(fontSize: 16),
                                 ),
                       ),
@@ -259,7 +262,7 @@ class PilotinfoState extends State<Pilotinfo> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Ya tienes una cuenta?",
+                      "Already have an account?",
                       style: TextStyle(fontSize: 16),
                     ),
                     TextButton(

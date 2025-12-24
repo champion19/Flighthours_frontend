@@ -45,11 +45,12 @@ abstract class InjectorApp {
   @Register.factory(ListAirlineUseCase)
   @Register.factory(AirlineRepository, from: AirlineRepositoryImpl)
   @Register.factory(AirlineRemoteDataSource, from: AirlineRemoteDataSourceImpl)
-  @Register.factory(EmailVerificationRepository, from: EmailVerificationRepositoryImpl)
+  @Register.factory(
+    EmailVerificationRepository,
+    from: EmailVerificationRepositoryImpl,
+  )
   @Register.factory(EmailVerificationUseCase)
   @Register.factory(EmailVerificationDatasource)
-
-
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs
 }

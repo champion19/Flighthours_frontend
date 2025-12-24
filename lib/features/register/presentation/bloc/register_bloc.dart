@@ -46,8 +46,14 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     );
 
     try {
-      final registeremployee = await registerUseCase.call(event.employment);
-      emit(RegisterSuccess(employee: registeremployee));
+      final response = await registerUseCase.call(event.employment);
+      emit(
+        RegisterSuccess(
+          employee: event.employment,
+          message: response.message,
+          code: response.code,
+        ),
+      );
     } catch (e) {
       emit(
         RegisterError(

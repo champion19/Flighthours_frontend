@@ -65,7 +65,7 @@ class _RegisterFormState extends State<RegisterForm> {
           _confirmPasswordController.text.trim()) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Las contraseñas no coinciden'),
+            content: Text('Passwords do not match'),
             backgroundColor: Colors.red,
           ),
         );
@@ -113,8 +113,8 @@ class _RegisterFormState extends State<RegisterForm> {
 
           if (state is RegisterSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Registro exitoso'),
+              SnackBar(
+                content: Text(state.message),
                 backgroundColor: Colors.green,
               ),
             );
@@ -133,7 +133,7 @@ class _RegisterFormState extends State<RegisterForm> {
           } else if (state is RegisterError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${state.message}'),
+                content: Text(state.message),
                 backgroundColor: Colors.red,
               ),
             );
@@ -147,7 +147,7 @@ class _RegisterFormState extends State<RegisterForm> {
               TextFormField(
                 controller: _idNumberController,
                 decoration: const InputDecoration(
-                  labelText: 'Numero de identificacion',
+                  labelText: 'ID Number',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
@@ -162,7 +162,7 @@ class _RegisterFormState extends State<RegisterForm> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nombre',
+                  labelText: 'Name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
@@ -191,7 +191,7 @@ class _RegisterFormState extends State<RegisterForm> {
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: 'Contraseña',
+                  labelText: 'Password',
                   border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
@@ -216,7 +216,7 @@ class _RegisterFormState extends State<RegisterForm> {
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
-                  labelText: 'Confirmar Contraseña',
+                  labelText: 'Confirm Password',
                   border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
@@ -237,7 +237,6 @@ class _RegisterFormState extends State<RegisterForm> {
                 enabled: !isLoading,
                 validator: _validateConfirmPassword,
               ),
-              //const SizedBox(height: 290),
               const Spacer(),
               SizedBox(
                 height: 50,
@@ -261,7 +260,7 @@ class _RegisterFormState extends State<RegisterForm> {
                             ),
                           )
                           : const Text(
-                            'Continuar',
+                            'Continue',
                             style: TextStyle(fontSize: 16),
                           ),
                 ),
