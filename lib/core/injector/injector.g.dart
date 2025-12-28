@@ -30,6 +30,11 @@ class _$InjectorApp extends InjectorApp {
               c.resolve<EmailVerificationDatasource>()))
       ..registerFactory((c) =>
           EmailVerificationUseCase(c.resolve<EmailVerificationRepository>()))
-      ..registerFactory((c) => EmailVerificationDatasource());
+      ..registerFactory((c) => EmailVerificationDatasource())
+      ..registerFactory<ResetPasswordRepository>((c) =>
+          ResetPasswordRepositoryImpl(c.resolve<ResetPasswordDatasource>()))
+      ..registerFactory(
+          (c) => ResetPasswordUseCase(c.resolve<ResetPasswordRepository>()))
+      ..registerFactory((c) => ResetPasswordDatasource());
   }
 }

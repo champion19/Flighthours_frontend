@@ -4,6 +4,7 @@ import 'package:flight_hours_app/features/email_verification/presentation/bloc/e
 import 'package:flight_hours_app/features/login/presentation/pages/hello_employee_loginpage.dart';
 import 'package:flight_hours_app/features/login/presentation/pages/login_page.dart';
 import 'package:flight_hours_app/features/register/presentation/pages/email_info_page.dart';
+import 'package:flight_hours_app/features/reset_password/presentation/pages/reset_password_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -29,6 +30,7 @@ void main() {
           '/login': (context) => const LoginPage(),
           '/airlines': (context) => const AirlineListPage(),
           '/email': (context) => const VerificationPage(email: ''),
+          '/reset-password': (context) => const ResetPasswordPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),
