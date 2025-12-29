@@ -10,6 +10,7 @@ class EmployeeEntityRegister {
   final String fechaFin;
   final bool? vigente;
   final String? airline;
+  final String? role;
 
   EmployeeEntityRegister({
     required this.id,
@@ -23,6 +24,7 @@ class EmployeeEntityRegister {
     required this.fechaFin,
     this.vigente,
     this.airline,
+    this.role,
   });
 
   factory EmployeeEntityRegister.empty() {
@@ -38,6 +40,7 @@ class EmployeeEntityRegister {
       fechaFin: '',
       vigente: false,
       airline: '',
+      role: 'pilot',
     );
   }
 
@@ -53,6 +56,7 @@ class EmployeeEntityRegister {
     String? fechaFin,
     bool? vigente,
     String? airline,
+    String? role,
   }) {
     return EmployeeEntityRegister(
       id: id ?? this.id,
@@ -66,6 +70,7 @@ class EmployeeEntityRegister {
       fechaFin: fechaFin ?? this.fechaFin,
       vigente: vigente ?? this.vigente,
       airline: airline ?? this.airline,
+      role: role ?? this.role,
     );
   }
 }

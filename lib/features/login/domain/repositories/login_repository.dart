@@ -1,6 +1,6 @@
-import 'package:flight_hours_app/features/login/data/models/login_model.dart';
+import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
 
 abstract class LoginRepository {
-  Future<EmployeeModel> loginEmployee(String email, String password);
+  Future<LoginEntity> loginEmployee(String email, String password);
   Future<void> logoutEmployee();
 }

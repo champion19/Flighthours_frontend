@@ -15,28 +15,44 @@ class RegisterInitial extends RegisterState {
 }
 
 class RegisterLoading extends RegisterState {
-  const RegisterLoading({required EmployeeEntityRegister employee}) : super(employee: employee);
+  const RegisterLoading({required EmployeeEntityRegister employee})
+    : super(employee: employee);
 }
 
 class RegisterSuccess extends RegisterState {
-  const RegisterSuccess({required EmployeeEntityRegister employee}) : super(employee: employee);
+  final String message;
+  final String code;
+
+  const RegisterSuccess({
+    required EmployeeEntityRegister employee,
+    required this.message,
+    required this.code,
+  }) : super(employee: employee);
+
+  @override
+  List<Object?> get props => [employee, message, code];
 }
 
 class RegisterError extends RegisterState {
   final String message;
 
-  const RegisterError({required this.message, required EmployeeEntityRegister employee}) : super(employee: employee);
+  const RegisterError({
+    required this.message,
+    required EmployeeEntityRegister employee,
+  }) : super(employee: employee);
 
   @override
   List<Object?> get props => [message, employee];
 }
 
 class PersonalInfoCompleted extends RegisterState {
-  const PersonalInfoCompleted({required EmployeeEntityRegister employee}) : super(employee: employee);
+  const PersonalInfoCompleted({required EmployeeEntityRegister employee})
+    : super(employee: employee);
 }
 
 class PilotInfoCompleted extends RegisterState {
-  const PilotInfoCompleted({required EmployeeEntityRegister employee}) : super(employee: employee);
+  const PilotInfoCompleted({required EmployeeEntityRegister employee})
+    : super(employee: employee);
 }
 
 class RecoveryCodeSent extends RegisterState {

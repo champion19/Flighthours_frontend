@@ -17,23 +17,52 @@ class LoginPage extends StatelessWidget {
     });
   }
 
+  void _showEmailNotVerifiedDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.mail_outline, color: Colors.orange[700]),
+              const SizedBox(width: 8),
+              const Text('Email Not Verified'),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Login'), centerTitle: true),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
-          if (state is LoginError) {
+          if (state is LoginEmailNotVerified) {
+            _showEmailNotVerifiedDialog(context, state.message);
+          } else if (state is LoginError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Error de login"),
+              SnackBar(
+                content: Text(state.message),
                 backgroundColor: Colors.red,
               ),
             );
           } else if (state is LoginSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Login successful! Welcome to FlightHours.'),
+                backgroundColor: Colors.green,
+              ),
+            );
             _handleLoginSuccess(context);
           }
         },
@@ -44,9 +73,11 @@ class LoginPage extends StatelessWidget {
               Expanded(
                 child: LoginForm(
                   onSubmit: (email, password) {
-                    // Corregido: FormValidator en lugar de FormValidators
+                    // Validate email and password
                     final emailError = FormValidator.validateEmail(email);
-                    final passwordError = FormValidator.validatePassword(password);
+                    final passwordError = FormValidator.validatePassword(
+                      password,
+                    );
 
                     if (emailError != null) {
                       ScaffoldMessenger.of(context).showSnackBar(

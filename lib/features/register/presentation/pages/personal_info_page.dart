@@ -15,10 +15,8 @@ class Personalinfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Text("Información personal"),
-        Expanded( 
-          child: RegisterForm(pageController: pageController),
-        ),
+        const Text("Personal Information"),
+        Expanded(child: RegisterForm(pageController: pageController)),
         if (onSwitchToLogin != null)
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -26,7 +24,7 @@ class Personalinfo extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "Ya tienes una cuenta?",
+                  "Already have an account?",
                   style: TextStyle(fontSize: 16),
                 ),
                 TextButton(
@@ -43,4 +41,3 @@ class Personalinfo extends StatelessWidget {
     );
   }
 }
-

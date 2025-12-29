@@ -6,3 +6,10 @@ sealed class EmailVerificationEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
+class VerifyEmailEvent extends EmailVerificationEvent {
+  final String email;
+  const VerifyEmailEvent({required this.email});
+  @override
+  List<Object> get props => [email];
+}
