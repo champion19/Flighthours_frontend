@@ -35,6 +35,13 @@ class _$InjectorApp extends InjectorApp {
           ResetPasswordRepositoryImpl(c.resolve<ResetPasswordDatasource>()))
       ..registerFactory(
           (c) => ResetPasswordUseCase(c.resolve<ResetPasswordRepository>()))
-      ..registerFactory((c) => ResetPasswordDatasource());
+      ..registerFactory((c) => ResetPasswordDatasource())
+      ..registerFactory<EmployeeRepository>((c) => EmployeeRepositoryImpl())
+      ..registerFactory<EmployeeRemoteDataSource>(
+          (c) => EmployeeRemoteDataSourceImpl())
+      ..registerFactory((c) => GetEmployeeUseCase())
+      ..registerFactory((c) => UpdateEmployeeUseCase())
+      ..registerFactory((c) => ChangePasswordUseCase())
+      ..registerFactory((c) => DeleteEmployeeUseCase());
   }
 }

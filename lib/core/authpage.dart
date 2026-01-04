@@ -16,13 +16,13 @@ class _AuthPageState extends State<AuthPage> {
 
   void _switchToRegister() {
     setState(() {
-      _state = AuthPageState.login;
+      _state = AuthPageState.register;
     });
   }
 
   void _switchToLogin() {
     setState(() {
-      _state = AuthPageState.register;
+      _state = AuthPageState.login;
     });
   }
 
@@ -30,9 +30,9 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     switch (_state) {
       case AuthPageState.login:
-        return LoginPage(onSwitchToRegister: _switchToLogin);
+        return LoginPage(onSwitchToRegister: _switchToRegister);
       case AuthPageState.register:
-        return RegisterPage(onSwitchToLogin: _switchToRegister);
+        return RegisterPage(onSwitchToLogin: _switchToLogin);
     }
   }
 }

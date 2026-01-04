@@ -8,6 +8,9 @@ class LoginEntity extends Equatable {
   final int expiresIn;
   final String tokenType;
 
+  // Employee ID from the backend database
+  final String? employeeId;
+
   // User info extracted from JWT (optional, can be decoded from token)
   final String? email;
   final String? name;
@@ -18,6 +21,7 @@ class LoginEntity extends Equatable {
     required this.refreshToken,
     required this.expiresIn,
     required this.tokenType,
+    this.employeeId,
     this.email,
     this.name,
     this.roles = const [],
@@ -35,12 +39,16 @@ class LoginEntity extends Equatable {
   /// Check if the login entity has valid tokens
   bool get isValid => accessToken.isNotEmpty && refreshToken.isNotEmpty;
 
+  /// Check if we have the employee ID for API calls
+  bool get hasEmployeeId => employeeId != null && employeeId!.isNotEmpty;
+
   @override
   List<Object?> get props => [
     accessToken,
     refreshToken,
     expiresIn,
     tokenType,
+    employeeId,
     email,
     name,
     roles,

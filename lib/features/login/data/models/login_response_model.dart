@@ -42,12 +42,14 @@ class TokenData {
   final String refreshToken;
   final int expiresIn;
   final String tokenType;
+  final String? employeeId;
 
   TokenData({
     required this.accessToken,
     required this.refreshToken,
     required this.expiresIn,
     required this.tokenType,
+    this.employeeId,
   });
 
   factory TokenData.fromMap(Map<String, dynamic> json) => TokenData(
@@ -55,6 +57,7 @@ class TokenData {
     refreshToken: json["refresh_token"] ?? '',
     expiresIn: json["expires_in"] ?? 0,
     tokenType: json["token_type"] ?? 'Bearer',
+    employeeId: json["employee_id"],
   );
 
   Map<String, dynamic> toMap() => {
@@ -62,5 +65,6 @@ class TokenData {
     "refresh_token": refreshToken,
     "expires_in": expiresIn,
     "token_type": tokenType,
+    "employee_id": employeeId,
   };
 }
