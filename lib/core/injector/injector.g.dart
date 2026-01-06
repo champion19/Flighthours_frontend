@@ -21,6 +21,8 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory((c) => RegisterDatasource())
       ..registerFactory(
           (c) => ListAirlineUseCase(repository: c.resolve<AirlineRepository>()))
+      ..registerFactory((c) =>
+          GetAirlineByIdUseCase(repository: c.resolve<AirlineRepository>()))
       ..registerFactory<AirlineRepository>((c) => AirlineRepositoryImpl(
           remoteDataSource: c.resolve<AirlineRemoteDataSource>()))
       ..registerFactory<AirlineRemoteDataSource>(
@@ -35,6 +37,13 @@ class _$InjectorApp extends InjectorApp {
           ResetPasswordRepositoryImpl(c.resolve<ResetPasswordDatasource>()))
       ..registerFactory(
           (c) => ResetPasswordUseCase(c.resolve<ResetPasswordRepository>()))
-      ..registerFactory((c) => ResetPasswordDatasource());
+      ..registerFactory((c) => ResetPasswordDatasource())
+      ..registerFactory<EmployeeRepository>((c) => EmployeeRepositoryImpl())
+      ..registerFactory<EmployeeRemoteDataSource>(
+          (c) => EmployeeRemoteDataSourceImpl())
+      ..registerFactory((c) => GetEmployeeUseCase())
+      ..registerFactory((c) => UpdateEmployeeUseCase())
+      ..registerFactory((c) => ChangePasswordUseCase())
+      ..registerFactory((c) => DeleteEmployeeUseCase());
   }
 }

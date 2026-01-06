@@ -66,6 +66,7 @@ class LoginDatasource {
           refreshToken: loginResponse.data!.refreshToken,
           expiresIn: loginResponse.data!.expiresIn,
           tokenType: loginResponse.data!.tokenType,
+          employeeId: loginResponse.data!.employeeId,
           email: email,
         );
       } else {

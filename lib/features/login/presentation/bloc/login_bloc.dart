@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
+import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
 import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
 import 'package:flight_hours_app/features/login/domain/usecases/login_use_case.dart';
@@ -25,6 +26,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     try {
       final loginResult = await loginUseCase.call(event.email, event.password);
+
+      // Save session data for use throughout the app
+      // Always save the tokens, employeeId is optional since we use /employees/me
+      await SessionService().setSession(
+        employeeId: loginResult.employeeId ?? '',
+        accessToken: loginResult.accessToken,
+        refreshToken: loginResult.refreshToken,
+        email: loginResult.email,
+        name: loginResult.name,
+      );
+
       emit(LoginSuccess(loginResult));
     } on LoginException catch (e) {
       if (e.isEmailNotVerified) {

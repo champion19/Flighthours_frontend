@@ -79,6 +79,35 @@ class PilotinfoState extends State<Pilotinfo> {
     }
   }
 
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Color(0xFF6c757d)),
+      filled: true,
+      fillColor: const Color(0xFFf8f9fa),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF212529)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4facfe), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      prefixIcon: Icon(icon, color: const Color(0xFF4facfe)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<RegisterBloc, RegisterState>(
@@ -91,167 +120,210 @@ class PilotinfoState extends State<Pilotinfo> {
 
         return Column(
           children: [
-            Text("Pilot Information"),
+            const SizedBox(height: 20),
+            const Text(
+              "Pilot Information",
+              style: TextStyle(
+                color: Color(0xFF1a1a2e),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Enter your pilot details",
+              style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
+            ),
+            const SizedBox(height: 20),
             Expanded(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: _bpController,
-                      decoration: const InputDecoration(
-                        labelText: 'BP Code',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _bpController,
+                        style: const TextStyle(color: Color(0xFF1a1a2e)),
+                        decoration: _buildInputDecoration(
+                          label: 'BP Code',
+                          icon: Icons.numbers_outlined,
                         ),
-                        prefixIcon: Icon(Icons.person_outlined),
-                      ),
-                      enabled: !isLoading,
-                      textInputAction: TextInputAction.next,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'BP code is required';
-                        }
-                        if (int.tryParse(value.trim()) == null) {
-                          return 'Please enter a valid number';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      controller: _fechaInicioController,
-                      decoration: const InputDecoration(
-                        labelText: 'Start Date',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        prefixIcon: Icon(Icons.calendar_today),
-                      ),
-                      readOnly: true,
-                      onTap: () => _selectDate(context, _fechaInicioController),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Start date is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      controller: _fechaFinController,
-                      decoration: const InputDecoration(
-                        labelText: 'End Date',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.calendar_today),
-                      ),
-                      readOnly: true,
-                      onTap: () => _selectDate(context, _fechaFinController),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'End date is required';
-                        }
-                        if (_fechaInicioController.text.isNotEmpty) {
-                          final startDate = DateFormat(
-                            'yyyy-MM-dd',
-                          ).parse(_fechaInicioController.text);
-                          final endDate = DateFormat('yyyy-MM-dd').parse(value);
-                          if (endDate.isBefore(startDate)) {
-                            return 'End date cannot be before start date';
+                        enabled: !isLoading,
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'BP code is required';
                           }
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    CheckboxListTile(
-                      title: const Text('Active'),
-                      value: _vigente,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _vigente = value ?? false;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                    ),
-                    const SizedBox(height: 10.0),
-                    BlocBuilder<AirlineBloc, AirlineState>(
-                      builder: (context, state) {
-                        if (state is AirlineLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (state is AirlineSuccess) {
-                          return DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                              labelText: 'Airline',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                            ),
-                            value: _selectedAirline,
-                            hint: const Text('Select Airline'),
-                            items:
-                                state.airlines.map((airline) {
-                                  return DropdownMenuItem<String>(
-                                    value: airline.name,
-                                    child: Text(airline.name),
-                                  );
-                                }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedAirline = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Please select an airline';
-                              }
-                              return null;
-                            },
-                          );
-                        } else if (state is AirlineError) {
-                          return Text(state.message);
-                        } else {
-                          return const Text('No airlines found');
-                        }
-                      },
-                    ),
-                    const Spacer(),
-                    SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed:
-                            isLoading || currentEmployee == null
-                                ? null
-                                : () => _submit(context, currentEmployee!),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          if (int.tryParse(value.trim()) == null) {
+                            return 'Please enter a valid number';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _fechaInicioController,
+                        style: const TextStyle(color: Color(0xFF1a1a2e)),
+                        decoration: _buildInputDecoration(
+                          label: 'Start Date',
+                          icon: Icons.calendar_today,
                         ),
-                        child:
-                            isLoading
-                                ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                        readOnly: true,
+                        onTap:
+                            () => _selectDate(context, _fechaInicioController),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Start date is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _fechaFinController,
+                        style: const TextStyle(color: Color(0xFF1a1a2e)),
+                        decoration: _buildInputDecoration(
+                          label: 'End Date',
+                          icon: Icons.event_outlined,
+                        ),
+                        readOnly: true,
+                        onTap: () => _selectDate(context, _fechaFinController),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'End date is required';
+                          }
+                          if (_fechaInicioController.text.isNotEmpty) {
+                            final startDate = DateFormat(
+                              'yyyy-MM-dd',
+                            ).parse(_fechaInicioController.text);
+                            final endDate = DateFormat(
+                              'yyyy-MM-dd',
+                            ).parse(value);
+                            if (endDate.isBefore(startDate)) {
+                              return 'End date cannot be before start date';
+                            }
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFf8f9fa),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF212529)),
+                        ),
+                        child: CheckboxListTile(
+                          title: const Text(
+                            'Active',
+                            style: TextStyle(color: Color(0xFF1a1a2e)),
+                          ),
+                          value: _vigente,
+                          activeColor: const Color(0xFF4facfe),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _vigente = value ?? false;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      BlocBuilder<AirlineBloc, AirlineState>(
+                        builder: (context, state) {
+                          if (state is AirlineLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF4facfe),
+                              ),
+                            );
+                          } else if (state is AirlineSuccess) {
+                            return DropdownButtonFormField<String>(
+                              decoration: _buildInputDecoration(
+                                label: 'Airline',
+                                icon: Icons.flight,
+                              ),
+                              dropdownColor: Colors.white,
+                              style: const TextStyle(color: Color(0xFF1a1a2e)),
+                              value: _selectedAirline,
+                              hint: const Text(
+                                'Select Airline',
+                                style: TextStyle(color: Color(0xFF6c757d)),
+                              ),
+                              items:
+                                  state.airlines.map((airline) {
+                                    return DropdownMenuItem<String>(
+                                      value: airline.name,
+                                      child: Text(airline.name),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedAirline = value;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Please select an airline';
+                                }
+                                return null;
+                              },
+                            );
+                          } else if (state is AirlineError) {
+                            return Text(
+                              state.message,
+                              style: const TextStyle(color: Colors.redAccent),
+                            );
+                          } else {
+                            return const Text(
+                              'No airlines found',
+                              style: TextStyle(color: Color(0xFF6c757d)),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed:
+                              isLoading || currentEmployee == null
+                                  ? null
+                                  : () => _submit(context, currentEmployee!),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4facfe),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child:
+                              isLoading
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                  : const Text(
+                                    'Continue',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                )
-                                : const Text(
-                                  'Continue',
-                                  style: TextStyle(fontSize: 16),
-                                ),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -263,7 +335,7 @@ class PilotinfoState extends State<Pilotinfo> {
                   children: [
                     const Text(
                       "Already have an account?",
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF6c757d)),
                     ),
                     TextButton(
                       onPressed: widget.onSwitchToLogin,
@@ -272,6 +344,7 @@ class PilotinfoState extends State<Pilotinfo> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF4facfe),
                         ),
                       ),
                     ),

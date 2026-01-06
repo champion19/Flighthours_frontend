@@ -95,6 +95,37 @@ class _RegisterFormState extends State<RegisterForm> {
     }
   }
 
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Color(0xFF6c757d)),
+      filled: true,
+      fillColor: const Color(0xFFf8f9fa),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF212529)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4facfe), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      prefixIcon: Icon(icon, color: const Color(0xFF4facfe)),
+      suffixIcon: suffixIcon,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -115,7 +146,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.green,
+                backgroundColor: const Color(0xFF00b894),
               ),
             );
             Navigator.push(
@@ -134,138 +165,140 @@ class _RegisterFormState extends State<RegisterForm> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.redAccent,
               ),
             );
           }
         },
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _idNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'ID Number',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _idNumberController,
+                  style: const TextStyle(color: Color(0xFF1a1a2e)),
+                  decoration: _buildInputDecoration(
+                    label: 'ID Number',
+                    icon: Icons.badge_outlined,
                   ),
-                  prefixIcon: Icon(Icons.badge_outlined),
+                  keyboardType: TextInputType.number,
+                  enabled: !isLoading,
+                  textInputAction: TextInputAction.next,
+                  validator: _validateIdentity,
                 ),
-                keyboardType: TextInputType.number,
-                enabled: !isLoading,
-                textInputAction: TextInputAction.next,
-                validator: _validateIdentity,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _nameController,
+                  style: const TextStyle(color: Color(0xFF1a1a2e)),
+                  decoration: _buildInputDecoration(
+                    label: 'Name',
+                    icon: Icons.person_outlined,
                   ),
-                  prefixIcon: Icon(Icons.person_outlined),
+                  enabled: !isLoading,
+                  textInputAction: TextInputAction.next,
+                  validator: _validateName,
                 ),
-                enabled: !isLoading,
-                textInputAction: TextInputAction.next,
-                validator: _validateName,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Color(0xFF1a1a2e)),
+                  decoration: _buildInputDecoration(
+                    label: 'Email',
+                    icon: Icons.email_outlined,
                   ),
-                  prefixIcon: Icon(Icons.email_outlined),
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !isLoading,
+                  textInputAction: TextInputAction.next,
+                  validator: _validateEmail,
                 ),
-                keyboardType: TextInputType.emailAddress,
-                enabled: !isLoading,
-                textInputAction: TextInputAction.next,
-                validator: _validateEmail,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                ),
-                obscureText: _obscurePassword,
-                enabled: !isLoading,
-                validator: _validatePassword,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
-                  ),
-                ),
-                obscureText: _obscureConfirmPassword,
-                enabled: !isLoading,
-                validator: _validateConfirmPassword,
-              ),
-              const Spacer(),
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _passwordController,
+                  style: const TextStyle(color: Color(0xFF1a1a2e)),
+                  decoration: _buildInputDecoration(
+                    label: 'Password',
+                    icon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: const Color(0xFF6c757d),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                   ),
-                  child:
-                      isLoading
-                          ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                  obscureText: _obscurePassword,
+                  enabled: !isLoading,
+                  validator: _validatePassword,
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  style: const TextStyle(color: Color(0xFF1a1a2e)),
+                  decoration: _buildInputDecoration(
+                    label: 'Confirm Password',
+                    icon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: const Color(0xFF6c757d),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscureConfirmPassword,
+                  enabled: !isLoading,
+                  validator: _validateConfirmPassword,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4facfe),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          )
-                          : const Text(
-                            'Continue',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

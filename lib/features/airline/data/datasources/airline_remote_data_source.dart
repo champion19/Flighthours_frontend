@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'package:flight_hours_app/core/config/config.dart';
-
 import 'package:flight_hours_app/features/airline/data/models/airline_model.dart';
 import 'package:http/http.dart' as http;
 
 abstract class AirlineRemoteDataSource {
   Future<List<AirlineModel>> getAirlines();
+  Future<AirlineModel?> getAirlineById(String id);
 }
 
 class AirlineRemoteDataSourceImpl implements AirlineRemoteDataSource {
@@ -19,6 +20,37 @@ class AirlineRemoteDataSourceImpl implements AirlineRemoteDataSource {
       return airlineModelFromMap(response.body);
     } else {
       throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  @override
+  Future<AirlineModel?> getAirlineById(String id) async {
+    final response = await http.get(
+      Uri.parse("${Config.baseUrl}/airlines/$id"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      // Handle wrapped response: {success: true, data: {airline: {...}}}
+      if (decoded is Map<String, dynamic>) {
+        if (decoded.containsKey('data')) {
+          final data = decoded['data'];
+          if (data is Map<String, dynamic>) {
+            // Check for 'airline' key
+            if (data.containsKey('airline')) {
+              return AirlineModel.fromJson(
+                data['airline'] as Map<String, dynamic>,
+              );
+            }
+            // Or data itself is the airline
+            return AirlineModel.fromJson(data);
+          }
+        }
+      }
+      return null;
+    } else {
+      return null; // Return null if not found
     }
   }
 }
