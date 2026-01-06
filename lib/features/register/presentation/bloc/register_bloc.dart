@@ -26,30 +26,41 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     on<PasswordResetSubmitted>(
       (event, emit) => _onPasswordResetSubmitted(event, emit),
     );
-    on<StartVerification>(
-      (event, emit) => _onStartVerification(event, emit),
-    );
+    on<StartVerification>((event, emit) => _onStartVerification(event, emit));
   }
 
   Future<void> _onStartVerification(
     StartVerification event,
     Emitter<RegisterState> emit,
-  ) async {
-    // Your logic here
-  }
+  ) async {}
 
   Future<void> _onRegisterSubmitted(
     RegisterSubmitted event,
     Emitter<RegisterState> emit,
     RegisterUseCase registerUseCase,
   ) async {
-    emit(RegisterLoading(employee: state.employee ?? EmployeeEntityRegister.empty()));
+    emit(
+      RegisterLoading(
+        employee: state.employee ?? EmployeeEntityRegister.empty(),
+      ),
+    );
 
     try {
-      final registeremployee = await registerUseCase.call(event.employment);
-      emit(RegisterSuccess(employee: registeremployee));
+      final response = await registerUseCase.call(event.employment);
+      emit(
+        RegisterSuccess(
+          employee: event.employment,
+          message: response.message,
+          code: response.code,
+        ),
+      );
     } catch (e) {
-      emit(RegisterError(message: e.toString(), employee: state.employee ?? EmployeeEntityRegister.empty()));
+      emit(
+        RegisterError(
+          message: e.toString(),
+          employee: state.employee ?? EmployeeEntityRegister.empty(),
+        ),
+      );
     }
   }
 
@@ -60,7 +71,12 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     try {
       emit(PersonalInfoCompleted(employee: event.employment));
     } catch (e) {
-      emit(RegisterError(message: e.toString(), employee: state.employee ?? EmployeeEntityRegister.empty()));
+      emit(
+        RegisterError(
+          message: e.toString(),
+          employee: state.employee ?? EmployeeEntityRegister.empty(),
+        ),
+      );
     }
   }
 
@@ -68,13 +84,14 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     EnterPilotInformation event,
     Emitter<RegisterState> emit,
   ) async {
-    final updatedEmployee = (state.employee ?? EmployeeEntityRegister.empty()).copyWith(
-      bp: event.employment.bp,
-      fechaInicio: event.employment.fechaInicio,
-      fechaFin: event.employment.fechaFin,
-      vigente: event.employment.vigente,
-      airline: event.employment.airline,
-    );
+    final updatedEmployee = (state.employee ?? EmployeeEntityRegister.empty())
+        .copyWith(
+          bp: event.employment.bp,
+          fechaInicio: event.employment.fechaInicio,
+          fechaFin: event.employment.fechaFin,
+          vigente: event.employment.vigente,
+          airline: event.employment.airline,
+        );
     emit(PilotInfoCompleted(employee: updatedEmployee));
   }
 
@@ -82,7 +99,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     ForgotPasswordRequested event,
     Emitter<RegisterState> emit,
   ) async {
-    emit(RegisterLoading(employee: state.employee ?? EmployeeEntityRegister.empty()));
+    emit(
+      RegisterLoading(
+        employee: state.employee ?? EmployeeEntityRegister.empty(),
+      ),
+    );
     try {
       // Simulación de envío de código
       await Future.delayed(const Duration(seconds: 1));
@@ -97,7 +118,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     VerificationCodeSubmitted event,
     Emitter<RegisterState> emit,
   ) async {
-    emit(RegisterLoading(employee: state.employee ?? EmployeeEntityRegister.empty()));
+    emit(
+      RegisterLoading(
+        employee: state.employee ?? EmployeeEntityRegister.empty(),
+      ),
+    );
     try {
       // Simulación de verificación de código
       await Future.delayed(const Duration(seconds: 1));
@@ -115,7 +140,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     PasswordResetSubmitted event,
     Emitter<RegisterState> emit,
   ) async {
-    emit(RegisterLoading(employee: state.employee ?? EmployeeEntityRegister.empty()));
+    emit(
+      RegisterLoading(
+        employee: state.employee ?? EmployeeEntityRegister.empty(),
+      ),
+    );
     try {
       // Simulación de reseteo de contraseña
       await Future.delayed(const Duration(seconds: 1));

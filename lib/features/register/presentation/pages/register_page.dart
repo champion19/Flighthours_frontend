@@ -42,7 +42,20 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro'), centerTitle: true),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Register',
+          style: TextStyle(
+            color: Color(0xFF1a1a2e),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF1a1a2e)),
+      ),
       body: BlocListener<RegisterBloc, RegisterState>(
         listener: (context, state) {
           if (state is PersonalInfoCompleted) {
@@ -60,21 +73,26 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           }
         },
-        child: PageView(
-          controller: pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            Personalinfo(
-              onSwitchToLogin: widget.onSwitchToLogin,
-              pageController: pageController,
-            ),
-            Pilotinfo(
-              pageController: pageController,
-              onSwitchToLogin: widget.onSwitchToLogin,
-            ),
-            VerificationPage(email: "",),
+        child: BlocBuilder<RegisterBloc, RegisterState>(
+          builder: (context, state) {
+            final email = state.employee?.email ?? '';
 
-          ],
+            return PageView(
+              controller: pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                Personalinfo(
+                  onSwitchToLogin: widget.onSwitchToLogin,
+                  pageController: pageController,
+                ),
+                Pilotinfo(
+                  pageController: pageController,
+                  onSwitchToLogin: widget.onSwitchToLogin,
+                ),
+                VerificationPage(email: email),
+              ],
+            );
+          },
         ),
       ),
     );

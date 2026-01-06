@@ -1,4 +1,4 @@
-import 'package:flight_hours_app/core/validator/validation_messages.dart';
+import 'package:flight_hours_app/core/constants/validation_messages.dart';
 
 class ErrorMessageMapper {
   /// Mapea errores del servidor/backend a mensajes localizados

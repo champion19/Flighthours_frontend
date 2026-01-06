@@ -1,5 +1,4 @@
-
-import 'package:flight_hours_app/features/login/domain/entities/EmployeeEntity.dart';
+import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
 import 'package:flight_hours_app/features/login/domain/repositories/login_repository.dart';
 
 class LoginUseCase {
@@ -7,8 +6,7 @@ class LoginUseCase {
 
   LoginUseCase(this.loginRepository);
 
-
-  Future<EmployeeEntity> call(String email, String password) async {
+  Future<LoginEntity> call(String email, String password) async {
     return await loginRepository.loginEmployee(email, password);
   }
 }
