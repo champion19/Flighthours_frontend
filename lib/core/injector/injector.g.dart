@@ -27,6 +27,18 @@ class _$InjectorApp extends InjectorApp {
           remoteDataSource: c.resolve<AirlineRemoteDataSource>()))
       ..registerFactory<AirlineRemoteDataSource>(
           (c) => AirlineRemoteDataSourceImpl())
+      ..registerFactory(
+          (c) => ListAirportUseCase(repository: c.resolve<AirportRepository>()))
+      ..registerFactory((c) =>
+          GetAirportByIdUseCase(repository: c.resolve<AirportRepository>()))
+      ..registerFactory((c) =>
+          ActivateAirportUseCase(repository: c.resolve<AirportRepository>()))
+      ..registerFactory((c) =>
+          DeactivateAirportUseCase(repository: c.resolve<AirportRepository>()))
+      ..registerFactory<AirportRepository>((c) => AirportRepositoryImpl(
+          remoteDataSource: c.resolve<AirportRemoteDataSource>()))
+      ..registerFactory<AirportRemoteDataSource>(
+          (c) => AirportRemoteDataSourceImpl())
       ..registerFactory<EmailVerificationRepository>((c) =>
           EmailVerificationRepositoryImpl(
               c.resolve<EmailVerificationDatasource>()))
