@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/features/airline/domain/entities/airline_entity.dart';
 
@@ -20,6 +19,15 @@ class AirlineSuccess extends AirlineState {
 
   @override
   List<Object> get props => [airlines];
+}
+
+class AirlineDetailSuccess extends AirlineState {
+  final AirlineEntity airline;
+
+  const AirlineDetailSuccess(this.airline);
+
+  @override
+  List<Object> get props => [airline];
 }
 
 class AirlineError extends AirlineState {

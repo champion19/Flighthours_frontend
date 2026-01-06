@@ -1,4 +1,3 @@
-
 import 'package:flight_hours_app/features/airline/data/datasources/airline_remote_data_source.dart';
 import 'package:flight_hours_app/features/airline/domain/entities/airline_entity.dart';
 import 'package:flight_hours_app/features/airline/domain/repositories/airline_repository.dart';
@@ -11,5 +10,10 @@ class AirlineRepositoryImpl implements AirlineRepository {
   @override
   Future<List<AirlineEntity>> getAirlines() async {
     return await remoteDataSource.getAirlines();
+  }
+
+  @override
+  Future<AirlineEntity?> getAirlineById(String id) async {
+    return await remoteDataSource.getAirlineById(id);
   }
 }

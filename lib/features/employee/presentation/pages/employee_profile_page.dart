@@ -1,4 +1,9 @@
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/features/airline/domain/entities/airline_entity.dart';
+import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
+import 'package:flight_hours_app/features/airline/presentation/bloc/airline_event.dart';
+import 'package:flight_hours_app/features/airline/presentation/bloc/airline_state.dart';
+import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
@@ -21,28 +26,30 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
 
   // Form controllers
   late TextEditingController _nameController;
-  late TextEditingController _airlineController;
   late TextEditingController _identificationController;
   late TextEditingController _bpController;
-  late TextEditingController _roleController;
+  // Role is always 'pilot' - no controller needed
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isActive = true;
 
-  // Original data for airline ID
+  // Airline data
   String? _airlineId;
+  AirlineEntity? _selectedAirline;
+  List<AirlineEntity> _airlines = [];
   EmployeeData? _currentData;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _airlineController = TextEditingController();
     _identificationController = TextEditingController();
     _bpController = TextEditingController();
-    _roleController = TextEditingController();
+    // Role is fixed to 'pilot'
 
-    // Load current employee data
+    // Load current employee data only
+    // GET /airlines/:id will be called after employee loads (if airline exists)
+    // GET /airlines will only be called when user opens AirlineSelectionPage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EmployeeBloc>().add(LoadCurrentEmployee());
     });
@@ -51,10 +58,9 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _airlineController.dispose();
     _identificationController.dispose();
     _bpController.dispose();
-    _roleController.dispose();
+    // No role controller to dispose
     super.dispose();
   }
 
@@ -62,13 +68,34 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
     _currentData = data;
     _nameController.text = data.name;
     _airlineId = data.airline;
-    _airlineController.text = data.airline ?? '';
     _identificationController.text = data.identificationNumber ?? '';
     _bpController.text = data.bp ?? '';
-    _roleController.text = data.role ?? '';
+    // Try to find the airline in local list (if available)
+    _updateSelectedAirline();
+    // Role is always 'pilot'
     _startDate = data.startDate;
     _endDate = data.endDate;
     _isActive = data.active;
+  }
+
+  void _updateSelectedAirline() {
+    if (_airlineId != null && _airlines.isNotEmpty) {
+      // Try to find by obfuscated id OR by uuid (from database)
+      _selectedAirline = _airlines.firstWhere(
+        (a) => a.id == _airlineId || a.uuid == _airlineId,
+        orElse: () => AirlineEntity(id: _airlineId!, name: _airlineId!),
+      );
+    }
+  }
+
+  String _getAirlineDisplayName() {
+    if (_selectedAirline != null) {
+      return _selectedAirline!.name;
+    }
+    if (_airlineId != null && _airlineId!.isNotEmpty) {
+      return _airlineId!; // Fallback to show ID if airline not found
+    }
+    return 'Select an airline';
   }
 
   void _toggleEdit() {
@@ -103,7 +130,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       endDate:
           _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : '',
       active: _isActive,
-      role: _roleController.text.trim().toLowerCase(),
+      role: 'pilot', // Fixed role for all employees
     );
 
     context.read<EmployeeBloc>().add(UpdateEmployee(request: request));
@@ -123,11 +150,11 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF667eea),
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4facfe),
               onPrimary: Colors.white,
-              surface: Color(0xFF1a1a2e),
-              onSurface: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1a1a2e),
             ),
           ),
           child: child!,
@@ -156,10 +183,9 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1a1a2e),
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Colors.redAccent, width: 1),
           ),
           title: Row(
             children: [
@@ -179,7 +205,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               const Text(
                 'Delete Account',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF1a1a2e),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -192,12 +218,12 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
             children: [
               Text(
                 'Are you sure you want to delete your account?',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Color(0xFF1a1a2e), fontSize: 16),
               ),
               SizedBox(height: 12),
               Text(
                 'This action cannot be undone. All your data will be permanently removed from the system.',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
               ),
             ],
           ),
@@ -206,7 +232,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text(
                 'Cancel',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Color(0xFF6c757d)),
               ),
             ),
             ElevatedButton(
@@ -232,64 +258,83 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
-          ),
-        ),
+        decoration: const BoxDecoration(color: Colors.white),
         child: SafeArea(
-          child: BlocConsumer<EmployeeBloc, EmployeeState>(
-            listener: (context, state) async {
-              if (state is EmployeeDetailSuccess) {
-                _populateForm(state.response.data!);
-              } else if (state is EmployeeUpdateSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.response.message),
-                    backgroundColor: const Color(0xFF00b894),
-                  ),
-                );
+          child: BlocListener<AirlineBloc, AirlineState>(
+            listener: (context, airlineState) {
+              if (airlineState is AirlineSuccess) {
                 setState(() {
-                  _isEditing = false;
+                  _airlines = airlineState.airlines;
+                  _updateSelectedAirline();
                 });
-                // Reload the data
-                context.read<EmployeeBloc>().add(LoadCurrentEmployee());
-              } else if (state is EmployeeDeleteSuccess) {
-                // Clear session and navigate to login
-                await SessionService().clearSession();
-                if (context.mounted) {
+              } else if (airlineState is AirlineDetailSuccess) {
+                // Got airline details by ID
+                setState(() {
+                  _selectedAirline = airlineState.airline;
+                });
+              }
+            },
+            child: BlocConsumer<EmployeeBloc, EmployeeState>(
+              listener: (context, state) async {
+                if (state is EmployeeDetailSuccess) {
+                  _populateForm(state.response.data!);
+                  // After loading employee data, fetch airline name if needed
+                  final airlineId = state.response.data!.airline;
+                  if (airlineId != null && airlineId.isNotEmpty) {
+                    // Fetch airline by ID to get the name
+                    context.read<AirlineBloc>().add(
+                      FetchAirlineById(airlineId: airlineId),
+                    );
+                  }
+                } else if (state is EmployeeUpdateSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.response.message),
                       backgroundColor: const Color(0xFF00b894),
                     ),
                   );
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/',
-                    (route) => false,
+                  setState(() {
+                    _isEditing = false;
+                  });
+                  // Reload the data - this will trigger EmployeeDetailSuccess
+                  // which will then call FetchAirlineById to get the airline name
+                  context.read<EmployeeBloc>().add(LoadCurrentEmployee());
+                } else if (state is EmployeeDeleteSuccess) {
+                  // Clear session and navigate to login
+                  await SessionService().clearSession();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.response.message),
+                        backgroundColor: const Color(0xFF00b894),
+                      ),
+                    );
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/',
+                      (route) => false,
+                    );
+                  }
+                } else if (state is EmployeeError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.redAccent,
+                    ),
                   );
                 }
-              } else if (state is EmployeeError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.redAccent,
-                  ),
+              },
+              builder: (context, state) {
+                return Column(
+                  children: [
+                    _buildHeader(state),
+                    Expanded(child: _buildContent(state)),
+                  ],
                 );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  _buildHeader(state),
-                  Expanded(child: _buildContent(state)),
-                ],
-              );
-            },
+              },
+            ),
           ),
         ),
       ),
@@ -299,15 +344,28 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   Widget _buildHeader(EmployeeState state) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Color(0xFF4facfe),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -319,14 +377,14 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                 Text(
                   'My Profile',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF1a1a2e),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   'View and edit your information',
-                  style: TextStyle(color: Colors.white60, fontSize: 14),
+                  style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
                 ),
               ],
             ),
@@ -334,11 +392,11 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
           if (state is EmployeeDetailSuccess && !_isEditing)
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF667eea).withValues(alpha: 0.2),
+                color: const Color(0xFF4facfe).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                icon: const Icon(Icons.edit, color: Color(0xFF667eea)),
+                icon: const Icon(Icons.edit, color: Color(0xFF4facfe)),
                 onPressed: _toggleEdit,
                 tooltip: 'Edit Profile',
               ),
@@ -351,7 +409,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   Widget _buildContent(EmployeeState state) {
     if (state is EmployeeLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF667eea)),
+        child: CircularProgressIndicator(color: Color(0xFF4facfe)),
       );
     }
 
@@ -379,7 +437,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667eea),
+                backgroundColor: const Color(0xFF4facfe),
                 foregroundColor: Colors.white,
               ),
             ),
@@ -455,7 +513,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               const SizedBox(height: 16),
               const Text(
                 'Once you delete your account, there is no going back. Please be certain.',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: Color(0xFF666666), fontSize: 14),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -495,18 +553,16 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF667eea).withValues(alpha: 0.3),
-            const Color(0xFF764ba2).withValues(alpha: 0.2),
-          ],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFF667eea).withValues(alpha: 0.3),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFF212529), width: 1),
       ),
       child: Row(
         children: [
@@ -515,7 +571,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
             height: 80,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
               ),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -555,7 +611,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                         ? _nameController.text
                         : 'Loading...',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1a1a2e),
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -569,18 +625,27 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF667eea).withValues(alpha: 0.2),
+                        color: const Color(0xFF4facfe).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        _roleController.text.isNotEmpty
-                            ? _roleController.text.toUpperCase()
-                            : 'N/A',
-                        style: const TextStyle(
-                          color: Color(0xFF667eea),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.flight_takeoff,
+                            color: Color(0xFF4facfe),
+                            size: 14,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'PILOT',
+                            style: TextStyle(
+                              color: Color(0xFF4facfe),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -639,22 +704,21 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFF212529), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Information'),
-          const SizedBox(height: 20),
           if (_isEditing) ...[
-            _buildTextField(
-              controller: _roleController,
-              label: 'Role',
-              icon: Icons.work_outline,
-            ),
-            const SizedBox(height: 16),
             _buildTextField(
               controller: _identificationController,
               label: 'Identification Number',
@@ -667,23 +731,8 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               icon: Icons.numbers_outlined,
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              controller: _airlineController,
-              label: 'Airline ID',
-              icon: Icons.flight,
-              onChanged: (value) {
-                _airlineId = value;
-              },
-            ),
+            _buildAirlineDropdown(),
           ] else ...[
-            _buildInfoRow(
-              'Role',
-              _roleController.text.isNotEmpty
-                  ? _roleController.text.toUpperCase()
-                  : 'Not specified',
-              Icons.work_outline,
-            ),
-            const Divider(color: Colors.white12, height: 24),
             _buildInfoRow(
               'Identification',
               _identificationController.text.isNotEmpty
@@ -691,7 +740,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                   : 'Not specified',
               Icons.credit_card_outlined,
             ),
-            const Divider(color: Colors.white12, height: 24),
+            const SizedBox(height: 16),
             _buildInfoRow(
               'BP Number',
               _bpController.text.isNotEmpty
@@ -699,14 +748,8 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                   : 'Not specified',
               Icons.numbers_outlined,
             ),
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(
-              'Airline',
-              _airlineController.text.isNotEmpty
-                  ? _airlineController.text
-                  : 'Not specified',
-              Icons.flight,
-            ),
+            const SizedBox(height: 16),
+            _buildInfoRow('Airline', _getAirlineDisplayName(), Icons.flight),
           ],
         ],
       ),
@@ -717,15 +760,20 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFF212529), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Contract Period'),
-          const SizedBox(height: 20),
           if (_isEditing) ...[
             _buildDatePicker('Start Date', _startDate, true),
             const SizedBox(height: 16),
@@ -736,7 +784,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               _formatDate(_startDate),
               Icons.calendar_today_outlined,
             ),
-            const Divider(color: Colors.white12, height: 24),
+            const SizedBox(height: 16),
             _buildInfoRow(
               'End Date',
               _formatDate(_endDate),
@@ -754,9 +802,9 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: const Color(0xFFf8f9fa),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: const Color(0xFF212529)),
         ),
         child: Row(
           children: [
@@ -764,7 +812,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               isStartDate
                   ? Icons.calendar_today_outlined
                   : Icons.event_outlined,
-              color: const Color(0xFF667eea),
+              color: const Color(0xFF4facfe),
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -774,13 +822,16 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    style: const TextStyle(
+                      color: Color(0xFF6c757d),
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatDate(date),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1a1a2e),
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -788,7 +839,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                 ],
               ),
             ),
-            const Icon(Icons.edit_calendar, color: Colors.white38, size: 20),
+            const Icon(Icons.edit_calendar, color: Color(0xFF4facfe), size: 20),
           ],
         ),
       ),
@@ -802,7 +853,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
           width: 3,
           height: 16,
           decoration: BoxDecoration(
-            color: const Color(0xFF667eea),
+            color: const Color(0xFF4facfe),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -810,7 +861,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Color(0xFF6c757d),
             fontSize: 14,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -821,32 +872,29 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   }
 
   Widget _buildInfoRow(String label, String value, IconData icon) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildSectionTitle(label),
+        const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF667eea).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xFFf8f9fa),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF212529)),
           ),
-          child: Icon(icon, color: const Color(0xFF667eea), size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+              Icon(icon, color: const Color(0xFF4facfe), size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    color: Color(0xFF1a1a2e),
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ],
@@ -865,26 +913,26 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Color(0xFF1a1a2e)),
       validator: validator,
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white60),
-        prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
+        labelStyle: const TextStyle(color: Color(0xFF6c757d)),
+        prefixIcon: Icon(icon, color: const Color(0xFF4facfe)),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: const Color(0xFFf8f9fa),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: const BorderSide(color: Color(0xFF212529)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF4facfe), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -892,6 +940,82 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
         ),
       ),
     );
+  }
+
+  Widget _buildAirlineDropdown() {
+    return GestureDetector(
+      onTap: _openAirlineSelection,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFf8f9fa),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF212529)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.flight, color: Color(0xFF4facfe)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Airline',
+                    style: TextStyle(color: Color(0xFF6c757d), fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getAirlineDisplayName(),
+                    style: TextStyle(
+                      color:
+                          _selectedAirline != null
+                              ? const Color(0xFF1a1a2e)
+                              : const Color(0xFF6c757d),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios,
+                color: Color(0xFF4facfe),
+                size: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAirlineSelection() async {
+    final result = await Navigator.push<AirlineEntity>(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AirlineSelectionPage(currentAirlineId: _airlineId),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedAirline = result;
+        _airlineId = result.id;
+        // Update the airlines list if not already there
+        if (!_airlines.any((a) => a.id == result.id)) {
+          _airlines.add(result);
+        }
+      });
+    }
   }
 
   Widget _buildActionButtons() {
@@ -921,7 +1045,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               child: ElevatedButton(
                 onPressed: isUpdating ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF667eea),
+                  backgroundColor: const Color(0xFF4facfe),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

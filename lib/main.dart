@@ -1,5 +1,6 @@
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_list_page.dart';
+import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
 import 'package:flight_hours_app/features/email_verification/presentation/bloc/email_verification_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/pages/change_password_page.dart';
@@ -39,6 +40,7 @@ void main() async {
           '/home': (context) => const HelloEmployee(),
           '/login': (context) => const LoginPage(),
           '/airlines': (context) => const AirlineListPage(),
+          '/airline-selection': (context) => const AirlineSelectionPage(),
           '/email': (context) => const VerificationPage(email: ''),
           '/reset-password': (context) => const ResetPasswordPage(),
           '/employee-profile': (context) => const EmployeeProfilePage(),

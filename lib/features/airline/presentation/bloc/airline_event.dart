@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 abstract class AirlineEvent extends Equatable {
@@ -9,3 +8,12 @@ abstract class AirlineEvent extends Equatable {
 }
 
 class FetchAirlines extends AirlineEvent {}
+
+class FetchAirlineById extends AirlineEvent {
+  final String airlineId;
+
+  const FetchAirlineById({required this.airlineId});
+
+  @override
+  List<Object> get props => [airlineId];
+}

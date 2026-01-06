@@ -7,118 +7,267 @@ class HelloEmployee extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildWelcomeCard(),
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Airline Management'),
-                      const SizedBox(height: 12),
-                      _buildMenuCard(
-                        context,
-                        icon: Icons.search,
-                        title: 'Search Airline',
-                        subtitle: 'Find airline information by ID',
-                        gradientColors: [
-                          const Color(0xFF4facfe),
-                          const Color(0xFF00f2fe),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildSimpleHeader(context),
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo grande central
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                        ),
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF4facfe,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 30,
+                            offset: const Offset(0, 15),
+                          ),
                         ],
-                        onTap:
-                            () =>
-                                Navigator.pushNamed(context, '/airline-search'),
                       ),
-                      const SizedBox(height: 12),
-                      _buildMenuCard(
-                        context,
-                        icon: Icons.toggle_on,
-                        title: 'Airline Status',
-                        subtitle: 'Activate or deactivate airlines',
-                        gradientColors: [
-                          const Color(0xFFf093fb),
-                          const Color(0xFFf5576c),
-                        ],
-                        onTap:
-                            () =>
-                                Navigator.pushNamed(context, '/airline-status'),
+                      child: const Icon(
+                        Icons.flight_takeoff,
+                        color: Colors.white,
+                        size: 64,
                       ),
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('My Account'),
-                      const SizedBox(height: 12),
-                      _buildMenuCard(
-                        context,
-                        icon: Icons.person,
-                        title: 'My Profile',
-                        subtitle: 'View and edit your information',
-                        gradientColors: [
-                          const Color(0xFF667eea),
-                          const Color(0xFF764ba2),
-                        ],
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              '/employee-profile',
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Flight Hours',
+                      style: TextStyle(
+                        color: Color(0xFF1a1a2e),
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Pilot Management System',
+                      style: TextStyle(color: Color(0xFF6c757d), fontSize: 16),
+                    ),
+                    const SizedBox(height: 48),
+                    // Indicador de bienvenida
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFf8f9fa),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF212529)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF4facfe),
+                            size: 20,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Welcome, Pilot!',
+                            style: TextStyle(
+                              color: Color(0xFF1a1a2e),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMenuCard(
-                        context,
-                        icon: Icons.lock_reset,
-                        title: 'Change Password',
-                        subtitle: 'Update your account security',
-                        gradientColors: [
-                          const Color(0xFFf093fb),
-                          const Color(0xFFf5576c),
+                          ),
                         ],
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              '/change-password',
-                            ),
                       ),
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Other Modules'),
-                      const SizedBox(height: 12),
-                      _buildMenuCard(
-                        context,
-                        icon: Icons.local_airport,
-                        title: 'Airport Info',
-                        subtitle: 'View airport details',
-                        gradientColors: [
-                          const Color(0xFFee0979),
-                          const Color(0xFFff6a00),
-                        ],
-                        onTap: () => Navigator.pushNamed(context, '/airport'),
-                      ),
-                      const SizedBox(height: 40),
-                      _buildLogoutButton(context),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  // Header simplificado con fondo claro
+  Widget _buildSimpleHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.flight_takeoff,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Flight Hours',
+                  style: TextStyle(
+                    color: Color(0xFF1a1a2e),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Dashboard',
+                  style: TextStyle(color: Color(0xFF6c757d), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          _buildProfileMenuLight(context),
+        ],
+      ),
+    );
+  }
+
+  // Menú de perfil con estilo claro
+  Widget _buildProfileMenuLight(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white,
+      elevation: 8,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFf8f9fa),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF212529)),
+        ),
+        child: const Icon(Icons.person, color: Color(0xFF4facfe), size: 24),
+      ),
+      itemBuilder:
+          (context) => [
+            _buildPopupMenuItemLight(
+              value: 'profile',
+              icon: Icons.person_outline,
+              title: 'My Profile',
+              subtitle: 'View and edit your info',
+              color: const Color(0xFF667eea),
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupMenuItemLight(
+              value: 'password',
+              icon: Icons.lock_outline,
+              title: 'Change Password',
+              subtitle: 'Update your security',
+              color: const Color(0xFFf5576c),
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupMenuItemLight(
+              value: 'logout',
+              icon: Icons.logout,
+              title: 'Log out',
+              subtitle: 'Sign out of your account',
+              color: const Color(0xFFe17055),
+            ),
+          ],
+      onSelected: (value) async {
+        switch (value) {
+          case 'profile':
+            Navigator.pushNamed(context, '/employee-profile');
+            break;
+          case 'password':
+            Navigator.pushNamed(context, '/change-password');
+            break;
+          case 'logout':
+            await SessionService().clearSession();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
+            break;
+        }
+      },
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupMenuItemLight({
+    required String value,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF1a1a2e),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF6c757d),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // MÉTODOS PRESERVADOS PARA USO FUTURO
+  // ============================================================
+
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
@@ -160,14 +309,7 @@ class HelloEmployee extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.person, color: Colors.white, size: 24),
-          ),
+          _buildProfileMenu(context),
         ],
       ),
     );
@@ -309,20 +451,116 @@ class HelloEmployee extends StatelessWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
-    return TextButton.icon(
-      onPressed: () async {
-        // Clear all session data
-        await SessionService().clearSession();
-        // Navigate to AuthPage (root) which shows login/register options
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+  Widget _buildProfileMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: const Color(0xFF1a1a2e),
+      elevation: 8,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.person, color: Colors.white, size: 24),
+      ),
+      itemBuilder:
+          (context) => [
+            _buildPopupMenuItem(
+              value: 'profile',
+              icon: Icons.person_outline,
+              title: 'My Profile',
+              subtitle: 'View and edit your info',
+              gradientColors: [
+                const Color(0xFF667eea),
+                const Color(0xFF764ba2),
+              ],
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupMenuItem(
+              value: 'password',
+              icon: Icons.lock_outline,
+              title: 'Change Password',
+              subtitle: 'Update your security',
+              gradientColors: [
+                const Color(0xFFf093fb),
+                const Color(0xFFf5576c),
+              ],
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupMenuItem(
+              value: 'logout',
+              icon: Icons.logout,
+              title: 'Log out',
+              subtitle: 'Sign out of your account',
+              gradientColors: [
+                const Color(0xFFe17055),
+                const Color(0xFFd63031),
+              ],
+            ),
+          ],
+      onSelected: (value) async {
+        switch (value) {
+          case 'profile':
+            Navigator.pushNamed(context, '/employee-profile');
+            break;
+          case 'password':
+            Navigator.pushNamed(context, '/change-password');
+            break;
+          case 'logout':
+            await SessionService().clearSession();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
+            break;
         }
       },
-      icon: const Icon(Icons.logout, color: Colors.white38, size: 20),
-      label: const Text(
-        'Log out',
-        style: TextStyle(color: Colors.white38, fontSize: 14),
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupMenuItem({
+    required String value,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Color> gradientColors,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: gradientColors),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

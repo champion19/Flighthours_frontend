@@ -68,60 +68,52 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
-          ),
-        ),
-        child: SafeArea(
-          child: BlocListener<EmployeeBloc, EmployeeState>(
-            listener: (context, state) {
-              if (state is PasswordChangeSuccess) {
-                _clearForm();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Password changed successfully!'),
-                    backgroundColor: Color(0xFF00b894),
-                  ),
-                );
-                Navigator.of(context).pop();
-              } else if (state is EmployeeError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
-              }
-            },
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 20),
-                          _buildInfoCard(),
-                          const SizedBox(height: 32),
-                          _buildFormCard(),
-                          const SizedBox(height: 32),
-                          _buildActionButtons(),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: BlocListener<EmployeeBloc, EmployeeState>(
+          listener: (context, state) {
+            if (state is PasswordChangeSuccess) {
+              _clearForm();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Password changed successfully!'),
+                  backgroundColor: Color(0xFF00b894),
+                ),
+              );
+              Navigator.of(context).pop();
+            } else if (state is EmployeeError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          },
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildInfoCard(),
+                        const SizedBox(height: 32),
+                        _buildFormCard(),
+                        const SizedBox(height: 32),
+                        _buildActionButtons(),
+                        const SizedBox(height: 40),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -131,15 +123,29 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFFf8f9fa),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF212529)),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Color(0xFF1a1a2e),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -151,7 +157,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 const Text(
                   'Change Password',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF1a1a2e),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -159,7 +165,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 Text(
                   'Update your account security',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: const Color(0xFF6c757d),
                     fontSize: 14,
                   ),
                 ),
@@ -169,11 +175,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFf093fb).withValues(alpha: 0.8),
-                  const Color(0xFFf5576c).withValues(alpha: 0.8),
-                ],
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -192,17 +195,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFf093fb).withValues(alpha: 0.2),
-            const Color(0xFFf5576c).withValues(alpha: 0.1),
-          ],
-        ),
+        color: const Color(0xFF4facfe).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFf093fb).withValues(alpha: 0.3),
+          color: const Color(0xFF4facfe).withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -210,12 +206,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFf093fb).withValues(alpha: 0.2),
+              color: const Color(0xFF4facfe).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.info_outline,
-              color: Color(0xFFf093fb),
+              color: Color(0xFF4facfe),
               size: 24,
             ),
           ),
@@ -227,7 +223,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 Text(
                   'Password Requirements',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF1a1a2e),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -236,7 +232,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 Text(
                   'Your new password must be at least 8 characters long.',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Color(0xFF6c757d),
                     fontSize: 13,
                     height: 1.4,
                   ),
@@ -253,9 +249,16 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: const Color(0xFF212529)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,7 +342,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           width: 3,
           height: 16,
           decoration: BoxDecoration(
-            color: const Color(0xFFf093fb),
+            color: const Color(0xFF4facfe),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -347,7 +350,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Color(0xFF6c757d),
             fontSize: 14,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -360,27 +363,27 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   Widget _buildEmailField() {
     return TextFormField(
       controller: _emailController,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Color(0xFF1a1a2e)),
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         labelText: 'Email',
-        labelStyle: const TextStyle(color: Colors.white60),
+        labelStyle: const TextStyle(color: Color(0xFF6c757d)),
         hintText: 'your@email.com',
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-        prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFFf093fb)),
+        hintStyle: const TextStyle(color: Color(0xFFadb5bd)),
+        prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF4facfe)),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: const Color(0xFFf8f9fa),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: const BorderSide(color: Color(0xFF212529)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFf093fb), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF4facfe), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -409,34 +412,34 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Color(0xFF1a1a2e)),
       obscureText: obscure,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white60),
+        labelStyle: const TextStyle(color: Color(0xFF6c757d)),
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFFf093fb)),
+        hintStyle: const TextStyle(color: Color(0xFFadb5bd)),
+        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF4facfe)),
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_off : Icons.visibility,
-            color: Colors.white38,
+            color: const Color(0xFF6c757d),
           ),
           onPressed: onToggleObscure,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: const Color(0xFFf8f9fa),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: const BorderSide(color: Color(0xFF212529)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFf093fb), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF4facfe), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -458,8 +461,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               child: OutlinedButton(
                 onPressed: isLoading ? null : () => Navigator.of(context).pop(),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white70,
-                  side: const BorderSide(color: Colors.white30),
+                  foregroundColor: const Color(0xFF6c757d),
+                  side: const BorderSide(color: Color(0xFF212529)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -474,7 +477,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               child: ElevatedButton(
                 onPressed: isLoading ? null : _submitChangePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFf093fb),
+                  backgroundColor: const Color(0xFF4facfe),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
