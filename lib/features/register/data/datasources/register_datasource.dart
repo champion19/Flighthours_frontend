@@ -40,8 +40,8 @@ class RegisterDatasource {
   Future<RegisterResponseModel> registerEmployee(
     EmployeeEntityRegister employee,
   ) async {
-    // Payload exacto que espera el backend Go
-    final payload = {
+    // Payload base con datos personales obligatorios
+    final Map<String, dynamic> payload = {
       'name': employee.name,
       'email': employee.email,
       'password': employee.password,
@@ -51,6 +51,17 @@ class RegisterDatasource {
       'end_date': _formatDate(employee.fechaFin), // formato YYYY-MM-DD
       'role': employee.role ?? 'pilot', // rol por defecto: pilot
     };
+
+    // Solo agregar campos opcionales si tienen valor (backend no acepta strings vacíos)
+    if (employee.bp != null && employee.bp!.isNotEmpty) {
+      payload['bp'] = employee.bp;
+    }
+    if (employee.airline != null && employee.airline!.isNotEmpty) {
+      payload['airline'] = employee.airline;
+    }
+    if (employee.vigente != null) {
+      payload['active'] = employee.vigente;
+    }
 
     debugPrint('📤 Enviando registro a: ${Config.baseUrl}/register');
     debugPrint('📦 Payload: ${json.encode(payload)}');

@@ -17,3 +17,21 @@ class FetchAirlineById extends AirlineEvent {
   @override
   List<Object> get props => [airlineId];
 }
+
+class ActivateAirline extends AirlineEvent {
+  final String airlineId;
+
+  const ActivateAirline({required this.airlineId});
+
+  @override
+  List<Object> get props => [airlineId];
+}
+
+class DeactivateAirline extends AirlineEvent {
+  final String airlineId;
+
+  const DeactivateAirline({required this.airlineId});
+
+  @override
+  List<Object> get props => [airlineId];
+}

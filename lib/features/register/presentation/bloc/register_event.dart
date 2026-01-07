@@ -69,3 +69,16 @@ class PasswordResetSubmitted extends RegisterEvent {
   @override
   List<Object> get props => [newPassword];
 }
+
+/// Event that handles the complete registration flow:
+/// 1. Register with basic data (POST /register)
+/// 2. Auto-login with email/password
+/// 3. Update employee with airline data (PUT /employees/me)
+class CompleteRegistrationFlow extends RegisterEvent {
+  final EmployeeEntityRegister employee;
+
+  const CompleteRegistrationFlow({required this.employee});
+
+  @override
+  List<Object> get props => [employee];
+}

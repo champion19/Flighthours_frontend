@@ -12,6 +12,7 @@ part 'login_state.dart';
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() : super(LoginInitial()) {
     final loginUseCase = InjectorApp.resolve<LoginUseCase>();
+
     on<LoginSubmitted>(
       (event, emit) => _onLoginSubmitted(event, emit, loginUseCase),
     );
@@ -28,7 +29,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final loginResult = await loginUseCase.call(event.email, event.password);
 
       // Save session data for use throughout the app
-      // Always save the tokens, employeeId is optional since we use /employees/me
       await SessionService().setSession(
         employeeId: loginResult.employeeId ?? '',
         accessToken: loginResult.accessToken,
@@ -37,6 +37,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         name: loginResult.name,
       );
 
+      // Login successful - all employee data (including bp, airline)
+      // was already saved during registration via POST /register
       emit(LoginSuccess(loginResult));
     } on LoginException catch (e) {
       if (e.isEmailNotVerified) {

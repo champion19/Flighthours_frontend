@@ -23,6 +23,10 @@ class _$InjectorApp extends InjectorApp {
           (c) => ListAirlineUseCase(repository: c.resolve<AirlineRepository>()))
       ..registerFactory((c) =>
           GetAirlineByIdUseCase(repository: c.resolve<AirlineRepository>()))
+      ..registerFactory((c) =>
+          ActivateAirlineUseCase(repository: c.resolve<AirlineRepository>()))
+      ..registerFactory((c) =>
+          DeactivateAirlineUseCase(repository: c.resolve<AirlineRepository>()))
       ..registerFactory<AirlineRepository>((c) => AirlineRepositoryImpl(
           remoteDataSource: c.resolve<AirlineRemoteDataSource>()))
       ..registerFactory<AirlineRemoteDataSource>(
