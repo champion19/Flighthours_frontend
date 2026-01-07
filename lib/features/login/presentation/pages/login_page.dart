@@ -110,6 +110,7 @@ class LoginPage extends StatelessWidget {
           },
           builder: (context, state) {
             final isLoading = state is LoginLoading;
+            final isSyncing = state is LoginSyncingPilotData;
 
             return Stack(
               children: [
@@ -239,8 +240,8 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Loading overlay
-                if (isLoading)
+                // Loading/Syncing overlay
+                if (isLoading || isSyncing)
                   Container(
                     color: Colors.black.withValues(alpha: 0.5),
                     child: Center(
@@ -250,14 +251,18 @@ class LoginPage extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CircularProgressIndicator(color: Color(0xFF4facfe)),
-                            SizedBox(height: 16),
+                            const CircularProgressIndicator(
+                              color: Color(0xFF4facfe),
+                            ),
+                            const SizedBox(height: 16),
                             Text(
-                              'Signing in...',
-                              style: TextStyle(
+                              isSyncing
+                                  ? 'Syncing your pilot profile...'
+                                  : 'Signing in...',
+                              style: const TextStyle(
                                 color: Color(0xFF1a1a2e),
                                 fontSize: 16,
                               ),
