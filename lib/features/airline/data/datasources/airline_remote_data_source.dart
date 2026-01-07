@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flight_hours_app/core/config/config.dart';
 import 'package:flight_hours_app/features/airline/data/models/airline_model.dart';
+import 'package:flight_hours_app/features/airline/data/models/airline_status_response_model.dart';
 import 'package:http/http.dart' as http;
 
 abstract class AirlineRemoteDataSource {
   Future<List<AirlineModel>> getAirlines();
   Future<AirlineModel?> getAirlineById(String id);
+  Future<AirlineStatusResponseModel> activateAirline(String id);
+  Future<AirlineStatusResponseModel> deactivateAirline(String id);
 }
 
 class AirlineRemoteDataSourceImpl implements AirlineRemoteDataSource {
@@ -51,6 +54,40 @@ class AirlineRemoteDataSourceImpl implements AirlineRemoteDataSource {
       return null;
     } else {
       return null; // Return null if not found
+    }
+  }
+
+  @override
+  Future<AirlineStatusResponseModel> activateAirline(String id) async {
+    final response = await http.patch(
+      Uri.parse("${Config.baseUrl}/airlines/$id/activate"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final decoded = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) {
+      return AirlineStatusResponseModel.fromJson(decoded);
+    } else {
+      // Return error response model for 4xx errors
+      return AirlineStatusResponseModel.fromError(decoded);
+    }
+  }
+
+  @override
+  Future<AirlineStatusResponseModel> deactivateAirline(String id) async {
+    final response = await http.patch(
+      Uri.parse("${Config.baseUrl}/airlines/$id/deactivate"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final decoded = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) {
+      return AirlineStatusResponseModel.fromJson(decoded);
+    } else {
+      // Return error response model for 4xx errors
+      return AirlineStatusResponseModel.fromError(decoded);
     }
   }
 }

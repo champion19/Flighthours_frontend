@@ -40,16 +40,17 @@ class RegisterDatasource {
   Future<RegisterResponseModel> registerEmployee(
     EmployeeEntityRegister employee,
   ) async {
-    // Payload exacto que espera el backend Go
-    final payload = {
+    // POST /register solo acepta estos campos:
+    // name, email, password, identificationnumber, start_date, end_date, role
+    // Los campos bp, airline, active se enviarán después del login via PUT /employees/me
+    final Map<String, dynamic> payload = {
       'name': employee.name,
       'email': employee.email,
       'password': employee.password,
-      'identificationnumber':
-          employee.idNumber, // lowercase como espera el backend
-      'start_date': _formatDate(employee.fechaInicio), // formato YYYY-MM-DD
-      'end_date': _formatDate(employee.fechaFin), // formato YYYY-MM-DD
-      'role': employee.role ?? 'pilot', // rol por defecto: pilot
+      'identificationnumber': employee.idNumber,
+      'start_date': _formatDate(employee.fechaInicio),
+      'end_date': _formatDate(employee.fechaFin),
+      'role': employee.role ?? 'pilot',
     };
 
     debugPrint('📤 Enviando registro a: ${Config.baseUrl}/register');

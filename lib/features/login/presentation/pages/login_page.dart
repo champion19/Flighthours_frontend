@@ -77,7 +77,7 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: BlocListener<LoginBloc, LoginState>(
+        child: BlocConsumer<LoginBloc, LoginState>(
           listener: (context, state) {
             if (state is LoginEmailNotVerified) {
               _showEmailNotVerifiedDialog(context, state.message);
@@ -108,126 +108,173 @@ class LoginPage extends StatelessWidget {
               _handleLoginSuccess(context);
             }
           },
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 60),
-                  // Logo con gradiente cyan
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-                      ),
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF4facfe).withValues(alpha: 0.3),
-                          blurRadius: 30,
-                          offset: const Offset(0, 15),
+          builder: (context, state) {
+            final isLoading = state is LoginLoading;
+            final isSyncing = state is LoginSyncingPilotData;
+
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 60),
+                        // Logo con gradiente cyan
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                            ),
+                            borderRadius: BorderRadius.circular(32),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF4facfe,
+                                ).withValues(alpha: 0.3),
+                                blurRadius: 30,
+                                offset: const Offset(0, 15),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.flight_takeoff,
+                            color: Colors.white,
+                            size: 64,
+                          ),
                         ),
+                        const SizedBox(height: 32),
+                        // Título
+                        const Text(
+                          'Flight Hours',
+                          style: TextStyle(
+                            color: Color(0xFF1a1a2e),
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Sign in to your account',
+                          style: TextStyle(
+                            color: Color(0xFF6c757d),
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 48),
+                        // Formulario de login
+                        LoginForm(
+                          onSubmit: (email, password) {
+                            // Validate email and password
+                            final emailError = FormValidator.validateEmail(
+                              email,
+                            );
+                            final passwordError =
+                                FormValidator.validatePassword(password);
+
+                            if (emailError != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(emailError),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (passwordError != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(passwordError),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            context.read<LoginBloc>().add(
+                              LoginSubmitted(email: email, password: password),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        if (onSwitchToRegister != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "Don't have an account?",
+                                  style: TextStyle(
+                                    color: Color(0xFF6c757d),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: onSwitchToRegister,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF4facfe),
+                                  ),
+                                  child: const Text(
+                                    "Sign up",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.flight_takeoff,
-                      color: Colors.white,
-                      size: 64,
-                    ),
                   ),
-                  const SizedBox(height: 32),
-                  // Título
-                  const Text(
-                    'Flight Hours',
-                    style: TextStyle(
-                      color: Color(0xFF1a1a2e),
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sign in to your account',
-                    style: TextStyle(color: Color(0xFF6c757d), fontSize: 16),
-                  ),
-                  const SizedBox(height: 48),
-                  // Formulario de login
-                  LoginForm(
-                    onSubmit: (email, password) {
-                      // Validate email and password
-                      final emailError = FormValidator.validateEmail(email);
-                      final passwordError = FormValidator.validatePassword(
-                        password,
-                      );
-
-                      if (emailError != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(emailError),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                ),
+                // Loading/Syncing overlay
+                if (isLoading || isSyncing)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CircularProgressIndicator(
+                              color: Color(0xFF4facfe),
                             ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (passwordError != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(passwordError),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      context.read<LoginBloc>().add(
-                        LoginSubmitted(email: email, password: password),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  if (onSwitchToRegister != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Don't have an account?",
-                            style: TextStyle(
-                              color: Color(0xFF6c757d),
-                              fontSize: 14,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: onSwitchToRegister,
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF4facfe),
-                            ),
-                            child: const Text(
-                              "Sign up",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(height: 16),
+                            Text(
+                              isSyncing
+                                  ? 'Syncing your pilot profile...'
+                                  : 'Signing in...',
+                              style: const TextStyle(
+                                color: Color(0xFF1a1a2e),
+                                fontSize: 16,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

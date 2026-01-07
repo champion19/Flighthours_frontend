@@ -38,3 +38,40 @@ class AirlineError extends AirlineState {
   @override
   List<Object> get props => [message];
 }
+
+/// State when airline status is being updated (activate/deactivate)
+class AirlineStatusUpdating extends AirlineState {
+  final String airlineId;
+
+  const AirlineStatusUpdating({required this.airlineId});
+
+  @override
+  List<Object> get props => [airlineId];
+}
+
+/// State when airline status update succeeds
+class AirlineStatusUpdateSuccess extends AirlineState {
+  final String message;
+  final String code;
+  final String? newStatus;
+
+  const AirlineStatusUpdateSuccess({
+    required this.message,
+    required this.code,
+    this.newStatus,
+  });
+
+  @override
+  List<Object> get props => [message, code];
+}
+
+/// State when airline status update fails
+class AirlineStatusUpdateError extends AirlineState {
+  final String message;
+  final String code;
+
+  const AirlineStatusUpdateError({required this.message, required this.code});
+
+  @override
+  List<Object> get props => [message, code];
+}

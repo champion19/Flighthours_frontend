@@ -35,11 +35,11 @@ class EmployeeEntityRegister {
       email: '',
       password: '',
       emailConfirmed: false,
-      bp: '',
+      bp: null, // null instead of '' to avoid sending empty strings
       fechaInicio: '',
       fechaFin: '',
-      vigente: false,
-      airline: '',
+      vigente: null,
+      airline: null, // null instead of '' to avoid sending empty strings
       role: 'pilot',
     );
   }

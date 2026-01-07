@@ -1,5 +1,10 @@
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
+import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_bloc.dart';
+import 'package:flight_hours_app/features/airport/presentation/pages/airport_selection_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HelloEmployee extends StatelessWidget {
   const HelloEmployee({super.key});
@@ -13,85 +18,209 @@ class HelloEmployee extends StatelessWidget {
           children: [
             _buildSimpleHeader(context),
             Expanded(
-              child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Logo grande central
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-                        ),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF4facfe,
-                            ).withValues(alpha: 0.3),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
+                    // Welcome Card
+                    _buildWelcomeCardLight(),
+                    const SizedBox(height: 24),
+                    // Section Title
+                    _buildSectionTitleLight('QUICK ACCESS'),
+                    const SizedBox(height: 16),
+                    // Menu Cards
+                    _buildMenuCardLight(
+                      context,
+                      icon: Icons.connecting_airports,
+                      title: 'Airports',
+                      subtitle: 'Consult airport information',
+                      iconColor: const Color(0xFF4facfe),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => BlocProvider(
+                                  create: (context) => AirportBloc(),
+                                  child: const AirportSelectionPage(),
+                                ),
                           ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.flight_takeoff,
-                        color: Colors.white,
-                        size: 64,
-                      ),
+                        );
+                      },
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Flight Hours',
-                      style: TextStyle(
-                        color: Color(0xFF1a1a2e),
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Pilot Management System',
-                      style: TextStyle(color: Color(0xFF6c757d), fontSize: 16),
-                    ),
-                    const SizedBox(height: 48),
-                    // Indicador de bienvenida
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFf8f9fa),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF212529)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF4facfe),
-                            size: 20,
+                    const SizedBox(height: 12),
+                    // Airlines Card
+                    _buildMenuCardLight(
+                      context,
+                      icon: Icons.flight,
+                      title: 'Airlines',
+                      subtitle: 'View airline directory',
+                      iconColor: const Color(0xFF667eea),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => BlocProvider(
+                                  create: (context) => AirlineBloc(),
+                                  child: const AirlineSelectionPage(),
+                                ),
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Welcome, Pilot!',
-                            style: TextStyle(
-                              color: Color(0xFF1a1a2e),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Welcome card with light theme
+  Widget _buildWelcomeCardLight() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4facfe).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.flight_takeoff,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome, Pilot!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Ready to manage your flight hours?',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Section title with light theme
+  Widget _buildSectionTitleLight(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: Color(0xFF6c757d),
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  // Menu card with light theme
+  Widget _buildMenuCardLight(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF212529)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF1a1a2e),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFF6c757d),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: iconColor.withValues(alpha: 0.5),
+                size: 16,
+              ),
+            ],
+          ),
         ),
       ),
     );
