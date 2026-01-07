@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 /// Request model for updating employee information
+/// PUT /employees/me requires ALL these fields
 class EmployeeUpdateRequest {
   final String name;
   final String airline;

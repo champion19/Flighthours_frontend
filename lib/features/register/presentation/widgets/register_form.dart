@@ -2,7 +2,6 @@ import 'package:flight_hours_app/features/register/domain/entities/Employee_Enti
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_event.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_state.dart';
-import 'package:flight_hours_app/features/register/presentation/pages/email_info_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -74,18 +73,15 @@ class _RegisterFormState extends State<RegisterForm> {
 
       _formKey.currentState!.save();
 
-      BlocProvider.of<RegisterBloc>(
-        (context),
-      ).add(StartVerification(_emailController.text.trim()));
-
+      // Only save personal information locally - the actual registration
+      // happens after pilot information is captured in PilotInfo page
       context.read<RegisterBloc>().add(
-        RegisterSubmitted(
+        EnterPersonalInformation(
           employment: EmployeeEntityRegister(
             id: "0",
             password: _passwordController.text.trim(),
-            fechaFin: DateTime.now().toIso8601String(),
-            fechaInicio:
-                DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
+            fechaFin: '', // Will be filled in PilotInfo
+            fechaInicio: '', // Will be filled in PilotInfo
             email: _emailController.text.trim(),
             name: _nameController.text.trim(),
             idNumber: _idNumberController.text.trim(),
@@ -132,7 +128,7 @@ class _RegisterFormState extends State<RegisterForm> {
       padding: const EdgeInsets.all(16.0),
       child: BlocListener<RegisterBloc, RegisterState>(
         listener: (context, state) {
-          if (state is RegisterLoading) {
+          if (state is RegisterLoading || state is RegistrationFlowInProgress) {
             setState(() {
               isLoading = true;
             });
@@ -142,26 +138,7 @@ class _RegisterFormState extends State<RegisterForm> {
             });
           }
 
-          if (state is RegisterSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: const Color(0xFF00b894),
-              ),
-            );
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (_) => BlocProvider.value(
-                      value: context.read<RegisterBloc>(),
-                      child: VerificationPage(
-                        email: _emailController.text.trim(),
-                      ),
-                    ),
-              ),
-            );
-          } else if (state is RegisterError) {
+          if (state is RegisterError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -169,7 +146,9 @@ class _RegisterFormState extends State<RegisterForm> {
               ),
             );
           }
+          // Note: Navigation to next page is handled by RegisterPage's BlocListener
         },
+
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

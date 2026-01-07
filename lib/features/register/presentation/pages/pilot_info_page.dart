@@ -29,10 +29,8 @@ class PilotinfoState extends State<Pilotinfo> {
   final _bpController = TextEditingController();
   final _fechaInicioController = TextEditingController();
   final _fechaFinController = TextEditingController();
-  String? _selectedAirline;
+  String? _selectedAirlineId; // Store the airline ID (obfuscated)
   bool _vigente = false;
-
-  final List<String> opciones = ['Option 1', 'Option 2', 'Option 3'];
 
   @override
   void dispose() {
@@ -45,19 +43,20 @@ class PilotinfoState extends State<Pilotinfo> {
   void _submit(BuildContext context, EmployeeEntityRegister currentEmployee) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // Create the complete employee with all data
+      // The form validators already ensure BP, dates, and airline are filled
+      final completeEmployee = currentEmployee.copyWith(
+        bp: _bpController.text.trim(),
+        fechaInicio: _fechaInicioController.text,
+        fechaFin: _fechaFinController.text,
+        vigente: _vigente,
+        airline: _selectedAirlineId,
+      );
+
+      // Dispatch the complete registration flow
       context.read<RegisterBloc>().add(
-        EnterPilotInformation(
-          employment: currentEmployee.copyWith(
-            bp:
-                _bpController.text.trim().isEmpty
-                    ? null
-                    : _bpController.text.trim(),
-            fechaInicio: _fechaInicioController.text,
-            fechaFin: _fechaFinController.text,
-            vigente: _vigente ? true : false,
-            airline: _selectedAirline,
-          ),
-        ),
+        CompleteRegistrationFlow(employee: completeEmployee),
       );
     }
   }
@@ -247,7 +246,7 @@ class PilotinfoState extends State<Pilotinfo> {
                               ),
                               dropdownColor: Colors.white,
                               style: const TextStyle(color: Color(0xFF1a1a2e)),
-                              value: _selectedAirline,
+                              value: _selectedAirlineId,
                               hint: const Text(
                                 'Select Airline',
                                 style: TextStyle(color: Color(0xFF6c757d)),
@@ -255,13 +254,13 @@ class PilotinfoState extends State<Pilotinfo> {
                               items:
                                   state.airlines.map((airline) {
                                     return DropdownMenuItem<String>(
-                                      value: airline.name,
+                                      value: airline.id, // Use ID as value
                                       child: Text(airline.name),
                                     );
                                   }).toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedAirline = value;
+                                  _selectedAirlineId = value;
                                 });
                               },
                               validator: (value) {

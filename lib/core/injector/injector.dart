@@ -20,6 +20,15 @@ import 'package:flight_hours_app/features/airline/data/repositories/airline_repo
 import 'package:flight_hours_app/features/airline/domain/repositories/airline_repository.dart';
 import 'package:flight_hours_app/features/airline/domain/usecases/list_airline_use_case.dart';
 import 'package:flight_hours_app/features/airline/domain/usecases/get_airline_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airline/domain/usecases/activate_airline_use_case.dart';
+import 'package:flight_hours_app/features/airline/domain/usecases/deactivate_airline_use_case.dart';
+import 'package:flight_hours_app/features/airport/data/datasources/airport_remote_data_source.dart';
+import 'package:flight_hours_app/features/airport/data/repositories/airport_repository_impl.dart';
+import 'package:flight_hours_app/features/airport/domain/repositories/airport_repository.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/list_airport_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/get_airport_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/activate_airport_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/deactivate_airport_use_case.dart';
 import 'package:flight_hours_app/features/register/domain/usecases/register_use_case.dart';
 import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
 import 'package:flight_hours_app/features/reset_password/data/repositories/reset_password_repository_impl.dart';
@@ -58,8 +67,17 @@ abstract class InjectorApp {
   // Airline
   @Register.factory(ListAirlineUseCase)
   @Register.factory(GetAirlineByIdUseCase)
+  @Register.factory(ActivateAirlineUseCase)
+  @Register.factory(DeactivateAirlineUseCase)
   @Register.factory(AirlineRepository, from: AirlineRepositoryImpl)
   @Register.factory(AirlineRemoteDataSource, from: AirlineRemoteDataSourceImpl)
+  // Airport
+  @Register.factory(ListAirportUseCase)
+  @Register.factory(GetAirportByIdUseCase)
+  @Register.factory(ActivateAirportUseCase)
+  @Register.factory(DeactivateAirportUseCase)
+  @Register.factory(AirportRepository, from: AirportRepositoryImpl)
+  @Register.factory(AirportRemoteDataSource, from: AirportRemoteDataSourceImpl)
   // Email Verification
   @Register.factory(
     EmailVerificationRepository,

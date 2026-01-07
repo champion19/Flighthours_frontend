@@ -75,3 +75,32 @@ class RecoveryError extends RegisterState {
   @override
   List<Object> get props => [message];
 }
+
+/// State during the complete registration flow
+/// Shows progress through: Register -> Login -> Update Profile
+class RegistrationFlowInProgress extends RegisterState {
+  final String currentStep;
+  final String stepDescription;
+
+  const RegistrationFlowInProgress({
+    required EmployeeEntityRegister employee,
+    required this.currentStep,
+    required this.stepDescription,
+  }) : super(employee: employee);
+
+  @override
+  List<Object?> get props => [employee, currentStep, stepDescription];
+}
+
+/// State when the complete registration flow finishes successfully
+class RegistrationFlowComplete extends RegisterState {
+  final String message;
+
+  const RegistrationFlowComplete({
+    required EmployeeEntityRegister employee,
+    required this.message,
+  }) : super(employee: employee);
+
+  @override
+  List<Object?> get props => [employee, message];
+}

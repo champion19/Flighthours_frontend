@@ -18,20 +18,23 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   PageController pageController = PageController(initialPage: 0);
 
-  void _handleRegisterSuccess(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-
-      if (widget.onSwitchToLogin != null) {
-        widget.onSwitchToLogin!();
-      }
-    });
-  }
-
   void _navigateToNextPage() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (pageController.hasClients) {
         pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.ease,
+        );
+      }
+    });
+  }
+
+  void _navigateToVerificationPage() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (pageController.hasClients) {
+        // Navigate to the last page (VerificationPage)
+        pageController.animateToPage(
+          2,
           duration: const Duration(milliseconds: 300),
           curve: Curves.ease,
         );
@@ -56,14 +59,19 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         iconTheme: const IconThemeData(color: Color(0xFF1a1a2e)),
       ),
-      body: BlocListener<RegisterBloc, RegisterState>(
+      body: BlocConsumer<RegisterBloc, RegisterState>(
         listener: (context, state) {
           if (state is PersonalInfoCompleted) {
             _navigateToNextPage();
-          } else if (state is PilotInfoCompleted) {
-            _navigateToNextPage();
-          } else if (state is RegisterSuccess) {
-            _handleRegisterSuccess(context);
+          } else if (state is RegistrationFlowComplete) {
+            // Complete registration flow finished - navigate to verification page
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: const Color(0xFF00b894),
+              ),
+            );
+            _navigateToVerificationPage();
           } else if (state is RegisterError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -73,26 +81,121 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           }
         },
-        child: BlocBuilder<RegisterBloc, RegisterState>(
-          builder: (context, state) {
-            final email = state.employee?.email ?? '';
+        builder: (context, state) {
+          final email = state.employee?.email ?? '';
 
-            return PageView(
-              controller: pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                Personalinfo(
-                  onSwitchToLogin: widget.onSwitchToLogin,
-                  pageController: pageController,
+          return Stack(
+            children: [
+              PageView(
+                controller: pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  Personalinfo(
+                    onSwitchToLogin: widget.onSwitchToLogin,
+                    pageController: pageController,
+                  ),
+                  Pilotinfo(
+                    pageController: pageController,
+                    onSwitchToLogin: widget.onSwitchToLogin,
+                  ),
+                  VerificationPage(email: email),
+                ],
+              ),
+              // Loading overlay during registration flow
+              if (state case RegistrationFlowInProgress flowState)
+                _buildLoadingOverlay(flowState),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(RegistrationFlowInProgress state) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF4facfe).withValues(alpha: 0.3),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Progress indicator
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                Pilotinfo(
-                  pageController: pageController,
-                  onSwitchToLogin: widget.onSwitchToLogin,
+                child: const Icon(
+                  Icons.flight_takeoff,
+                  color: Colors.white,
+                  size: 40,
                 ),
-                VerificationPage(email: email),
-              ],
-            );
-          },
+              ),
+              const SizedBox(height: 24),
+              // Step indicator
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Step ${state.currentStep}',
+                  style: const TextStyle(
+                    color: Color(0xFF4facfe),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Description
+              Text(
+                state.stepDescription,
+                style: const TextStyle(
+                  color: Color(0xFF1a1a2e),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Loading spinner
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4facfe)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Subtle text
+              Text(
+                'Please wait...',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
     );

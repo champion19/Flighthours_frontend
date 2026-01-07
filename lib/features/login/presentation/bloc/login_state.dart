@@ -11,6 +11,9 @@ class LoginInitial extends LoginState {}
 
 class LoginLoading extends LoginState {}
 
+/// State when syncing pilot data after login
+class LoginSyncingPilotData extends LoginState {}
+
 class LoginSuccess extends LoginState {
   final LoginEntity loginResult;
   const LoginSuccess(this.loginResult);

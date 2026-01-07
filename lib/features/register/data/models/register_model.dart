@@ -67,31 +67,61 @@ class RegisterModel extends EmployeeEntityRegister {
 
   String toJson() => json.encode(toMap());
 
-  factory RegisterModel.fromMap(Map<String, dynamic> json) => RegisterModel(
-    id: json["id"] ?? '',
-    name: json["name"]?? '',
-    airline:json["airline"]?? '',
-    email: json["email"] ?? '',
-    password: json["password"] ?? '',
-    emailConfirmed: json["emailConfirmed"] ?? false,
-    idNumber: json["identification_number"] ?? '',
-    bp: json["bp"] ?? '',
-    fechaInicio: json["start_date"] ?? DateTime.now().toIso8601String(),
-    fechaFin: json["end_date"]?? DateTime.now().toIso8601String(),
-    vigente: json["active"] ?? false,
+  factory RegisterModel.fromMap(Map<String, dynamic> json) {
+    // Parse airline - keep null if not present or empty
+    String? airlineValue = json["airline"];
+    if (airlineValue != null && airlineValue.isEmpty) {
+      airlineValue = null;
+    }
 
-  );
+    // Parse bp - keep null if not present or empty
+    String? bpValue = json["bp"];
+    if (bpValue != null && bpValue.isEmpty) {
+      bpValue = null;
+    }
 
-  Map<String, dynamic> toMap() => {
-    "id": id,
-    "name": name,
-    "email": email,
-    "password": password,
-    "emailConfirmed": emailConfirmed,
-    "idNumber": idNumber,
-    "bp": bp,
-    "fechaInicio": fechaInicio,
-    "fechaFin": fechaFin,
-    "vigente": vigente,
-  };
+    return RegisterModel(
+      id: json["id"] ?? '',
+      name: json["name"] ?? '',
+      airline: airlineValue,
+      email: json["email"] ?? '',
+      password: json["password"],
+      emailConfirmed: json["emailConfirmed"] ?? false,
+      idNumber: json["identification_number"] ?? '',
+      bp: bpValue,
+      fechaInicio: json["start_date"] ?? DateTime.now().toIso8601String(),
+      fechaFin: json["end_date"] ?? DateTime.now().toIso8601String(),
+      vigente: json["active"] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{
+      "id": id,
+      "name": name,
+      "email": email,
+      "idNumber": idNumber,
+      "fechaInicio": fechaInicio,
+      "fechaFin": fechaFin,
+    };
+
+    // Only include optional fields if they have values
+    if (password != null && password!.isNotEmpty) {
+      map["password"] = password;
+    }
+    if (emailConfirmed != null) {
+      map["emailConfirmed"] = emailConfirmed;
+    }
+    if (bp != null && bp!.isNotEmpty) {
+      map["bp"] = bp;
+    }
+    if (airline != null && airline!.isNotEmpty) {
+      map["airline"] = airline;
+    }
+    if (vigente != null) {
+      map["vigente"] = vigente;
+    }
+
+    return map;
+  }
 }

@@ -108,4 +108,81 @@ class SessionService {
     _refreshToken = newRefreshToken;
     await _storage.write(key: _keyRefreshToken, value: newRefreshToken);
   }
+
+  // ========== PENDING EMPLOYEE DATA ==========
+  // These methods store ALL employee data captured during registration
+  // to be sent to PUT /employees/me after the first successful login
+
+  static const String _keyPendingName = 'pending_name';
+  static const String _keyPendingIdentificationNumber =
+      'pending_identification_number';
+  static const String _keyPendingBp = 'pending_bp';
+  static const String _keyPendingAirlineId = 'pending_airline_id';
+  static const String _keyPendingStartDate = 'pending_start_date';
+  static const String _keyPendingEndDate = 'pending_end_date';
+  static const String _keyPendingActive = 'pending_active';
+  static const String _keyPendingRole = 'pending_role';
+  static const String _keyHasPendingPilotData = 'has_pending_pilot_data';
+
+  /// Saves ALL employee data to be sent after first login via PUT /employees/me
+  Future<void> setPendingPilotData({
+    required String name,
+    required String identificationNumber,
+    required String? bp,
+    required String? airlineId,
+    required String startDate,
+    required String endDate,
+    required bool active,
+    String role = 'pilot',
+  }) async {
+    await _storage.write(key: _keyPendingName, value: name);
+    await _storage.write(
+      key: _keyPendingIdentificationNumber,
+      value: identificationNumber,
+    );
+    await _storage.write(key: _keyPendingBp, value: bp ?? '');
+    await _storage.write(key: _keyPendingAirlineId, value: airlineId ?? '');
+    await _storage.write(key: _keyPendingStartDate, value: startDate);
+    await _storage.write(key: _keyPendingEndDate, value: endDate);
+    await _storage.write(key: _keyPendingActive, value: active.toString());
+    await _storage.write(key: _keyPendingRole, value: role);
+    await _storage.write(key: _keyHasPendingPilotData, value: 'true');
+  }
+
+  /// Checks if there is pending employee data to send
+  Future<bool> hasPendingPilotData() async {
+    final value = await _storage.read(key: _keyHasPendingPilotData);
+    return value == 'true';
+  }
+
+  /// Gets the pending employee data for PUT /employees/me
+  Future<Map<String, dynamic>?> getPendingPilotData() async {
+    final hasPending = await hasPendingPilotData();
+    if (!hasPending) return null;
+
+    return {
+      'name': await _storage.read(key: _keyPendingName) ?? '',
+      'identificationNumber':
+          await _storage.read(key: _keyPendingIdentificationNumber) ?? '',
+      'bp': await _storage.read(key: _keyPendingBp) ?? '',
+      'airlineId': await _storage.read(key: _keyPendingAirlineId) ?? '',
+      'startDate': await _storage.read(key: _keyPendingStartDate) ?? '',
+      'endDate': await _storage.read(key: _keyPendingEndDate) ?? '',
+      'active': (await _storage.read(key: _keyPendingActive)) == 'true',
+      'role': await _storage.read(key: _keyPendingRole) ?? 'pilot',
+    };
+  }
+
+  /// Clears the pending employee data after successful update
+  Future<void> clearPendingPilotData() async {
+    await _storage.delete(key: _keyPendingName);
+    await _storage.delete(key: _keyPendingIdentificationNumber);
+    await _storage.delete(key: _keyPendingBp);
+    await _storage.delete(key: _keyPendingAirlineId);
+    await _storage.delete(key: _keyPendingStartDate);
+    await _storage.delete(key: _keyPendingEndDate);
+    await _storage.delete(key: _keyPendingActive);
+    await _storage.delete(key: _keyPendingRole);
+    await _storage.delete(key: _keyHasPendingPilotData);
+  }
 }
