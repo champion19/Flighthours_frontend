@@ -18,59 +18,41 @@ class HelloEmployee extends StatelessWidget {
           children: [
             _buildSimpleHeader(context),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Card
-                    _buildWelcomeCardLight(),
-                    const SizedBox(height: 24),
-                    // Section Title
-                    _buildSectionTitleLight('QUICK ACCESS'),
-                    const SizedBox(height: 16),
-                    // Menu Cards
-                    _buildMenuCardLight(
-                      context,
-                      icon: Icons.connecting_airports,
-                      title: 'Airports',
-                      subtitle: 'Consult airport information',
-                      iconColor: const Color(0xFF4facfe),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => BlocProvider(
-                                  create: (context) => AirportBloc(),
-                                  child: const AirportSelectionPage(),
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Airlines Card
-                    _buildMenuCardLight(
-                      context,
-                      icon: Icons.flight,
-                      title: 'Airlines',
-                      subtitle: 'View airline directory',
-                      iconColor: const Color(0xFF667eea),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => BlocProvider(
-                                  create: (context) => AirlineBloc(),
-                                  child: const AirlineSelectionPage(),
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Mensaje de bienvenida
+                      const Text(
+                        'Welcome, Pilot!',
+                        style: TextStyle(
+                          color: Color(0xFF1a1a2e),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Ready to manage your flight hours?',
+                        style: TextStyle(
+                          color: const Color(0xFF6c757d),
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Use the menu in your profile to access\nall features and settings.',
+                        style: TextStyle(
+                          color: const Color(0xFF6c757d).withValues(alpha: 0.7),
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -226,56 +208,39 @@ class HelloEmployee extends StatelessWidget {
     );
   }
 
-  // Header simplificado con fondo claro
+  // Header estilo moderno (tipo Instagram)
   Widget _buildSimpleHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.flight_takeoff,
-              color: Colors.white,
-              size: 24,
+          // Logo sin contenedor
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/flight_hours_logo.png',
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Flight Hours',
-                  style: TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Dashboard',
-                  style: TextStyle(color: Color(0xFF6c757d), fontSize: 12),
-                ),
-              ],
+          const SizedBox(width: 10),
+          // Título estilo Instagram
+          const Text(
+            'FlightHours',
+            style: TextStyle(
+              color: Color(0xFF262626),
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             ),
           ),
+          const Spacer(),
+          // Icono de menú hamburgesa (estilo Instagram)
           _buildProfileMenuLight(context),
         ],
       ),

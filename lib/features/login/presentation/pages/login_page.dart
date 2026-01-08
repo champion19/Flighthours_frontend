@@ -120,46 +120,48 @@ class LoginPage extends StatelessWidget {
                     child: Column(
                       children: [
                         const SizedBox(height: 60),
-                        // Logo con gradiente cyan
+                        // Logo de Flight Hours
                         Container(
-                          padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-                            ),
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(
-                                  0xFF4facfe,
+                                  0xFFE5A33A,
                                 ).withValues(alpha: 0.3),
                                 blurRadius: 30,
                                 offset: const Offset(0, 15),
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.flight_takeoff,
-                            color: Colors.white,
-                            size: 64,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Image.asset(
+                              'assets/images/flight_hours_logo.png',
+                              width: 140,
+                              height: 140,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Slogan
+                        const Text(
+                          'Track your journey in the skies',
+                          style: TextStyle(
+                            color: Color(0xFF6c757d),
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
                         const SizedBox(height: 32),
-                        // Título
-                        const Text(
-                          'Flight Hours',
-                          style: TextStyle(
-                            color: Color(0xFF1a1a2e),
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        // Subtítulo de acción
                         const Text(
                           'Sign in to your account',
                           style: TextStyle(
-                            color: Color(0xFF6c757d),
-                            fontSize: 16,
+                            color: Color(0xFF1a1a2e),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 48),
