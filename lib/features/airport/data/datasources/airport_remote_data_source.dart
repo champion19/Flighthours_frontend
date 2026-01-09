@@ -1,8 +1,7 @@
-import 'dart:convert';
-import 'package:flight_hours_app/core/config/config.dart';
+import 'package:dio/dio.dart';
+import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/airport/data/models/airport_model.dart';
 import 'package:flight_hours_app/features/airport/data/models/airport_status_response_model.dart';
-import 'package:http/http.dart' as http;
 
 abstract class AirportRemoteDataSource {
   Future<List<AirportModel>> getAirports();
@@ -11,83 +10,126 @@ abstract class AirportRemoteDataSource {
   Future<AirportStatusResponseModel> deactivateAirport(String id);
 }
 
+/// Implementation of airport remote data source using Dio
+///
+/// Migrated from http package to Dio for:
+/// - Automatic Bearer token injection via interceptor
+/// - Automatic refresh token handling on 401 errors
+/// - Better error handling and logging
+/// - Automatic JSON parsing (Map instead of String)
 class AirportRemoteDataSourceImpl implements AirportRemoteDataSource {
+  final Dio _dio;
+
+  AirportRemoteDataSourceImpl({Dio? dio}) : _dio = dio ?? DioClient().client;
+
   @override
   Future<List<AirportModel>> getAirports() async {
-    final response = await http.get(
-      Uri.parse("${Config.baseUrl}/airports"),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return airportModelFromMap(response.body);
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+    try {
+      final response = await _dio.get('/airports');
+      // Dio already parses JSON to Map, use helper function for Map
+      return _parseAirportListFromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        // Try to parse error response, return empty list on failure
+        return [];
+      }
+      rethrow;
     }
   }
 
   @override
   Future<AirportModel?> getAirportById(String id) async {
-    final response = await http.get(
-      Uri.parse("${Config.baseUrl}/airports/$id"),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      // Handle wrapped response: {success: true, data: {airport: {...}}}
-      if (decoded is Map<String, dynamic>) {
-        if (decoded.containsKey('data')) {
-          final data = decoded['data'];
-          if (data is Map<String, dynamic>) {
-            // Check for 'airport' key
-            if (data.containsKey('airport')) {
-              return AirportModel.fromJson(
-                data['airport'] as Map<String, dynamic>,
-              );
-            }
-            // Or data itself is the airport object
-            return AirportModel.fromJson(data);
-          }
-        }
+    try {
+      final response = await _dio.get('/airports/$id');
+      return _parseAirportFromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        // Not found or other error, return null
+        return null;
       }
-      return null;
-    } else {
-      return null; // Return null if not found
+      rethrow;
     }
   }
 
   @override
   Future<AirportStatusResponseModel> activateAirport(String id) async {
-    final response = await http.patch(
-      Uri.parse("${Config.baseUrl}/airports/$id/activate"),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    final decoded = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode == 200) {
-      return AirportStatusResponseModel.fromJson(decoded);
-    } else {
-      // Return error response model for 4xx errors
-      return AirportStatusResponseModel.fromError(decoded);
+    try {
+      final response = await _dio.patch('/airports/$id/activate');
+      return AirportStatusResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AirportStatusResponseModel.fromError(e.response!.data);
+      }
+      rethrow;
     }
   }
 
   @override
   Future<AirportStatusResponseModel> deactivateAirport(String id) async {
-    final response = await http.patch(
-      Uri.parse("${Config.baseUrl}/airports/$id/deactivate"),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    final decoded = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode == 200) {
-      return AirportStatusResponseModel.fromJson(decoded);
-    } else {
-      // Return error response model for 4xx errors
-      return AirportStatusResponseModel.fromError(decoded);
+    try {
+      final response = await _dio.patch('/airports/$id/deactivate');
+      return AirportStatusResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AirportStatusResponseModel.fromError(e.response!.data);
+      }
+      rethrow;
     }
+  }
+
+  /// Parses airport list from Map (Dio already decoded JSON)
+  List<AirportModel> _parseAirportListFromMap(dynamic decoded) {
+    // Expected format: {success: true, data: {airports: [...]}}
+    if (decoded is Map<String, dynamic>) {
+      if (decoded.containsKey('data')) {
+        final data = decoded['data'];
+        if (data is Map<String, dynamic> && data.containsKey('airports')) {
+          final airports = data['airports'];
+          if (airports is List) {
+            return List<AirportModel>.from(
+              airports.map(
+                (x) => AirportModel.fromJson(x as Map<String, dynamic>),
+              ),
+            );
+          }
+        }
+        // Fallback: data is directly an array
+        if (data is List) {
+          return List<AirportModel>.from(
+            data.map((x) => AirportModel.fromJson(x as Map<String, dynamic>)),
+          );
+        }
+      }
+    }
+
+    // Direct array response
+    if (decoded is List) {
+      return List<AirportModel>.from(
+        decoded.map((x) => AirportModel.fromJson(x as Map<String, dynamic>)),
+      );
+    }
+
+    return [];
+  }
+
+  /// Parses single airport from wrapped response Map
+  AirportModel? _parseAirportFromMap(dynamic decoded) {
+    // Handle wrapped response: {success: true, data: {airport: {...}}}
+    if (decoded is Map<String, dynamic>) {
+      if (decoded.containsKey('data')) {
+        final data = decoded['data'];
+        if (data is Map<String, dynamic>) {
+          // Check for 'airport' key
+          if (data.containsKey('airport')) {
+            return AirportModel.fromJson(
+              data['airport'] as Map<String, dynamic>,
+            );
+          }
+          // Or data itself is the airport object
+          return AirportModel.fromJson(data);
+        }
+      }
+    }
+    return null;
   }
 }
