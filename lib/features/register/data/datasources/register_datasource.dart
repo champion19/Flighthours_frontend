@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'package:flight_hours_app/core/config/config.dart';
+import 'package:dio/dio.dart';
+import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/register/data/models/register_response_model.dart';
 import 'package:flight_hours_app/features/register/domain/entities/Employee_Entity_Register.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 /// Excepción personalizada para errores de registro
 class RegisterException implements Exception {
@@ -22,7 +20,14 @@ class RegisterException implements Exception {
   String toString() => message;
 }
 
+/// Register data source using Dio
+///
+/// Note: This endpoint doesn't require authentication (it's used to create new accounts)
 class RegisterDatasource {
+  final Dio _dio;
+
+  RegisterDatasource({Dio? dio}) : _dio = dio ?? DioClient().client;
+
   /// Formatea una fecha ISO a formato simple YYYY-MM-DD
   String _formatDate(String isoDate) {
     try {
@@ -53,21 +58,16 @@ class RegisterDatasource {
       'role': employee.role ?? 'pilot',
     };
 
-    debugPrint('📤 Enviando registro a: ${Config.baseUrl}/register');
-    debugPrint('📦 Payload: ${json.encode(payload)}');
+    debugPrint('📤 Enviando registro...');
 
     try {
-      final response = await http.post(
-        Uri.parse('${Config.baseUrl}/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(payload),
+      final response = await _dio.post(
+        '/register',
+        data: payload, // Dio accepts Map directly
       );
 
-      debugPrint('📥 Status Code: ${response.statusCode}');
-      debugPrint('📥 Response: ${response.body}');
-
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final registerResponse = RegisterResponseModel.fromMap(data);
+      // Dio already parses JSON to Map
+      final registerResponse = RegisterResponseModel.fromMap(response.data);
 
       if (response.statusCode == 201 && registerResponse.success) {
         // Registro exitoso
@@ -77,19 +77,57 @@ class RegisterDatasource {
         throw RegisterException(
           message: registerResponse.message,
           code: registerResponse.code,
-          statusCode: response.statusCode,
+          statusCode: response.statusCode ?? 0,
         );
       }
-    } catch (e) {
-      if (e is RegisterException) {
-        rethrow;
+    } on DioException catch (e) {
+      // Handle Dio-specific errors
+      if (e.response != null) {
+        // Server responded with an error
+        final data = e.response!.data;
+        if (data is Map<String, dynamic>) {
+          final registerResponse = RegisterResponseModel.fromMap(data);
+          throw RegisterException(
+            message: registerResponse.message,
+            code: registerResponse.code,
+            statusCode: e.response!.statusCode ?? 0,
+          );
+        }
+        throw RegisterException(
+          message: 'Server error',
+          code: 'SERVER_ERROR',
+          statusCode: e.response!.statusCode ?? 0,
+        );
       }
-      // Error de conexión u otro error de red
-      debugPrint('❌ Error de conexión: $e');
+
+      // Connection error
+      debugPrint('❌ Error de conexión: ${e.message}');
+
+      String errorMessage;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        errorMessage =
+            'Tiempo de conexión agotado. Por favor intenta de nuevo.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage =
+            'Error de conexión con el servidor. Verifica que el backend esté corriendo.';
+      } else {
+        errorMessage = 'Error de red. Verifica tu conexión.';
+      }
+
       throw RegisterException(
-        message:
-            'Error de conexión con el servidor. Verifica que el backend esté corriendo.',
+        message: errorMessage,
         code: 'CONNECTION_ERROR',
+        statusCode: 0,
+      );
+    } on RegisterException {
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado: $e');
+      throw RegisterException(
+        message: 'Error inesperado. Por favor intenta de nuevo.',
+        code: 'UNEXPECTED_ERROR',
         statusCode: 0,
       );
     }
