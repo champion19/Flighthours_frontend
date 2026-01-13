@@ -69,6 +69,15 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<RouteRepository>((c) => RouteRepositoryImpl(
           remoteDataSource: c.resolve<RouteRemoteDataSource>()))
       ..registerFactory<RouteRemoteDataSource>(
-          (c) => RouteRemoteDataSourceImpl());
+          (c) => RouteRemoteDataSourceImpl())
+      ..registerFactory((c) => ListAirlineRoutesUseCase(
+          repository: c.resolve<AirlineRouteRepository>()))
+      ..registerFactory((c) => GetAirlineRouteByIdUseCase(
+          repository: c.resolve<AirlineRouteRepository>()))
+      ..registerFactory<AirlineRouteRepository>((c) =>
+          AirlineRouteRepositoryImpl(
+              remoteDataSource: c.resolve<AirlineRouteRemoteDataSource>()))
+      ..registerFactory<AirlineRouteRemoteDataSource>(
+          (c) => AirlineRouteRemoteDataSourceImpl());
   }
 }
