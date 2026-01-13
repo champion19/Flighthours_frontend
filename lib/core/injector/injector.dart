@@ -41,6 +41,11 @@ import 'package:flight_hours_app/features/route/data/repositories/route_reposito
 import 'package:flight_hours_app/features/route/domain/repositories/route_repository.dart';
 import 'package:flight_hours_app/features/route/domain/usecases/list_routes_use_case.dart';
 import 'package:flight_hours_app/features/route/domain/usecases/get_route_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
+import 'package:flight_hours_app/features/airline_route/data/repositories/airline_route_repository_impl.dart';
+import 'package:flight_hours_app/features/airline_route/domain/repositories/airline_route_repository.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
 import 'package:kiwi/kiwi.dart';
 
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -114,6 +119,14 @@ abstract class InjectorApp {
   @Register.factory(GetRouteByIdUseCase)
   @Register.factory(RouteRepository, from: RouteRepositoryImpl)
   @Register.factory(RouteRemoteDataSource, from: RouteRemoteDataSourceImpl)
+  // Airline Route
+  @Register.factory(ListAirlineRoutesUseCase)
+  @Register.factory(GetAirlineRouteByIdUseCase)
+  @Register.factory(AirlineRouteRepository, from: AirlineRouteRepositoryImpl)
+  @Register.factory(
+    AirlineRouteRemoteDataSource,
+    from: AirlineRouteRemoteDataSourceImpl,
+  )
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs
 }

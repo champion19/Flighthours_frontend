@@ -46,6 +46,26 @@ class HelloEmployee extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 32),
+                      // Botón temporal para Airline Routes
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/airline-routes');
+                        },
+                        icon: const Icon(Icons.flight),
+                        label: const Text('View Airline Routes'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1a3a6e),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
