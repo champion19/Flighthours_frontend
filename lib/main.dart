@@ -9,6 +9,8 @@ import 'package:flight_hours_app/features/login/presentation/pages/hello_employe
 import 'package:flight_hours_app/features/login/presentation/pages/login_page.dart';
 import 'package:flight_hours_app/features/register/presentation/pages/email_info_page.dart';
 import 'package:flight_hours_app/features/reset_password/presentation/pages/reset_password_page.dart';
+import 'package:flight_hours_app/features/route/presentation/bloc/route_bloc.dart';
+import 'package:flight_hours_app/features/route/presentation/pages/flight_routes_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -17,8 +19,7 @@ import 'package:flight_hours_app/features/login/presentation/bloc/login_bloc.dar
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() async {  WidgetsFlutterBinding.ensureInitialized();
   InjectorApp.setyp();
 
   // Initialize session service to restore any persisted tokens
@@ -32,6 +33,7 @@ void main() async {
         BlocProvider(create: (_) => AirlineBloc()),
         BlocProvider(create: (_) => EmailVerificationBloc()),
         BlocProvider(create: (_) => EmployeeBloc()),
+        BlocProvider(create: (_) => RouteBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -45,6 +47,7 @@ void main() async {
           '/reset-password': (context) => const ResetPasswordPage(),
           '/employee-profile': (context) => const EmployeeProfilePage(),
           '/change-password': (context) => const ChangePasswordPage(),
+          '/flight-routes': (context) => const FlightRoutesPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

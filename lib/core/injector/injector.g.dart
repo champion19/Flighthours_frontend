@@ -14,11 +14,11 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<LoginRepository>(
           (c) => LoginRepositoryImpl(c.resolve<LoginDatasource>()))
       ..registerFactory((c) => LoginUseCase(c.resolve<LoginRepository>()))
-      ..registerFactory((c) => LoginDatasource())
+      ..registerFactory((c) => LoginDatasource(dio: c.resolve<Dio>()))
       ..registerFactory<RegisterRepository>(
           (c) => RegisterRepositoryImpl(c.resolve<RegisterDatasource>()))
       ..registerFactory((c) => RegisterUseCase(c.resolve<RegisterRepository>()))
-      ..registerFactory((c) => RegisterDatasource())
+      ..registerFactory((c) => RegisterDatasource(dio: c.resolve<Dio>()))
       ..registerFactory(
           (c) => ListAirlineUseCase(repository: c.resolve<AirlineRepository>()))
       ..registerFactory((c) =>
@@ -30,7 +30,7 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<AirlineRepository>((c) => AirlineRepositoryImpl(
           remoteDataSource: c.resolve<AirlineRemoteDataSource>()))
       ..registerFactory<AirlineRemoteDataSource>(
-          (c) => AirlineRemoteDataSourceImpl())
+          (c) => AirlineRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory(
           (c) => ListAirportUseCase(repository: c.resolve<AirportRepository>()))
       ..registerFactory((c) =>
@@ -42,24 +42,33 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<AirportRepository>((c) => AirportRepositoryImpl(
           remoteDataSource: c.resolve<AirportRemoteDataSource>()))
       ..registerFactory<AirportRemoteDataSource>(
-          (c) => AirportRemoteDataSourceImpl())
+          (c) => AirportRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory<EmailVerificationRepository>((c) =>
           EmailVerificationRepositoryImpl(
               c.resolve<EmailVerificationDatasource>()))
       ..registerFactory((c) =>
           EmailVerificationUseCase(c.resolve<EmailVerificationRepository>()))
-      ..registerFactory((c) => EmailVerificationDatasource())
+      ..registerFactory(
+          (c) => EmailVerificationDatasource(dio: c.resolve<Dio>()))
       ..registerFactory<ResetPasswordRepository>((c) =>
           ResetPasswordRepositoryImpl(c.resolve<ResetPasswordDatasource>()))
       ..registerFactory(
           (c) => ResetPasswordUseCase(c.resolve<ResetPasswordRepository>()))
-      ..registerFactory((c) => ResetPasswordDatasource())
+      ..registerFactory((c) => ResetPasswordDatasource(dio: c.resolve<Dio>()))
       ..registerFactory<EmployeeRepository>((c) => EmployeeRepositoryImpl())
       ..registerFactory<EmployeeRemoteDataSource>(
-          (c) => EmployeeRemoteDataSourceImpl())
+          (c) => EmployeeRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory((c) => GetEmployeeUseCase())
       ..registerFactory((c) => UpdateEmployeeUseCase())
       ..registerFactory((c) => ChangePasswordUseCase())
-      ..registerFactory((c) => DeleteEmployeeUseCase());
+      ..registerFactory((c) => DeleteEmployeeUseCase())
+      ..registerFactory(
+          (c) => ListRoutesUseCase(repository: c.resolve<RouteRepository>()))
+      ..registerFactory(
+          (c) => GetRouteByIdUseCase(repository: c.resolve<RouteRepository>()))
+      ..registerFactory<RouteRepository>((c) => RouteRepositoryImpl(
+          remoteDataSource: c.resolve<RouteRemoteDataSource>()))
+      ..registerFactory<RouteRemoteDataSource>(
+          (c) => RouteRemoteDataSourceImpl());
   }
 }
