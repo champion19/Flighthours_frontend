@@ -1,22 +1,27 @@
-
-import 'dart:convert';
-
-import 'package:flight_hours_app/core/config/config.dart';
+import 'package:dio/dio.dart';
+import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/email_verification/data/models/email_verification_model.dart';
-import 'package:http/http.dart' as http;
 
+/// Email verification data source using Dio
 class EmailVerificationDatasource {
-  Future<EmailVerificationModel> verifyEmail(String email) async {
-    final response = await http.get(
-      Uri.parse('${Config.baseUrl}/Flighthours/email/status?email=$email'),
-      headers: <String, String>{'Content-Type': 'application/json'},
-    );
+  final Dio _dio;
 
-    if (response.statusCode == 200) {
-      final body =jsonDecode(response.body);
-      return EmailVerificationModel.fromMap(body);
-    } else {
-      throw Exception('Failed to login');
+  EmailVerificationDatasource({Dio? dio}) : _dio = dio ?? DioClient().client;
+
+  Future<EmailVerificationModel> verifyEmail(String email) async {
+    try {
+      final response = await _dio.get(
+        '/Flighthours/email/status',
+        queryParameters: {'email': email},
+      );
+
+      // Dio already parses JSON to Map
+      return EmailVerificationModel.fromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to verify email: ${e.response?.data}');
+      }
+      throw Exception('Connection error while verifying email');
     }
   }
 }
