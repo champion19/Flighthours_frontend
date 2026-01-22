@@ -144,16 +144,6 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        // Slogan
-                        const Text(
-                          'Track your journey in the skies',
-                          style: TextStyle(
-                            color: Color(0xFF6c757d),
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
                         const SizedBox(height: 32),
                         // Subtítulo de acción
                         const Text(
