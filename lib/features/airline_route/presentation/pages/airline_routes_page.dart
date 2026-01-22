@@ -336,16 +336,6 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // AR ID
-                Text(
-                  airlineRoute.displayId,
-                  style: const TextStyle(
-                    color: Color(0xFF6c757d),
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
                 // Route display and status badge row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

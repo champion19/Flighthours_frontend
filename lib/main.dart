@@ -13,6 +13,8 @@ import 'package:flight_hours_app/features/route/presentation/bloc/route_bloc.dar
 import 'package:flight_hours_app/features/route/presentation/pages/flight_routes_page.dart';
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_bloc.dart';
 import 'package:flight_hours_app/features/airline_route/presentation/pages/airline_routes_page.dart';
+import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
+import 'package:flight_hours_app/features/logbook/presentation/pages/logbook_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -38,6 +40,7 @@ void main() async {
         BlocProvider(create: (_) => EmployeeBloc()),
         BlocProvider(create: (_) => RouteBloc()),
         BlocProvider(create: (_) => AirlineRouteBloc()),
+        BlocProvider(create: (_) => LogbookBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -53,6 +56,7 @@ void main() async {
           '/change-password': (context) => const ChangePasswordPage(),
           '/flight-routes': (context) => const FlightRoutesPage(),
           '/airline-routes': (context) => const AirlineRoutesPage(),
+          '/logbook': (context) => const LogbookPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

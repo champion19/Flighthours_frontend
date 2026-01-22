@@ -46,6 +46,13 @@ import 'package:flight_hours_app/features/airline_route/data/repositories/airlin
 import 'package:flight_hours_app/features/airline_route/domain/repositories/airline_route_repository.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
+import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';
+import 'package:flight_hours_app/features/logbook/data/repositories/logbook_repository_impl.dart';
+import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
 import 'package:kiwi/kiwi.dart';
 
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -127,6 +134,13 @@ abstract class InjectorApp {
     AirlineRouteRemoteDataSource,
     from: AirlineRouteRemoteDataSourceImpl,
   )
+  // Logbook
+  @Register.factory(ListDailyLogbooksUseCase)
+  @Register.factory(ListLogbookDetailsUseCase)
+  @Register.factory(GetLogbookDetailByIdUseCase)
+  @Register.factory(DeleteLogbookDetailUseCase)
+  @Register.factory(LogbookRepository, from: LogbookRepositoryImpl)
+  @Register.factory(LogbookRemoteDataSource, from: LogbookRemoteDataSourceImpl)
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs
 }
