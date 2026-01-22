@@ -373,10 +373,21 @@ class _LogbookPageState extends State<LogbookPage> {
     );
   }
 
-  /// Table view for flight details (matches design)
+  /// Table view for flight details - using cards for mobile-friendly design
   Widget _buildDetailsTable(List<LogbookDetailEntity> details) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: details.length,
+      itemBuilder: (context, index) {
+        return _buildFlightCard(details[index]);
+      },
+    );
+  }
+
+  /// Flight card for each detail - mobile-friendly design
+  Widget _buildFlightCard(LogbookDetailEntity detail) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -390,186 +401,203 @@ class _LogbookPageState extends State<LogbookPage> {
       ),
       child: Column(
         children: [
-          // Table header
-          _buildTableHeader(),
-          // Table body
-          Expanded(
-            child: ListView.separated(
-              itemCount: details.length,
-              separatorBuilder:
-                  (context, index) => Divider(
-                    height: 1,
-                    color: Colors.grey.withValues(alpha: 0.2),
-                  ),
-              itemBuilder: (context, index) {
-                return _buildTableRow(details[index]);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Table header row
-  Widget _buildTableHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
-        color: Color(0xFF4facfe),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-      child: Row(
-        children: [
-          _buildHeaderCell('MODALITY', flex: 2),
-          _buildHeaderCell('FLIGHT #', flex: 2),
-          _buildHeaderCell('FROM-TO', flex: 2),
-          _buildHeaderCell('A/C REG.', flex: 2),
-          _buildHeaderCell('DATE', flex: 2),
-          _buildHeaderCell('START', flex: 2),
-          _buildHeaderCell('END', flex: 2),
-          _buildHeaderCell('ACTIONS', flex: 2),
-        ],
-      ),
-    );
-  }
-
-  /// Header cell widget
-  Widget _buildHeaderCell(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  /// Table row for each flight detail
-  Widget _buildTableRow(LogbookDetailEntity detail) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // MODALITY
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.displayPilotRole,
-              style: const TextStyle(
-                color: Color(0xFF1a1a2e),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+          // Card header with flight number and role badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
-          ),
-          // FLIGHT #
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.flightNumber ?? '--',
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // FROM-TO
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.routeDisplay,
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // A/C REG.
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.licensePlate ?? '--',
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // DATE
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.formattedDate,
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // START
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.startTime,
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // END
-          Expanded(
-            flex: 2,
-            child: Text(
-              detail.endTime,
-              style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 13),
-            ),
-          ),
-          // ACTIONS
-          Expanded(
-            flex: 2,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                // View button
-                InkWell(
-                  onTap: () => _viewFlightDetail(detail),
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.visibility_outlined,
-                      color: Color(0xFF4facfe),
-                      size: 18,
-                    ),
+                // Flight number
+                const Icon(Icons.flight, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Flight ${detail.flightNumber ?? '--'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 4),
-                // Edit button
-                InkWell(
-                  onTap: () => _editFlightDetail(detail),
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      color: Color(0xFF4facfe),
-                      size: 18,
-                    ),
+                const Spacer(),
+                // Modality badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
                   ),
-                ),
-                const SizedBox(width: 4),
-                // Delete button
-                InkWell(
-                  onTap: () => _confirmDeleteDetail(detail),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.delete_outline,
-                      color: Colors.red.withValues(alpha: 0.7),
-                      size: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    detail.displayPilotRole,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+
+          // Card body with details
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Row 1: Route and Aircraft
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.route,
+                        'Route',
+                        detail.routeDisplay,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.airplanemode_active,
+                        'Aircraft',
+                        detail.licensePlate ?? '--',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Row 2: Date and Times
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.calendar_today,
+                        'Date',
+                        detail.formattedDate,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.schedule,
+                        'Time',
+                        '${detail.startTime} - ${detail.endTime}',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Actions row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // View button
+                    _buildActionButton(
+                      icon: Icons.visibility_outlined,
+                      label: 'View',
+                      color: const Color(0xFF4facfe),
+                      onTap: () => _viewFlightDetail(detail),
+                    ),
+                    const SizedBox(width: 8),
+                    // Edit button
+                    _buildActionButton(
+                      icon: Icons.edit_outlined,
+                      label: 'Edit',
+                      color: const Color(0xFF667eea),
+                      onTap: () => _editFlightDetail(detail),
+                    ),
+                    const SizedBox(width: 8),
+                    // Delete button
+                    _buildActionButton(
+                      icon: Icons.delete_outline,
+                      label: 'Delete',
+                      color: Colors.red.shade400,
+                      onTap: () => _confirmDeleteDetail(detail),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Info item with icon, label and value
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF4facfe)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(color: Color(0xFF6c757d), fontSize: 11),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Color(0xFF1a1a2e),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Action button with icon and label
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
