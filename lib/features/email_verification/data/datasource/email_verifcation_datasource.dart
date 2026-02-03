@@ -10,9 +10,9 @@ class EmailVerificationDatasource {
 
   Future<EmailVerificationModel> verifyEmail(String email) async {
     try {
-      final response = await _dio.get(
-        '/Flighthours/email/status',
-        queryParameters: {'email': email},
+      final response = await _dio.post(
+        '/auth/verify-email',
+        data: {'email': email},
       );
 
       // Dio already parses JSON to Map

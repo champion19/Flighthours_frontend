@@ -167,13 +167,6 @@ class _AirlineListPageState extends State<AirlineListPage> {
                         fontSize: 14,
                       ),
                     ),
-                  Text(
-                    'ID: ${airline.id}',
-                    style: const TextStyle(
-                      color: Color(0xFF6c757d),
-                      fontSize: 12,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -188,12 +181,12 @@ class _AirlineListPageState extends State<AirlineListPage> {
                   color: const Color(0xFF00b894),
                   tooltip: 'Activate',
                 ),
-                // Deactivate button
+                // Deactivate button (coming soon)
                 IconButton(
-                  onPressed: () => _showDeactivateConfirmation(airline),
+                  onPressed: () => _showDeactivateComingSoon(),
                   icon: const Icon(Icons.cancel_outlined),
-                  color: Colors.redAccent,
-                  tooltip: 'Deactivate',
+                  color: Colors.grey,
+                  tooltip: 'Deactivate (Coming soon)',
                 ),
               ],
             ),
@@ -254,54 +247,14 @@ class _AirlineListPageState extends State<AirlineListPage> {
     );
   }
 
-  void _showDeactivateConfirmation(AirlineEntity airline) {
-    showDialog(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: const Text(
-              'Deactivate Airline',
-              style: TextStyle(
-                color: Color(0xFF1a1a2e),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              'Are you sure you want to deactivate "${airline.name}"?',
-              style: const TextStyle(color: Color(0xFF6c757d)),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Color(0xFF6c757d)),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  context.read<AirlineBloc>().add(
-                    DeactivateAirline(airlineId: airline.id),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Deactivate',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
+  void _showDeactivateComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Deactivate airline - Coming soon!'),
+        backgroundColor: Colors.grey,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
