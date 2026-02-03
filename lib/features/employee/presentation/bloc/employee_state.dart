@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -27,6 +29,9 @@ class PasswordChanging extends EmployeeState {}
 /// Deleting account state
 class EmployeeDeleting extends EmployeeState {}
 
+/// Loading airline data state
+class EmployeeAirlineLoading extends EmployeeState {}
+
 /// Success state for fetching employee information
 class EmployeeDetailSuccess extends EmployeeState {
   final EmployeeResponseModel response;
@@ -37,11 +42,31 @@ class EmployeeDetailSuccess extends EmployeeState {
   List<Object?> get props => [response];
 }
 
+/// Success state for fetching employee airline association
+class EmployeeAirlineSuccess extends EmployeeState {
+  final EmployeeAirlineResponseModel response;
+
+  const EmployeeAirlineSuccess(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
 /// Success state for updating employee information
 class EmployeeUpdateSuccess extends EmployeeState {
   final EmployeeUpdateResponseModel response;
 
   const EmployeeUpdateSuccess(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
+/// Success state for updating employee airline association
+class EmployeeAirlineUpdateSuccess extends EmployeeState {
+  final EmployeeAirlineResponseModel response;
+
+  const EmployeeAirlineUpdateSuccess(this.response);
 
   @override
   List<Object?> get props => [response];
@@ -66,6 +91,19 @@ class EmployeeDeleteSuccess extends EmployeeState {
   @override
   List<Object?> get props => [response];
 }
+
+/// Success state for loading employee airline routes
+class EmployeeAirlineRoutesSuccess extends EmployeeState {
+  final EmployeeAirlineRoutesResponseModel response;
+
+  const EmployeeAirlineRoutesSuccess(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
+/// Loading state for airline routes
+class EmployeeAirlineRoutesLoading extends EmployeeState {}
 
 /// Error state with error details
 class EmployeeError extends EmployeeState {

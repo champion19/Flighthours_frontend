@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -24,8 +26,22 @@ abstract class EmployeeRemoteDataSource {
   );
 
   /// Deletes the current employee's account
-  /// Uses DELETE /employees/me endpoint - ID is extracted from JWT token
+  /// Uses DELETE /employees endpoint - ID is extracted from JWT token
   Future<DeleteEmployeeResponseModel> deleteCurrentEmployee();
+
+  /// Fetches the current employee's airline association
+  /// Uses GET /employees/airline endpoint - returns bp, airline info, dates
+  Future<EmployeeAirlineResponseModel> getEmployeeAirline();
+
+  /// Updates or creates the employee's airline association
+  /// Uses PUT /employees/airline endpoint
+  Future<EmployeeAirlineResponseModel> updateEmployeeAirline(
+    EmployeeAirlineUpdateRequest request,
+  );
+
+  /// Fetches the airline routes for the employee's airline
+  /// Uses GET /employees/airline-routes endpoint
+  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes();
 }
 
 /// Implementation of the employee remote data source using Dio
@@ -46,7 +62,7 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
   @override
   Future<EmployeeResponseModel> getCurrentEmployee() async {
     try {
-      final response = await _dio.get('/employees/me');
+      final response = await _dio.get('/employees');
       // Dio already parses JSON to Map automatically
       return EmployeeResponseModel.fromMap(response.data);
     } on DioException catch (e) {
@@ -65,7 +81,7 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
   ) async {
     try {
       final response = await _dio.put(
-        '/employees/me',
+        '/employees',
         data:
             request.toMap(), // Dio accepts Map directly, no need for jsonEncode
       );
@@ -99,11 +115,55 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
   @override
   Future<DeleteEmployeeResponseModel> deleteCurrentEmployee() async {
     try {
-      final response = await _dio.delete('/employees/me');
+      final response = await _dio.delete('/employees');
       return DeleteEmployeeResponseModel.fromMap(response.data);
     } on DioException catch (e) {
       if (e.response != null) {
         return DeleteEmployeeResponseModel.fromMap(e.response!.data);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<EmployeeAirlineResponseModel> getEmployeeAirline() async {
+    try {
+      final response = await _dio.get('/employees/airline');
+      return EmployeeAirlineResponseModel.fromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return EmployeeAirlineResponseModel.fromMap(e.response!.data);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<EmployeeAirlineResponseModel> updateEmployeeAirline(
+    EmployeeAirlineUpdateRequest request,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '/employees/airline',
+        data: request.toMap(),
+      );
+      return EmployeeAirlineResponseModel.fromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return EmployeeAirlineResponseModel.fromMap(e.response!.data);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes() async {
+    try {
+      final response = await _dio.get('/employees/airline-routes');
+      return EmployeeAirlineRoutesResponseModel.fromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return EmployeeAirlineRoutesResponseModel.fromMap(e.response!.data);
       }
       rethrow;
     }
