@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';
 import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
@@ -34,7 +35,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     try {
       final loginResult = await loginUseCase.call(event.email, event.password);
 
-      // Save session data for use throughout the app
+      // Save session data for use throughout the app (without role for now)
       await SessionService().setSession(
         employeeId: loginResult.employeeId ?? '',
         accessToken: loginResult.accessToken,
@@ -42,6 +43,33 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         email: loginResult.email,
         name: loginResult.name,
       );
+
+      // Fetch employee data to get the role
+      String userRole = 'pilot'; // Default role
+      try {
+        debugPrint('📋 Fetching employee data to determine role...');
+        final employeeDataSource = EmployeeRemoteDataSourceImpl();
+        final employeeResponse = await employeeDataSource.getCurrentEmployee();
+
+        if (employeeResponse.success && employeeResponse.data != null) {
+          userRole = employeeResponse.data!.role ?? 'pilot';
+          debugPrint('✅ User role determined: $userRole');
+
+          // Update session with role
+          await SessionService().setSession(
+            employeeId: loginResult.employeeId ?? '',
+            accessToken: loginResult.accessToken,
+            refreshToken: loginResult.refreshToken,
+            email: loginResult.email,
+            name: employeeResponse.data!.name,
+            role: userRole,
+          );
+        }
+      } catch (roleError) {
+        debugPrint(
+          '⚠️ Could not fetch user role, defaulting to pilot: $roleError',
+        );
+      }
 
       // Check if there's pending pilot data from registration
       final hasPendingData = await SessionService().hasPendingPilotData();
@@ -56,28 +84,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           if (pendingData != null) {
             debugPrint('📤 Pending data: $pendingData');
 
-            // Create update request with ALL employee data
-            // PUT /employees/me requires: name, airline, identificationNumber, bp, startDate, endDate, active, role
+            // 1. Update basic employee data (PUT /employees)
             final updateRequest = EmployeeUpdateRequest(
               name: pendingData['name'],
               identificationNumber: pendingData['identificationNumber'],
-              bp: pendingData['bp'],
-              airline: pendingData['airlineId'],
-              startDate: pendingData['startDate'],
-              endDate: pendingData['endDate'],
-              active: pendingData['active'],
-              role: pendingData['role'],
             );
 
-            debugPrint(
-              '📤 Sending PUT /employees/me: ${updateRequest.toJson()}',
-            );
+            debugPrint('📤 Sending PUT /employees: ${updateRequest.toJson()}');
             final updateResponse = await updateEmployeeUseCase.call(
               updateRequest,
             );
 
             if (updateResponse.success) {
-              debugPrint('✅ Pilot data synced successfully');
+              debugPrint('✅ Basic employee data synced successfully');
               // Clear the pending data since it's been synced
               await SessionService().clearPendingPilotData();
             } else {
@@ -86,6 +105,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
               );
               // Don't clear pending data - it can be retried later from profile
             }
+
+            // Note: Airline association (bp, airline, dates) will be updated
+            // from the profile page using PUT /employees/airline
           }
         } catch (updateError) {
           // Log but don't fail the login - user can update later from profile
@@ -94,7 +116,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         }
       }
 
-      emit(LoginSuccess(loginResult));
+      emit(LoginSuccess(loginResult, role: userRole));
     } on LoginException catch (e) {
       if (e.isEmailNotVerified) {
         // Special case: email not verified

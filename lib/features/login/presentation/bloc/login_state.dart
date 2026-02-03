@@ -16,10 +16,11 @@ class LoginSyncingPilotData extends LoginState {}
 
 class LoginSuccess extends LoginState {
   final LoginEntity loginResult;
-  const LoginSuccess(this.loginResult);
+  final String role;
+  const LoginSuccess(this.loginResult, {this.role = 'pilot'});
 
   @override
-  List<Object?> get props => [loginResult];
+  List<Object?> get props => [loginResult, role];
 }
 
 /// State when login fails due to email not being verified
