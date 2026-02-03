@@ -7,8 +7,43 @@ abstract class AirlineRouteRemoteDataSource {
   /// Fetch all airline routes from the API
   Future<List<AirlineRouteModel>> getAirlineRoutes();
 
+  /// Fetch airline routes filtered by airline_code and optionally status
+  Future<List<AirlineRouteModel>> getAirlineRoutesByAirlineCode(
+    String airlineCode, {
+    bool? status,
+  });
+
   /// Fetch a specific airline route by ID (obfuscated or UUID)
   Future<AirlineRouteModel?> getAirlineRouteById(String id);
+
+  /// Activate an airline route by ID
+  Future<AirlineRouteStatusResponse> activateAirlineRoute(String id);
+
+  /// Deactivate an airline route by ID
+  Future<AirlineRouteStatusResponse> deactivateAirlineRoute(String id);
+}
+
+/// Response model for activate/deactivate operations
+class AirlineRouteStatusResponse {
+  final bool success;
+  final String message;
+
+  AirlineRouteStatusResponse({required this.success, required this.message});
+
+  factory AirlineRouteStatusResponse.fromJson(Map<String, dynamic> json) {
+    return AirlineRouteStatusResponse(
+      success: json['success'] ?? true,
+      message: json['message'] ?? 'Operation completed',
+    );
+  }
+
+  factory AirlineRouteStatusResponse.fromError(dynamic data) {
+    String message = 'An error occurred';
+    if (data is Map<String, dynamic>) {
+      message = data['message'] ?? data['error'] ?? message;
+    }
+    return AirlineRouteStatusResponse(success: false, message: message);
+  }
 }
 
 /// Implementation of AirlineRouteRemoteDataSource using Dio
@@ -37,6 +72,29 @@ class AirlineRouteRemoteDataSourceImpl implements AirlineRouteRemoteDataSource {
   }
 
   @override
+  Future<List<AirlineRouteModel>> getAirlineRoutesByAirlineCode(
+    String airlineCode, {
+    bool? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'airline_code': airlineCode};
+      if (status != null) {
+        queryParams['status'] = status;
+      }
+      final response = await _dio.get(
+        '/airline-routes',
+        queryParameters: queryParams,
+      );
+      return _parseAirlineRouteListFromMap(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return [];
+      }
+      rethrow;
+    }
+  }
+
+  @override
   Future<AirlineRouteModel?> getAirlineRouteById(String id) async {
     try {
       final response = await _dio.get('/airline-routes/$id');
@@ -45,6 +103,32 @@ class AirlineRouteRemoteDataSourceImpl implements AirlineRouteRemoteDataSource {
       if (e.response != null) {
         // Not found or other error, return null
         return null;
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AirlineRouteStatusResponse> activateAirlineRoute(String id) async {
+    try {
+      final response = await _dio.patch('/airline-routes/$id/activate');
+      return AirlineRouteStatusResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AirlineRouteStatusResponse.fromError(e.response!.data);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AirlineRouteStatusResponse> deactivateAirlineRoute(String id) async {
+    try {
+      final response = await _dio.patch('/airline-routes/$id/deactivate');
+      return AirlineRouteStatusResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AirlineRouteStatusResponse.fromError(e.response!.data);
       }
       rethrow;
     }

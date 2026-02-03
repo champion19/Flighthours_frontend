@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
+import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_event.dart';
@@ -7,7 +8,11 @@ import 'package:flight_hours_app/features/airline_route/presentation/bloc/airlin
 
 /// BLoC for managing airline route-related state
 class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
-  AirlineRouteBloc() : super(AirlineRouteInitial()) {
+  final AirlineRouteRemoteDataSource _dataSource;
+
+  AirlineRouteBloc({AirlineRouteRemoteDataSource? dataSource})
+    : _dataSource = dataSource ?? AirlineRouteRemoteDataSourceImpl(),
+      super(AirlineRouteInitial()) {
     final listAirlineRoutesUseCase =
         InjectorApp.resolve<ListAirlineRoutesUseCase>();
     final getAirlineRouteByIdUseCase =
@@ -21,6 +26,8 @@ class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
       (event, emit) =>
           _onFetchAirlineRouteById(event, emit, getAirlineRouteByIdUseCase),
     );
+    on<ActivateAirlineRoute>(_onActivateAirlineRoute);
+    on<DeactivateAirlineRoute>(_onDeactivateAirlineRoute);
   }
 
   /// Handle FetchAirlineRoutes event
@@ -54,6 +61,48 @@ class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
       }
     } catch (e) {
       // Silently fail - don't emit error to avoid disrupting the UI
+    }
+  }
+
+  /// Handle ActivateAirlineRoute event
+  Future<void> _onActivateAirlineRoute(
+    ActivateAirlineRoute event,
+    Emitter<AirlineRouteState> emit,
+  ) async {
+    emit(AirlineRouteStatusUpdating());
+
+    try {
+      final response = await _dataSource.activateAirlineRoute(
+        event.airlineRouteId,
+      );
+      if (response.success) {
+        emit(AirlineRouteStatusUpdateSuccess(response.message));
+      } else {
+        emit(AirlineRouteStatusUpdateError(response.message));
+      }
+    } catch (e) {
+      emit(AirlineRouteStatusUpdateError(e.toString()));
+    }
+  }
+
+  /// Handle DeactivateAirlineRoute event
+  Future<void> _onDeactivateAirlineRoute(
+    DeactivateAirlineRoute event,
+    Emitter<AirlineRouteState> emit,
+  ) async {
+    emit(AirlineRouteStatusUpdating());
+
+    try {
+      final response = await _dataSource.deactivateAirlineRoute(
+        event.airlineRouteId,
+      );
+      if (response.success) {
+        emit(AirlineRouteStatusUpdateSuccess(response.message));
+      } else {
+        emit(AirlineRouteStatusUpdateError(response.message));
+      }
+    } catch (e) {
+      emit(AirlineRouteStatusUpdateError(e.toString()));
     }
   }
 }
