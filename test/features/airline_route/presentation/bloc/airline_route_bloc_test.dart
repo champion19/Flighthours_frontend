@@ -1,7 +1,22 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_bloc.dart';
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_event.dart';
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_state.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
+
+class MockListAirlineRoutesUseCase extends Mock
+    implements ListAirlineRoutesUseCase {}
+
+class MockGetAirlineRouteByIdUseCase extends Mock
+    implements GetAirlineRouteByIdUseCase {}
+
+class MockAirlineRouteRemoteDataSource extends Mock
+    implements AirlineRouteRemoteDataSource {}
 
 void main() {
   group('AirlineRouteEvent', () {
@@ -169,5 +184,105 @@ void main() {
         expect(state.props.length, equals(1));
       });
     });
+  });
+
+  // Tests for Bloc logic using bloc_test
+  group('AirlineRouteBloc', () {
+    late MockListAirlineRoutesUseCase mockListUseCase;
+    late MockGetAirlineRouteByIdUseCase mockGetByIdUseCase;
+    late MockAirlineRouteRemoteDataSource mockDataSource;
+
+    setUp(() {
+      mockListUseCase = MockListAirlineRoutesUseCase();
+      mockGetByIdUseCase = MockGetAirlineRouteByIdUseCase();
+      mockDataSource = MockAirlineRouteRemoteDataSource();
+    });
+
+    test('initial state should be AirlineRouteInitial', () {
+      final bloc = AirlineRouteBloc(
+        listAirlineRoutesUseCase: mockListUseCase,
+        getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+        dataSource: mockDataSource,
+      );
+      expect(bloc.state, isA<AirlineRouteInitial>());
+    });
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [Loading, Success] when FetchAirlineRoutes succeeds',
+      setUp: () {
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => [
+            const AirlineRouteEntity(id: 'ar1', routeId: 'r1', airlineId: 'a1'),
+          ],
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act: (bloc) => bloc.add(FetchAirlineRoutes()),
+      expect: () => [isA<AirlineRouteLoading>(), isA<AirlineRouteSuccess>()],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [Loading, Error] when FetchAirlineRoutes fails',
+      setUp: () {
+        when(
+          () => mockListUseCase.call(),
+        ).thenThrow(Exception('Failed to load routes'));
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act: (bloc) => bloc.add(FetchAirlineRoutes()),
+      expect: () => [isA<AirlineRouteLoading>(), isA<AirlineRouteError>()],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [DetailSuccess] when FetchAirlineRouteById succeeds',
+      setUp: () {
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async => const AirlineRouteEntity(
+            id: 'ar1',
+            routeId: 'r1',
+            airlineId: 'a1',
+          ),
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) =>
+              bloc.add(const FetchAirlineRouteById(airlineRouteId: 'ar1')),
+      expect: () => [isA<AirlineRouteDetailSuccess>()],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits nothing when FetchAirlineRouteById returns null',
+      setUp: () {
+        when(
+          () => mockGetByIdUseCase.call(any()),
+        ).thenAnswer((_) async => null);
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) =>
+              bloc.add(const FetchAirlineRouteById(airlineRouteId: 'notfound')),
+      expect: () => [],
+    );
   });
 }

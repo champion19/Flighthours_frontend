@@ -7,39 +7,50 @@ import 'package:flight_hours_app/features/airline/domain/usecases/list_airline_u
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_event.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_state.dart';
 
+/// BLoC for managing airline-related state
+///
+/// Supports dependency injection for testing:
+/// - [listAirlineUseCase] for listing airlines
+/// - [getAirlineByIdUseCase] for fetching airline details
+/// - [activateAirlineUseCase] for activating airlines
+/// - [deactivateAirlineUseCase] for deactivating airlines
 class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
-  AirlineBloc() : super(AirlineInitial()) {
-    final listAirlineUseCase = InjectorApp.resolve<ListAirlineUseCase>();
-    final getAirlineByIdUseCase = InjectorApp.resolve<GetAirlineByIdUseCase>();
-    final activateAirlineUseCase =
-        InjectorApp.resolve<ActivateAirlineUseCase>();
-    final deactivateAirlineUseCase =
-        InjectorApp.resolve<DeactivateAirlineUseCase>();
+  final ListAirlineUseCase _listAirlineUseCase;
+  final GetAirlineByIdUseCase _getAirlineByIdUseCase;
+  final ActivateAirlineUseCase _activateAirlineUseCase;
+  final DeactivateAirlineUseCase _deactivateAirlineUseCase;
 
-    on<FetchAirlines>(
-      (event, emit) => _onFetchAirlines(event, emit, listAirlineUseCase),
-    );
-    on<FetchAirlineById>(
-      (event, emit) => _onFetchAirlineById(event, emit, getAirlineByIdUseCase),
-    );
-    on<ActivateAirline>(
-      (event, emit) => _onActivateAirline(event, emit, activateAirlineUseCase),
-    );
-    on<DeactivateAirline>(
-      (event, emit) =>
-          _onDeactivateAirline(event, emit, deactivateAirlineUseCase),
-    );
+  AirlineBloc({
+    ListAirlineUseCase? listAirlineUseCase,
+    GetAirlineByIdUseCase? getAirlineByIdUseCase,
+    ActivateAirlineUseCase? activateAirlineUseCase,
+    DeactivateAirlineUseCase? deactivateAirlineUseCase,
+  }) : _listAirlineUseCase =
+           listAirlineUseCase ?? InjectorApp.resolve<ListAirlineUseCase>(),
+       _getAirlineByIdUseCase =
+           getAirlineByIdUseCase ??
+           InjectorApp.resolve<GetAirlineByIdUseCase>(),
+       _activateAirlineUseCase =
+           activateAirlineUseCase ??
+           InjectorApp.resolve<ActivateAirlineUseCase>(),
+       _deactivateAirlineUseCase =
+           deactivateAirlineUseCase ??
+           InjectorApp.resolve<DeactivateAirlineUseCase>(),
+       super(AirlineInitial()) {
+    on<FetchAirlines>(_onFetchAirlines);
+    on<FetchAirlineById>(_onFetchAirlineById);
+    on<ActivateAirline>(_onActivateAirline);
+    on<DeactivateAirline>(_onDeactivateAirline);
   }
 
   Future<void> _onFetchAirlines(
     FetchAirlines event,
     Emitter<AirlineState> emit,
-    ListAirlineUseCase listAirlineUseCase,
   ) async {
     emit(AirlineLoading());
 
     try {
-      final airlines = await listAirlineUseCase.call();
+      final airlines = await _listAirlineUseCase.call();
       emit(AirlineSuccess(airlines));
     } catch (e) {
       emit(AirlineError(e.toString()));
@@ -49,10 +60,9 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   Future<void> _onFetchAirlineById(
     FetchAirlineById event,
     Emitter<AirlineState> emit,
-    GetAirlineByIdUseCase getAirlineByIdUseCase,
   ) async {
     try {
-      final airline = await getAirlineByIdUseCase.call(event.airlineId);
+      final airline = await _getAirlineByIdUseCase.call(event.airlineId);
       if (airline != null) {
         emit(AirlineDetailSuccess(airline));
       }
@@ -64,12 +74,11 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   Future<void> _onActivateAirline(
     ActivateAirline event,
     Emitter<AirlineState> emit,
-    ActivateAirlineUseCase activateAirlineUseCase,
   ) async {
     emit(AirlineStatusUpdating(airlineId: event.airlineId));
 
     try {
-      final response = await activateAirlineUseCase.call(event.airlineId);
+      final response = await _activateAirlineUseCase.call(event.airlineId);
 
       if (response.success) {
         emit(
@@ -97,12 +106,11 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   Future<void> _onDeactivateAirline(
     DeactivateAirline event,
     Emitter<AirlineState> emit,
-    DeactivateAirlineUseCase deactivateAirlineUseCase,
   ) async {
     emit(AirlineStatusUpdating(airlineId: event.airlineId));
 
     try {
-      final response = await deactivateAirlineUseCase.call(event.airlineId);
+      final response = await _deactivateAirlineUseCase.call(event.airlineId);
 
       if (response.success) {
         emit(

@@ -7,25 +7,30 @@ import 'package:flight_hours_app/features/airline_route/presentation/bloc/airlin
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_state.dart';
 
 /// BLoC for managing airline route-related state
+///
+/// Supports dependency injection for testing:
+/// - [dataSource] for activate/deactivate operations
+/// - [listAirlineRoutesUseCase] for listing routes
+/// - [getAirlineRouteByIdUseCase] for fetching route details
 class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
   final AirlineRouteRemoteDataSource _dataSource;
+  final ListAirlineRoutesUseCase _listAirlineRoutesUseCase;
+  final GetAirlineRouteByIdUseCase _getAirlineRouteByIdUseCase;
 
-  AirlineRouteBloc({AirlineRouteRemoteDataSource? dataSource})
-    : _dataSource = dataSource ?? AirlineRouteRemoteDataSourceImpl(),
-      super(AirlineRouteInitial()) {
-    final listAirlineRoutesUseCase =
-        InjectorApp.resolve<ListAirlineRoutesUseCase>();
-    final getAirlineRouteByIdUseCase =
-        InjectorApp.resolve<GetAirlineRouteByIdUseCase>();
-
-    on<FetchAirlineRoutes>(
-      (event, emit) =>
-          _onFetchAirlineRoutes(event, emit, listAirlineRoutesUseCase),
-    );
-    on<FetchAirlineRouteById>(
-      (event, emit) =>
-          _onFetchAirlineRouteById(event, emit, getAirlineRouteByIdUseCase),
-    );
+  AirlineRouteBloc({
+    AirlineRouteRemoteDataSource? dataSource,
+    ListAirlineRoutesUseCase? listAirlineRoutesUseCase,
+    GetAirlineRouteByIdUseCase? getAirlineRouteByIdUseCase,
+  }) : _dataSource = dataSource ?? AirlineRouteRemoteDataSourceImpl(),
+       _listAirlineRoutesUseCase =
+           listAirlineRoutesUseCase ??
+           InjectorApp.resolve<ListAirlineRoutesUseCase>(),
+       _getAirlineRouteByIdUseCase =
+           getAirlineRouteByIdUseCase ??
+           InjectorApp.resolve<GetAirlineRouteByIdUseCase>(),
+       super(AirlineRouteInitial()) {
+    on<FetchAirlineRoutes>(_onFetchAirlineRoutes);
+    on<FetchAirlineRouteById>(_onFetchAirlineRouteById);
     on<ActivateAirlineRoute>(_onActivateAirlineRoute);
     on<DeactivateAirlineRoute>(_onDeactivateAirlineRoute);
   }
@@ -34,12 +39,11 @@ class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
   Future<void> _onFetchAirlineRoutes(
     FetchAirlineRoutes event,
     Emitter<AirlineRouteState> emit,
-    ListAirlineRoutesUseCase listAirlineRoutesUseCase,
   ) async {
     emit(AirlineRouteLoading());
 
     try {
-      final airlineRoutes = await listAirlineRoutesUseCase.call();
+      final airlineRoutes = await _listAirlineRoutesUseCase.call();
       emit(AirlineRouteSuccess(airlineRoutes));
     } catch (e) {
       emit(AirlineRouteError(e.toString()));
@@ -50,10 +54,9 @@ class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
   Future<void> _onFetchAirlineRouteById(
     FetchAirlineRouteById event,
     Emitter<AirlineRouteState> emit,
-    GetAirlineRouteByIdUseCase getAirlineRouteByIdUseCase,
   ) async {
     try {
-      final airlineRoute = await getAirlineRouteByIdUseCase.call(
+      final airlineRoute = await _getAirlineRouteByIdUseCase.call(
         event.airlineRouteId,
       );
       if (airlineRoute != null) {
