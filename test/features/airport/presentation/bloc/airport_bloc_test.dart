@@ -1,8 +1,26 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/airport/data/models/airport_model.dart';
+import 'package:flight_hours_app/features/airport/data/models/airport_status_response_model.dart';
+import 'package:flight_hours_app/features/airport/domain/entities/airport_entity.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/activate_airport_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/deactivate_airport_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/get_airport_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airport/domain/usecases/list_airport_use_case.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_bloc.dart';
 import 'package:flight_hours_app/features/airport/presentation/bloc/airport_event.dart';
 import 'package:flight_hours_app/features/airport/presentation/bloc/airport_state.dart';
-import 'package:flight_hours_app/features/airport/domain/entities/airport_entity.dart';
-import 'package:flight_hours_app/features/airport/data/models/airport_status_response_model.dart';
+
+class MockListAirportUseCase extends Mock implements ListAirportUseCase {}
+
+class MockGetAirportByIdUseCase extends Mock implements GetAirportByIdUseCase {}
+
+class MockActivateAirportUseCase extends Mock
+    implements ActivateAirportUseCase {}
+
+class MockDeactivateAirportUseCase extends Mock
+    implements DeactivateAirportUseCase {}
 
 void main() {
   group('AirportEvent', () {
@@ -156,5 +174,131 @@ void main() {
         expect(state.props.length, equals(1));
       });
     });
+  });
+
+  // Tests for AirportBloc logic using bloc_test
+  group('AirportBloc', () {
+    late MockListAirportUseCase mockListUseCase;
+    late MockGetAirportByIdUseCase mockGetByIdUseCase;
+    late MockActivateAirportUseCase mockActivateUseCase;
+    late MockDeactivateAirportUseCase mockDeactivateUseCase;
+
+    setUp(() {
+      mockListUseCase = MockListAirportUseCase();
+      mockGetByIdUseCase = MockGetAirportByIdUseCase();
+      mockActivateUseCase = MockActivateAirportUseCase();
+      mockDeactivateUseCase = MockDeactivateAirportUseCase();
+    });
+
+    test('initial state should be AirportInitial', () {
+      final bloc = AirportBloc(
+        listAirportUseCase: mockListUseCase,
+        getAirportByIdUseCase: mockGetByIdUseCase,
+        activateAirportUseCase: mockActivateUseCase,
+        deactivateAirportUseCase: mockDeactivateUseCase,
+      );
+      expect(bloc.state, isA<AirportInitial>());
+    });
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Success] when FetchAirports succeeds',
+      setUp: () {
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => [
+            const AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
+          ],
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(FetchAirports()),
+      expect: () => [isA<AirportLoading>(), isA<AirportSuccess>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Error] when FetchAirports fails',
+      setUp: () {
+        when(
+          () => mockListUseCase.call(),
+        ).thenThrow(Exception('Failed to load airports'));
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(FetchAirports()),
+      expect: () => [isA<AirportLoading>(), isA<AirportError>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [DetailSuccess] when FetchAirportById succeeds',
+      setUp: () {
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const FetchAirportById(airportId: 'ap1')),
+      expect: () => [isA<AirportDetailSuccess>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, StatusUpdateSuccess] when ActivateAirport succeeds',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async => AirportStatusResponseModel(
+            success: true,
+            code: 'ACTIVATED',
+            message: 'Airport activated',
+          ),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const ActivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportStatusUpdateSuccess>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Error] when DeactivateAirport fails',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async => AirportStatusResponseModel(
+            success: false,
+            code: 'ALREADY_INACTIVE',
+            message: 'Already inactive',
+          ),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const DeactivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportError>()],
+    );
   });
 }
