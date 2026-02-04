@@ -13,27 +13,34 @@ import 'package:flutter/foundation.dart';
 part 'login_event.dart';
 part 'login_state.dart';
 
+/// BLoC for managing login state
+///
+/// Supports dependency injection for testing:
+/// - [loginUseCase] for handling login operations
+/// - [updateEmployeeUseCase] for updating employee data after login
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(LoginInitial()) {
-    final loginUseCase = InjectorApp.resolve<LoginUseCase>();
-    final updateEmployeeUseCase = InjectorApp.resolve<UpdateEmployeeUseCase>();
+  final LoginUseCase _loginUseCase;
+  final UpdateEmployeeUseCase _updateEmployeeUseCase;
 
-    on<LoginSubmitted>(
-      (event, emit) =>
-          _onLoginSubmitted(event, emit, loginUseCase, updateEmployeeUseCase),
-    );
+  LoginBloc({
+    LoginUseCase? loginUseCase,
+    UpdateEmployeeUseCase? updateEmployeeUseCase,
+  }) : _loginUseCase = loginUseCase ?? InjectorApp.resolve<LoginUseCase>(),
+       _updateEmployeeUseCase =
+           updateEmployeeUseCase ??
+           InjectorApp.resolve<UpdateEmployeeUseCase>(),
+       super(LoginInitial()) {
+    on<LoginSubmitted>(_onLoginSubmitted);
   }
 
   Future<void> _onLoginSubmitted(
     LoginSubmitted event,
     Emitter<LoginState> emit,
-    LoginUseCase loginUseCase,
-    UpdateEmployeeUseCase updateEmployeeUseCase,
   ) async {
     emit(LoginLoading());
 
     try {
-      final loginResult = await loginUseCase.call(event.email, event.password);
+      final loginResult = await _loginUseCase.call(event.email, event.password);
 
       // Save session data for use throughout the app (without role for now)
       await SessionService().setSession(
@@ -91,7 +98,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             );
 
             debugPrint('📤 Sending PUT /employees: ${updateRequest.toJson()}');
-            final updateResponse = await updateEmployeeUseCase.call(
+            final updateResponse = await _updateEmployeeUseCase.call(
               updateRequest,
             );
 

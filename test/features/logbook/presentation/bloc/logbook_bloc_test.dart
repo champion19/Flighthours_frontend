@@ -1,8 +1,23 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
-import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
+import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
+import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
+import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
+
+class MockListDailyLogbooksUseCase extends Mock
+    implements ListDailyLogbooksUseCase {}
+
+class MockListLogbookDetailsUseCase extends Mock
+    implements ListLogbookDetailsUseCase {}
+
+class MockDeleteLogbookDetailUseCase extends Mock
+    implements DeleteLogbookDetailUseCase {}
 
 void main() {
   group('LogbookEvent', () {
@@ -174,5 +189,83 @@ void main() {
         expect(state.props.length, equals(3));
       });
     });
+  });
+
+  // Tests for LogbookBloc logic using bloc_test
+  group('LogbookBloc', () {
+    late MockListDailyLogbooksUseCase mockListDailyUseCase;
+    late MockListLogbookDetailsUseCase mockListDetailsUseCase;
+    late MockDeleteLogbookDetailUseCase mockDeleteUseCase;
+
+    setUp(() {
+      mockListDailyUseCase = MockListDailyLogbooksUseCase();
+      mockListDetailsUseCase = MockListLogbookDetailsUseCase();
+      mockDeleteUseCase = MockDeleteLogbookDetailUseCase();
+    });
+
+    LogbookBloc buildBloc() {
+      return LogbookBloc(
+        listDailyLogbooksUseCase: mockListDailyUseCase,
+        listLogbookDetailsUseCase: mockListDetailsUseCase,
+        deleteLogbookDetailUseCase: mockDeleteUseCase,
+      );
+    }
+
+    test('initial state should be LogbookInitial', () {
+      final bloc = buildBloc();
+      expect(bloc.state, isA<LogbookInitial>());
+    });
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbooksLoaded] when FetchDailyLogbooks succeeds',
+      setUp: () {
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => [
+            const DailyLogbookEntity(id: 'log1'),
+            const DailyLogbookEntity(id: 'log2'),
+          ],
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const FetchDailyLogbooks()),
+      expect: () => [isA<LogbookLoading>(), isA<DailyLogbooksLoaded>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, LogbookError] when FetchDailyLogbooks fails',
+      setUp: () {
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenThrow(Exception('Network error'));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const FetchDailyLogbooks()),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, LogbookDetailsLoaded] when SelectDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => [const LogbookDetailEntity(id: 'detail1')]);
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')),
+          ),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookDetailsLoaded>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbooksLoaded] when ClearSelectedLogbook is called',
+      setUp: () {
+        when(() => mockListDailyUseCase.call()).thenAnswer((_) async => []);
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const ClearSelectedLogbook()),
+      expect: () => [isA<LogbookLoading>(), isA<DailyLogbooksLoaded>()],
+    );
   });
 }
