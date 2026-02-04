@@ -1,6 +1,12 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flight_hours_app/features/email_verification/presentation/bloc/email_verification_bloc.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/email_verification/domain/entities/EmailEntity.dart';
+import 'package:flight_hours_app/features/email_verification/domain/usecases/email_verification_use_case.dart';
+import 'package:flight_hours_app/features/email_verification/presentation/bloc/email_verification_bloc.dart';
+
+class MockEmailVerificationUseCase extends Mock
+    implements EmailVerificationUseCase {}
 
 void main() {
   group('EmailVerificationEvent', () {
@@ -97,5 +103,75 @@ void main() {
         expect(state1, isNot(equals(state2)));
       });
     });
+  });
+
+  // Tests for EmailVerificationBloc logic using bloc_test
+  group('EmailVerificationBloc', () {
+    late MockEmailVerificationUseCase mockUseCase;
+
+    setUp(() {
+      mockUseCase = MockEmailVerificationUseCase();
+    });
+
+    EmailVerificationBloc buildBloc() {
+      return EmailVerificationBloc(emailVerificationUseCase: mockUseCase);
+    }
+
+    test('initial state should be EmailVerificationInitial', () {
+      final bloc = buildBloc();
+      expect(bloc.state, isA<EmailVerificationInitial>());
+    });
+
+    blocTest<EmailVerificationBloc, EmailVerificationState>(
+      'emits [Loading, Success] when email is verified',
+      setUp: () {
+        when(
+          () => mockUseCase.call(any()),
+        ).thenAnswer((_) async => EmailEntity(emailconfirmed: true));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(const VerifyEmailEvent(email: 'test@example.com')),
+      expect:
+          () => [
+            isA<EmailVerificationLoading>(),
+            isA<EmailVerificationSuccess>(),
+          ],
+    );
+
+    blocTest<EmailVerificationBloc, EmailVerificationState>(
+      'emits [Loading, Error] when email is not verified',
+      setUp: () {
+        when(
+          () => mockUseCase.call(any()),
+        ).thenAnswer((_) async => EmailEntity(emailconfirmed: false));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) =>
+              bloc.add(const VerifyEmailEvent(email: 'unverified@example.com')),
+      expect:
+          () => [
+            isA<EmailVerificationLoading>(),
+            isA<EmailVerificationError>(),
+          ],
+    );
+
+    blocTest<EmailVerificationBloc, EmailVerificationState>(
+      'emits [Loading, Error] when use case throws',
+      setUp: () {
+        when(
+          () => mockUseCase.call(any()),
+        ).thenThrow(Exception('Network error'));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(const VerifyEmailEvent(email: 'test@example.com')),
+      expect:
+          () => [
+            isA<EmailVerificationLoading>(),
+            isA<EmailVerificationError>(),
+          ],
+    );
   });
 }

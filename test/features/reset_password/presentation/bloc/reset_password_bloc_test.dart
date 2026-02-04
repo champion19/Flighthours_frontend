@@ -1,6 +1,12 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flight_hours_app/features/reset_password/presentation/bloc/reset_password_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
 import 'package:flight_hours_app/features/reset_password/domain/entities/reset_password_entity.dart';
+import 'package:flight_hours_app/features/reset_password/domain/usecases/reset_password_use_case.dart';
+import 'package:flight_hours_app/features/reset_password/presentation/bloc/reset_password_bloc.dart';
+
+class MockResetPasswordUseCase extends Mock implements ResetPasswordUseCase {}
 
 void main() {
   group('ResetPasswordEvent', () {
@@ -98,5 +104,60 @@ void main() {
         expect(state1, equals(state2));
       });
     });
+  });
+
+  // Tests for ResetPasswordBloc logic using bloc_test
+  group('ResetPasswordBloc', () {
+    late MockResetPasswordUseCase mockUseCase;
+
+    setUp(() {
+      mockUseCase = MockResetPasswordUseCase();
+    });
+
+    ResetPasswordBloc buildBloc() {
+      return ResetPasswordBloc(resetPasswordUseCase: mockUseCase);
+    }
+
+    test('initial state should be ResetPasswordInitial', () {
+      final bloc = buildBloc();
+      expect(bloc.state, isA<ResetPasswordInitial>());
+    });
+
+    blocTest<ResetPasswordBloc, ResetPasswordState>(
+      'emits [Loading, Success] when ResetPasswordSubmitted succeeds',
+      setUp: () {
+        when(() => mockUseCase.call(any())).thenAnswer(
+          (_) async => ResetPasswordEntity(
+            success: true,
+            code: 'PASSWORD_RESET_SENT',
+            message: 'Email sent',
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) =>
+              bloc.add(const ResetPasswordSubmitted(email: 'test@example.com')),
+      expect: () => [isA<ResetPasswordLoading>(), isA<ResetPasswordSuccess>()],
+    );
+
+    blocTest<ResetPasswordBloc, ResetPasswordState>(
+      'emits [Loading, Error] when ResetPasswordSubmitted fails',
+      setUp: () {
+        when(() => mockUseCase.call(any())).thenThrow(
+          ResetPasswordException(
+            message: 'User not found',
+            code: 'USER_NOT_FOUND',
+            statusCode: 404,
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const ResetPasswordSubmitted(email: 'notfound@example.com'),
+          ),
+      expect: () => [isA<ResetPasswordLoading>(), isA<ResetPasswordError>()],
+    );
   });
 }
