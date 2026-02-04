@@ -62,6 +62,9 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory((c) => UpdateEmployeeUseCase())
       ..registerFactory((c) => ChangePasswordUseCase())
       ..registerFactory((c) => DeleteEmployeeUseCase())
+      ..registerFactory((c) => GetEmployeeAirlineUseCase())
+      ..registerFactory((c) => GetEmployeeAirlineRoutesUseCase())
+      ..registerFactory((c) => UpdateEmployeeAirlineUseCase())
       ..registerFactory(
           (c) => ListRoutesUseCase(repository: c.resolve<RouteRepository>()))
       ..registerFactory(

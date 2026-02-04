@@ -9,7 +9,10 @@ import 'package:flight_hours_app/features/employee/data/repositories/employee_re
 import 'package:flight_hours_app/features/employee/domain/repositories/employee_repository.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_airline_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';
 import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
 import 'package:flight_hours_app/features/login/domain/repositories/login_repository.dart';
@@ -121,6 +124,9 @@ abstract class InjectorApp {
   @Register.factory(UpdateEmployeeUseCase)
   @Register.factory(ChangePasswordUseCase)
   @Register.factory(DeleteEmployeeUseCase)
+  @Register.factory(GetEmployeeAirlineUseCase)
+  @Register.factory(GetEmployeeAirlineRoutesUseCase)
+  @Register.factory(UpdateEmployeeAirlineUseCase)
   // Route
   @Register.factory(ListRoutesUseCase)
   @Register.factory(GetRouteByIdUseCase)

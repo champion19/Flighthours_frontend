@@ -38,26 +38,30 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
     super.dispose();
   }
 
+  /// Apply filter logic without setState (for use inside existing setState)
+  void _applyFilter(String query) {
+    if (query.isEmpty) {
+      _filteredAirlineRoutes = _allAirlineRoutes;
+    } else {
+      _filteredAirlineRoutes =
+          _allAirlineRoutes.where((airlineRoute) {
+            final queryLower = query.toLowerCase();
+            final displayId = airlineRoute.displayId.toLowerCase();
+            final originalId = airlineRoute.id.toLowerCase();
+            final routeDisplay = airlineRoute.routeDisplay.toLowerCase();
+            final airlineName = (airlineRoute.airlineName ?? '').toLowerCase();
+
+            return displayId.contains(queryLower) ||
+                originalId.contains(queryLower) ||
+                routeDisplay.contains(queryLower) ||
+                airlineName.contains(queryLower);
+          }).toList();
+    }
+  }
+
   void _filterAirlineRoutes(String query) {
     setState(() {
-      if (query.isEmpty) {
-        _filteredAirlineRoutes = _allAirlineRoutes;
-      } else {
-        _filteredAirlineRoutes =
-            _allAirlineRoutes.where((airlineRoute) {
-              final queryLower = query.toLowerCase();
-              final displayId = airlineRoute.displayId.toLowerCase();
-              final routeDisplay = airlineRoute.routeDisplay.toLowerCase();
-              final airlineName =
-                  (airlineRoute.airlineName ?? '').toLowerCase();
-              final status = airlineRoute.displayStatus.toLowerCase();
-
-              return displayId.contains(queryLower) ||
-                  routeDisplay.contains(queryLower) ||
-                  airlineName.contains(queryLower) ||
-                  status.contains(queryLower);
-            }).toList();
-      }
+      _applyFilter(query);
     });
   }
 
@@ -193,11 +197,50 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
     );
   }
 
-  /// Main airline routes list with BLoC builder
+  void _showStatusUpdateResult(
+    BuildContext context,
+    String message,
+    bool isSuccess,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isSuccess ? const Color(0xFF00b894) : Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+    // Refresh the list after status update
+    context.read<AirlineRouteBloc>().add(FetchAirlineRoutes());
+  }
+
+  /// Main airline routes list with BLoC consumer
   Widget _buildAirlineRoutesList() {
-    return BlocBuilder<AirlineRouteBloc, AirlineRouteState>(
+    return BlocConsumer<AirlineRouteBloc, AirlineRouteState>(
+      listener: (context, state) {
+        if (state is AirlineRouteStatusUpdateSuccess) {
+          _showStatusUpdateResult(context, state.message, true);
+        } else if (state is AirlineRouteStatusUpdateError) {
+          _showStatusUpdateResult(context, state.message, false);
+        } else if (state is AirlineRouteSuccess) {
+          // Update lists after build completes to avoid setState during build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _allAirlineRoutes = state.airlineRoutes;
+                if (_searchController.text.isNotEmpty) {
+                  _applyFilter(_searchController.text);
+                } else {
+                  _filteredAirlineRoutes = _allAirlineRoutes;
+                }
+              });
+            }
+          });
+        }
+      },
       builder: (context, state) {
-        if (state is AirlineRouteLoading) {
+        if (state is AirlineRouteLoading ||
+            state is AirlineRouteStatusUpdating) {
           return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -247,17 +290,6 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
               ],
             ),
           );
-        }
-
-        if (state is AirlineRouteSuccess) {
-          // Update the full list when data arrives
-          if (_allAirlineRoutes.isEmpty ||
-              _allAirlineRoutes.length != state.airlineRoutes.length) {
-            _allAirlineRoutes = state.airlineRoutes;
-            if (_filteredAirlineRoutes.isEmpty) {
-              _filteredAirlineRoutes = _allAirlineRoutes;
-            }
-          }
         }
 
         if (_filteredAirlineRoutes.isEmpty && _allAirlineRoutes.isEmpty) {
@@ -369,7 +401,7 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
           // Divider
           Container(height: 1, color: const Color(0xFFe9ecef)),
 
-          // Action buttons
+          // Action buttons row 1: View and Status
           Row(
             children: [
               Expanded(
@@ -389,29 +421,53 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
               Container(width: 1, height: 40, color: const Color(0xFFe9ecef)),
+              // Activate button
               Expanded(
                 child: TextButton.icon(
-                  onPressed: () => _editAirlineRoute(airlineRoute),
+                  onPressed: () => _showActivateConfirmation(airlineRoute),
                   icon: const Icon(
-                    Icons.edit_outlined,
+                    Icons.check_circle_outline,
                     size: 18,
-                    color: Color(0xFF4facfe),
+                    color: Color(0xFF00b894),
                   ),
                   label: const Text(
-                    'Edit',
+                    'Activate',
                     style: TextStyle(
-                      color: Color(0xFF4facfe),
+                      color: Color(0xFF00b894),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 40, color: const Color(0xFFe9ecef)),
+              // Deactivate button
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () => _showDeactivateConfirmation(airlineRoute),
+                  icon: const Icon(
+                    Icons.cancel_outlined,
+                    size: 18,
+                    color: Colors.redAccent,
+                  ),
+                  label: const Text(
+                    'Deactivate',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -419,6 +475,110 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Show activate confirmation dialog
+  void _showActivateConfirmation(AirlineRouteEntity airlineRoute) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Activate Airline Route',
+              style: TextStyle(
+                color: Color(0xFF1a1a2e),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Are you sure you want to activate "${airlineRoute.routeDisplay}"?',
+              style: const TextStyle(color: Color(0xFF6c757d)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFF6c757d)),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<AirlineRouteBloc>().add(
+                    ActivateAirlineRoute(airlineRouteId: airlineRoute.id),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00b894),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Activate',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  /// Show deactivate confirmation dialog
+  void _showDeactivateConfirmation(AirlineRouteEntity airlineRoute) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Deactivate Airline Route',
+              style: TextStyle(
+                color: Color(0xFF1a1a2e),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Are you sure you want to deactivate "${airlineRoute.routeDisplay}"?',
+              style: const TextStyle(color: Color(0xFF6c757d)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFF6c757d)),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<AirlineRouteBloc>().add(
+                    DeactivateAirlineRoute(airlineRouteId: airlineRoute.id),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Deactivate',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
     );
   }
 
@@ -700,7 +860,6 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
                 const SizedBox(height: 24),
 
                 // Additional info rows
-                _buildInfoRow('Airline Route ID', airlineRoute.displayId),
                 _buildInfoRow(
                   'Route Type',
                   route.routeType ??
@@ -709,10 +868,6 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
                 _buildInfoRow(
                   'Estimated Flight Time',
                   route.formattedFlightTime,
-                ),
-                _buildInfoRow(
-                  'Airline Route Status',
-                  airlineRoute.displayStatus,
                 ),
 
                 const SizedBox(height: 24),
@@ -745,18 +900,6 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
     );
   }
 
-  /// Edit airline route
-  void _editAirlineRoute(AirlineRouteEntity airlineRoute) {
-    // TODO: Navigate to edit airline route page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Edit ${airlineRoute.displayId} - Coming soon'),
-        backgroundColor: const Color(0xFF4facfe),
-      ),
-    );
-  }
-
-  /// Info row for the bottom sheet
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

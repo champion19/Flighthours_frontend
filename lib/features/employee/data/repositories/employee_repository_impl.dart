@@ -2,6 +2,8 @@ import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/repositories/employee_repository.dart';
@@ -33,5 +35,22 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   @override
   Future<DeleteEmployeeResponseModel> deleteCurrentEmployee() {
     return _dataSource.deleteCurrentEmployee();
+  }
+
+  @override
+  Future<EmployeeAirlineResponseModel> getEmployeeAirline() {
+    return _dataSource.getEmployeeAirline();
+  }
+
+  @override
+  Future<EmployeeAirlineResponseModel> updateEmployeeAirline(
+    EmployeeAirlineUpdateRequest request,
+  ) {
+    return _dataSource.updateEmployeeAirline(request);
+  }
+
+  @override
+  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes() {
+    return _dataSource.getEmployeeAirlineRoutes();
   }
 }

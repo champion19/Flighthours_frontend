@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/injector/injector.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../../../../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory /Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/injector">/Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/injector</a> - injector.dart</td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">10</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : import 'package:dio/dio.dart';</span>
+<span id="L2"><span class="lineNum">       2</span>              : import 'package:flight_hours_app/core/network/dio_client.dart';</span>
+<span id="L3"><span class="lineNum">       3</span>              : import 'package:flight_hours_app/features/email_verification/data/datasource/email_verifcation_datasource.dart';</span>
+<span id="L4"><span class="lineNum">       4</span>              : import 'package:flight_hours_app/features/email_verification/data/repositories/email_verification_repository_impl.dart';</span>
+<span id="L5"><span class="lineNum">       5</span>              : import 'package:flight_hours_app/features/email_verification/domain/repositories/email_verification_repository.dart';</span>
+<span id="L6"><span class="lineNum">       6</span>              : import 'package:flight_hours_app/features/email_verification/domain/usecases/email_verification_use_case.dart';</span>
+<span id="L7"><span class="lineNum">       7</span>              : import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';</span>
+<span id="L8"><span class="lineNum">       8</span>              : import 'package:flight_hours_app/features/employee/data/repositories/employee_repository_impl.dart';</span>
+<span id="L9"><span class="lineNum">       9</span>              : import 'package:flight_hours_app/features/employee/domain/repositories/employee_repository.dart';</span>
+<span id="L10"><span class="lineNum">      10</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';</span>
+<span id="L11"><span class="lineNum">      11</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';</span>
+<span id="L12"><span class="lineNum">      12</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';</span>
+<span id="L13"><span class="lineNum">      13</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_use_case.dart';</span>
+<span id="L14"><span class="lineNum">      14</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_use_case.dart';</span>
+<span id="L15"><span class="lineNum">      15</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_airline_use_case.dart';</span>
+<span id="L16"><span class="lineNum">      16</span>              : import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';</span>
+<span id="L17"><span class="lineNum">      17</span>              : import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';</span>
+<span id="L18"><span class="lineNum">      18</span>              : import 'package:flight_hours_app/features/login/domain/repositories/login_repository.dart';</span>
+<span id="L19"><span class="lineNum">      19</span>              : import 'package:flight_hours_app/features/login/domain/usecases/login_use_case.dart';</span>
+<span id="L20"><span class="lineNum">      20</span>              : import 'package:flight_hours_app/features/register/data/datasources/register_datasource.dart';</span>
+<span id="L21"><span class="lineNum">      21</span>              : import 'package:flight_hours_app/features/register/data/repositories/register_repository_impl.dart';</span>
+<span id="L22"><span class="lineNum">      22</span>              : import 'package:flight_hours_app/features/register/domain/repositories/register_repository.dart';</span>
+<span id="L23"><span class="lineNum">      23</span>              : import 'package:flight_hours_app/features/airline/data/datasources/airline_remote_data_source.dart';</span>
+<span id="L24"><span class="lineNum">      24</span>              : import 'package:flight_hours_app/features/airline/data/repositories/airline_repository_impl.dart';</span>
+<span id="L25"><span class="lineNum">      25</span>              : import 'package:flight_hours_app/features/airline/domain/repositories/airline_repository.dart';</span>
+<span id="L26"><span class="lineNum">      26</span>              : import 'package:flight_hours_app/features/airline/domain/usecases/list_airline_use_case.dart';</span>
+<span id="L27"><span class="lineNum">      27</span>              : import 'package:flight_hours_app/features/airline/domain/usecases/get_airline_by_id_use_case.dart';</span>
+<span id="L28"><span class="lineNum">      28</span>              : import 'package:flight_hours_app/features/airline/domain/usecases/activate_airline_use_case.dart';</span>
+<span id="L29"><span class="lineNum">      29</span>              : import 'package:flight_hours_app/features/airline/domain/usecases/deactivate_airline_use_case.dart';</span>
+<span id="L30"><span class="lineNum">      30</span>              : import 'package:flight_hours_app/features/airport/data/datasources/airport_remote_data_source.dart';</span>
+<span id="L31"><span class="lineNum">      31</span>              : import 'package:flight_hours_app/features/airport/data/repositories/airport_repository_impl.dart';</span>
+<span id="L32"><span class="lineNum">      32</span>              : import 'package:flight_hours_app/features/airport/domain/repositories/airport_repository.dart';</span>
+<span id="L33"><span class="lineNum">      33</span>              : import 'package:flight_hours_app/features/airport/domain/usecases/list_airport_use_case.dart';</span>
+<span id="L34"><span class="lineNum">      34</span>              : import 'package:flight_hours_app/features/airport/domain/usecases/get_airport_by_id_use_case.dart';</span>
+<span id="L35"><span class="lineNum">      35</span>              : import 'package:flight_hours_app/features/airport/domain/usecases/activate_airport_use_case.dart';</span>
+<span id="L36"><span class="lineNum">      36</span>              : import 'package:flight_hours_app/features/airport/domain/usecases/deactivate_airport_use_case.dart';</span>
+<span id="L37"><span class="lineNum">      37</span>              : import 'package:flight_hours_app/features/register/domain/usecases/register_use_case.dart';</span>
+<span id="L38"><span class="lineNum">      38</span>              : import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';</span>
+<span id="L39"><span class="lineNum">      39</span>              : import 'package:flight_hours_app/features/reset_password/data/repositories/reset_password_repository_impl.dart';</span>
+<span id="L40"><span class="lineNum">      40</span>              : import 'package:flight_hours_app/features/reset_password/domain/repositories/reset_password_repository.dart';</span>
+<span id="L41"><span class="lineNum">      41</span>              : import 'package:flight_hours_app/features/reset_password/domain/usecases/reset_password_use_case.dart';</span>
+<span id="L42"><span class="lineNum">      42</span>              : import 'package:flight_hours_app/features/route/data/datasources/route_remote_data_source.dart';</span>
+<span id="L43"><span class="lineNum">      43</span>              : import 'package:flight_hours_app/features/route/data/repositories/route_repository_impl.dart';</span>
+<span id="L44"><span class="lineNum">      44</span>              : import 'package:flight_hours_app/features/route/domain/repositories/route_repository.dart';</span>
+<span id="L45"><span class="lineNum">      45</span>              : import 'package:flight_hours_app/features/route/domain/usecases/list_routes_use_case.dart';</span>
+<span id="L46"><span class="lineNum">      46</span>              : import 'package:flight_hours_app/features/route/domain/usecases/get_route_by_id_use_case.dart';</span>
+<span id="L47"><span class="lineNum">      47</span>              : import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';</span>
+<span id="L48"><span class="lineNum">      48</span>              : import 'package:flight_hours_app/features/airline_route/data/repositories/airline_route_repository_impl.dart';</span>
+<span id="L49"><span class="lineNum">      49</span>              : import 'package:flight_hours_app/features/airline_route/domain/repositories/airline_route_repository.dart';</span>
+<span id="L50"><span class="lineNum">      50</span>              : import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';</span>
+<span id="L51"><span class="lineNum">      51</span>              : import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';</span>
+<span id="L52"><span class="lineNum">      52</span>              : import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';</span>
+<span id="L53"><span class="lineNum">      53</span>              : import 'package:flight_hours_app/features/logbook/data/repositories/logbook_repository_impl.dart';</span>
+<span id="L54"><span class="lineNum">      54</span>              : import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';</span>
+<span id="L55"><span class="lineNum">      55</span>              : import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';</span>
+<span id="L56"><span class="lineNum">      56</span>              : import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';</span>
+<span id="L57"><span class="lineNum">      57</span>              : import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';</span>
+<span id="L58"><span class="lineNum">      58</span>              : import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';</span>
+<span id="L59"><span class="lineNum">      59</span>              : import 'package:kiwi/kiwi.dart';</span>
+<span id="L60"><span class="lineNum">      60</span>              : </span>
+<span id="L61"><span class="lineNum">      61</span>              : import '../../features/login/data/repositories/login_repository_impl.dart';</span>
+<span id="L62"><span class="lineNum">      62</span>              : </span>
+<span id="L63"><span class="lineNum">      63</span>              : part 'injector.g.dart';</span>
+<span id="L64"><span class="lineNum">      64</span>              : </span>
+<span id="L65"><span class="lineNum">      65</span>              : abstract class InjectorApp {</span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           3 :   static KiwiContainer container = KiwiContainer();</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           1 :   static void setyp() {</span></span>
+<span id="L68"><span class="lineNum">      68</span>              :     // Register Dio singleton first - required by all datasources</span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           5 :     container.registerSingleton&lt;Dio&gt;((c) =&gt; DioClient().client);</span></span>
+<span id="L70"><span class="lineNum">      70</span>              : </span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           1 :     var injector = _$InjectorApp();</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           1 :     injector._configure();</span></span>
+<span id="L73"><span class="lineNum">      73</span>              :   }</span>
+<span id="L74"><span class="lineNum">      74</span>              : </span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           4 :   static final resolve = container.resolve;</span></span>
+<span id="L76"><span class="lineNum">      76</span>              : </span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">           1 :   void _configure() {</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">           1 :     _configureAuthsModule();</span></span>
+<span id="L79"><span class="lineNum">      79</span>              :   }</span>
+<span id="L80"><span class="lineNum">      80</span>              : </span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           1 :   void _configureAuthsModule() {</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           1 :     _configureAuthFactories();</span></span>
+<span id="L83"><span class="lineNum">      83</span>              :   }</span>
+<span id="L84"><span class="lineNum">      84</span>              : </span>
+<span id="L85"><span class="lineNum">      85</span>              :   // Auth and Registration</span>
+<span id="L86"><span class="lineNum">      86</span>              :   @Register.factory(LoginRepository, from: LoginRepositoryImpl)</span>
+<span id="L87"><span class="lineNum">      87</span>              :   @Register.factory(LoginUseCase)</span>
+<span id="L88"><span class="lineNum">      88</span>              :   @Register.factory(LoginDatasource)</span>
+<span id="L89"><span class="lineNum">      89</span>              :   @Register.factory(RegisterRepository, from: RegisterRepositoryImpl)</span>
+<span id="L90"><span class="lineNum">      90</span>              :   @Register.factory(RegisterUseCase)</span>
+<span id="L91"><span class="lineNum">      91</span>              :   @Register.factory(RegisterDatasource)</span>
+<span id="L92"><span class="lineNum">      92</span>              :   // Airline</span>
+<span id="L93"><span class="lineNum">      93</span>              :   @Register.factory(ListAirlineUseCase)</span>
+<span id="L94"><span class="lineNum">      94</span>              :   @Register.factory(GetAirlineByIdUseCase)</span>
+<span id="L95"><span class="lineNum">      95</span>              :   @Register.factory(ActivateAirlineUseCase)</span>
+<span id="L96"><span class="lineNum">      96</span>              :   @Register.factory(DeactivateAirlineUseCase)</span>
+<span id="L97"><span class="lineNum">      97</span>              :   @Register.factory(AirlineRepository, from: AirlineRepositoryImpl)</span>
+<span id="L98"><span class="lineNum">      98</span>              :   @Register.factory(AirlineRemoteDataSource, from: AirlineRemoteDataSourceImpl)</span>
+<span id="L99"><span class="lineNum">      99</span>              :   // Airport</span>
+<span id="L100"><span class="lineNum">     100</span>              :   @Register.factory(ListAirportUseCase)</span>
+<span id="L101"><span class="lineNum">     101</span>              :   @Register.factory(GetAirportByIdUseCase)</span>
+<span id="L102"><span class="lineNum">     102</span>              :   @Register.factory(ActivateAirportUseCase)</span>
+<span id="L103"><span class="lineNum">     103</span>              :   @Register.factory(DeactivateAirportUseCase)</span>
+<span id="L104"><span class="lineNum">     104</span>              :   @Register.factory(AirportRepository, from: AirportRepositoryImpl)</span>
+<span id="L105"><span class="lineNum">     105</span>              :   @Register.factory(AirportRemoteDataSource, from: AirportRemoteDataSourceImpl)</span>
+<span id="L106"><span class="lineNum">     106</span>              :   // Email Verification</span>
+<span id="L107"><span class="lineNum">     107</span>              :   @Register.factory(</span>
+<span id="L108"><span class="lineNum">     108</span>              :     EmailVerificationRepository,</span>
+<span id="L109"><span class="lineNum">     109</span>              :     from: EmailVerificationRepositoryImpl,</span>
+<span id="L110"><span class="lineNum">     110</span>              :   )</span>
+<span id="L111"><span class="lineNum">     111</span>              :   @Register.factory(EmailVerificationUseCase)</span>
+<span id="L112"><span class="lineNum">     112</span>              :   @Register.factory(EmailVerificationDatasource)</span>
+<span id="L113"><span class="lineNum">     113</span>              :   // Reset Password</span>
+<span id="L114"><span class="lineNum">     114</span>              :   @Register.factory(ResetPasswordRepository, from: ResetPasswordRepositoryImpl)</span>
+<span id="L115"><span class="lineNum">     115</span>              :   @Register.factory(ResetPasswordUseCase)</span>
+<span id="L116"><span class="lineNum">     116</span>              :   @Register.factory(ResetPasswordDatasource)</span>
+<span id="L117"><span class="lineNum">     117</span>              :   // Employee</span>
+<span id="L118"><span class="lineNum">     118</span>              :   @Register.factory(EmployeeRepository, from: EmployeeRepositoryImpl)</span>
+<span id="L119"><span class="lineNum">     119</span>              :   @Register.factory(</span>
+<span id="L120"><span class="lineNum">     120</span>              :     EmployeeRemoteDataSource,</span>
+<span id="L121"><span class="lineNum">     121</span>              :     from: EmployeeRemoteDataSourceImpl,</span>
+<span id="L122"><span class="lineNum">     122</span>              :   )</span>
+<span id="L123"><span class="lineNum">     123</span>              :   @Register.factory(GetEmployeeUseCase)</span>
+<span id="L124"><span class="lineNum">     124</span>              :   @Register.factory(UpdateEmployeeUseCase)</span>
+<span id="L125"><span class="lineNum">     125</span>              :   @Register.factory(ChangePasswordUseCase)</span>
+<span id="L126"><span class="lineNum">     126</span>              :   @Register.factory(DeleteEmployeeUseCase)</span>
+<span id="L127"><span class="lineNum">     127</span>              :   @Register.factory(GetEmployeeAirlineUseCase)</span>
+<span id="L128"><span class="lineNum">     128</span>              :   @Register.factory(GetEmployeeAirlineRoutesUseCase)</span>
+<span id="L129"><span class="lineNum">     129</span>              :   @Register.factory(UpdateEmployeeAirlineUseCase)</span>
+<span id="L130"><span class="lineNum">     130</span>              :   // Route</span>
+<span id="L131"><span class="lineNum">     131</span>              :   @Register.factory(ListRoutesUseCase)</span>
+<span id="L132"><span class="lineNum">     132</span>              :   @Register.factory(GetRouteByIdUseCase)</span>
+<span id="L133"><span class="lineNum">     133</span>              :   @Register.factory(RouteRepository, from: RouteRepositoryImpl)</span>
+<span id="L134"><span class="lineNum">     134</span>              :   @Register.factory(RouteRemoteDataSource, from: RouteRemoteDataSourceImpl)</span>
+<span id="L135"><span class="lineNum">     135</span>              :   // Airline Route</span>
+<span id="L136"><span class="lineNum">     136</span>              :   @Register.factory(ListAirlineRoutesUseCase)</span>
+<span id="L137"><span class="lineNum">     137</span>              :   @Register.factory(GetAirlineRouteByIdUseCase)</span>
+<span id="L138"><span class="lineNum">     138</span>              :   @Register.factory(AirlineRouteRepository, from: AirlineRouteRepositoryImpl)</span>
+<span id="L139"><span class="lineNum">     139</span>              :   @Register.factory(</span>
+<span id="L140"><span class="lineNum">     140</span>              :     AirlineRouteRemoteDataSource,</span>
+<span id="L141"><span class="lineNum">     141</span>              :     from: AirlineRouteRemoteDataSourceImpl,</span>
+<span id="L142"><span class="lineNum">     142</span>              :   )</span>
+<span id="L143"><span class="lineNum">     143</span>              :   // Logbook</span>
+<span id="L144"><span class="lineNum">     144</span>              :   @Register.factory(ListDailyLogbooksUseCase)</span>
+<span id="L145"><span class="lineNum">     145</span>              :   @Register.factory(ListLogbookDetailsUseCase)</span>
+<span id="L146"><span class="lineNum">     146</span>              :   @Register.factory(GetLogbookDetailByIdUseCase)</span>
+<span id="L147"><span class="lineNum">     147</span>              :   @Register.factory(DeleteLogbookDetailUseCase)</span>
+<span id="L148"><span class="lineNum">     148</span>              :   @Register.factory(LogbookRepository, from: LogbookRepositoryImpl)</span>
+<span id="L149"><span class="lineNum">     149</span>              :   @Register.factory(LogbookRemoteDataSource, from: LogbookRemoteDataSourceImpl)</span>
+<span id="L150"><span class="lineNum">     150</span>              :   void _configureAuthFactories();</span>
+<span id="L151"><span class="lineNum">     151</span>              :   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs</span>
+<span id="L152"><span class="lineNum">     152</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.2-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

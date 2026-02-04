@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/services/session_service.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../../../../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory /Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/services">/Users/emmanuellondonogomez/Documents/project-flutter/flight_hours_app/lib/core/services</a> - session_service.dart</td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntry">78</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : import 'package:flutter_secure_storage/flutter_secure_storage.dart';</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : /// Session service with secure persistent storage for authentication tokens.</span>
+<span id="L4"><span class="lineNum">       4</span>              : /// Uses flutter_secure_storage to encrypt and persist tokens even after app closure.</span>
+<span id="L5"><span class="lineNum">       5</span>              : /// Also maintains in-memory cache for fast access during the app session.</span>
+<span id="L6"><span class="lineNum">       6</span>              : class SessionService {</span>
+<span id="L7"><span class="lineNum">       7</span> <span class="tlaUNC">           0 :   static final SessionService _instance = SessionService._internal();</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaUNC">           0 :   factory SessionService() =&gt; _instance;</span></span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaUNC">           0 :   SessionService._internal();</span></span>
+<span id="L10"><span class="lineNum">      10</span>              : </span>
+<span id="L11"><span class="lineNum">      11</span>              :   // Secure storage instance with Android-specific options for better security</span>
+<span id="L12"><span class="lineNum">      12</span>              :   final FlutterSecureStorage _storage = const FlutterSecureStorage(</span>
+<span id="L13"><span class="lineNum">      13</span>              :     aOptions: AndroidOptions(encryptedSharedPreferences: true),</span>
+<span id="L14"><span class="lineNum">      14</span>              :   );</span>
+<span id="L15"><span class="lineNum">      15</span>              : </span>
+<span id="L16"><span class="lineNum">      16</span>              :   // Storage keys</span>
+<span id="L17"><span class="lineNum">      17</span>              :   static const String _keyEmployeeId = 'employee_id';</span>
+<span id="L18"><span class="lineNum">      18</span>              :   static const String _keyAccessToken = 'access_token';</span>
+<span id="L19"><span class="lineNum">      19</span>              :   static const String _keyRefreshToken = 'refresh_token';</span>
+<span id="L20"><span class="lineNum">      20</span>              :   static const String _keyEmail = 'email';</span>
+<span id="L21"><span class="lineNum">      21</span>              :   static const String _keyName = 'name';</span>
+<span id="L22"><span class="lineNum">      22</span>              :   static const String _keyRole = 'role';</span>
+<span id="L23"><span class="lineNum">      23</span>              : </span>
+<span id="L24"><span class="lineNum">      24</span>              :   // In-memory cache for fast access (avoids async calls during the session)</span>
+<span id="L25"><span class="lineNum">      25</span>              :   String? _employeeId;</span>
+<span id="L26"><span class="lineNum">      26</span>              :   String? _accessToken;</span>
+<span id="L27"><span class="lineNum">      27</span>              :   String? _refreshToken;</span>
+<span id="L28"><span class="lineNum">      28</span>              :   String? _email;</span>
+<span id="L29"><span class="lineNum">      29</span>              :   String? _name;</span>
+<span id="L30"><span class="lineNum">      30</span>              :   String? _role;</span>
+<span id="L31"><span class="lineNum">      31</span>              : </span>
+<span id="L32"><span class="lineNum">      32</span>              :   /// Initializes the session by restoring any persisted data.</span>
+<span id="L33"><span class="lineNum">      33</span>              :   /// Call this method in main.dart before runApp().</span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; init() async {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaUNC">           0 :     _employeeId = await _storage.read(key: _keyEmployeeId);</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :     _accessToken = await _storage.read(key: _keyAccessToken);</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaUNC">           0 :     _refreshToken = await _storage.read(key: _keyRefreshToken);</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaUNC">           0 :     _email = await _storage.read(key: _keyEmail);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaUNC">           0 :     _name = await _storage.read(key: _keyName);</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 :     _role = await _storage.read(key: _keyRole);</span></span>
+<span id="L41"><span class="lineNum">      41</span>              :   }</span>
+<span id="L42"><span class="lineNum">      42</span>              : </span>
+<span id="L43"><span class="lineNum">      43</span>              :   /// Sets the session data after a successful login.</span>
+<span id="L44"><span class="lineNum">      44</span>              :   /// Persists tokens securely and caches in memory for fast access.</span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; setSession({</span></span>
+<span id="L46"><span class="lineNum">      46</span>              :     required String employeeId,</span>
+<span id="L47"><span class="lineNum">      47</span>              :     required String accessToken,</span>
+<span id="L48"><span class="lineNum">      48</span>              :     required String refreshToken,</span>
+<span id="L49"><span class="lineNum">      49</span>              :     String? email,</span>
+<span id="L50"><span class="lineNum">      50</span>              :     String? name,</span>
+<span id="L51"><span class="lineNum">      51</span>              :     String? role,</span>
+<span id="L52"><span class="lineNum">      52</span>              :   }) async {</span>
+<span id="L53"><span class="lineNum">      53</span>              :     // Update in-memory cache</span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaUNC">           0 :     _employeeId = employeeId;</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :     _accessToken = accessToken;</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :     _refreshToken = refreshToken;</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :     _email = email;</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :     _name = name;</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaUNC">           0 :     _role = role;</span></span>
+<span id="L60"><span class="lineNum">      60</span>              : </span>
+<span id="L61"><span class="lineNum">      61</span>              :     // Persist to secure storage</span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyEmployeeId, value: employeeId);</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyAccessToken, value: accessToken);</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyRefreshToken, value: refreshToken);</span></span>
+<span id="L65"><span class="lineNum">      65</span>              :     if (email != null) {</span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaUNC">           0 :       await _storage.write(key: _keyEmail, value: email);</span></span>
+<span id="L67"><span class="lineNum">      67</span>              :     }</span>
+<span id="L68"><span class="lineNum">      68</span>              :     if (name != null) {</span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaUNC">           0 :       await _storage.write(key: _keyName, value: name);</span></span>
+<span id="L70"><span class="lineNum">      70</span>              :     }</span>
+<span id="L71"><span class="lineNum">      71</span>              :     if (role != null) {</span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC">           0 :       await _storage.write(key: _keyRole, value: role);</span></span>
+<span id="L73"><span class="lineNum">      73</span>              :     }</span>
+<span id="L74"><span class="lineNum">      74</span>              :   }</span>
+<span id="L75"><span class="lineNum">      75</span>              : </span>
+<span id="L76"><span class="lineNum">      76</span>              :   /// Gets the current employee ID (from memory cache)</span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaUNC">           0 :   String? get employeeId =&gt; _employeeId;</span></span>
+<span id="L78"><span class="lineNum">      78</span>              : </span>
+<span id="L79"><span class="lineNum">      79</span>              :   /// Gets the current access token (from memory cache)</span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaUNC">           0 :   String? get accessToken =&gt; _accessToken;</span></span>
+<span id="L81"><span class="lineNum">      81</span>              : </span>
+<span id="L82"><span class="lineNum">      82</span>              :   /// Gets the current refresh token (from memory cache)</span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaUNC">           0 :   String? get refreshToken =&gt; _refreshToken;</span></span>
+<span id="L84"><span class="lineNum">      84</span>              : </span>
+<span id="L85"><span class="lineNum">      85</span>              :   /// Gets the current user's email (from memory cache)</span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaUNC">           0 :   String? get email =&gt; _email;</span></span>
+<span id="L87"><span class="lineNum">      87</span>              : </span>
+<span id="L88"><span class="lineNum">      88</span>              :   /// Gets the current user's name (from memory cache)</span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaUNC">           0 :   String? get name =&gt; _name;</span></span>
+<span id="L90"><span class="lineNum">      90</span>              : </span>
+<span id="L91"><span class="lineNum">      91</span>              :   /// Gets the current user's role (from memory cache)</span>
+<span id="L92"><span class="lineNum">      92</span>              :   /// Returns 'pilot' or 'admin'</span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaUNC">           0 :   String? get role =&gt; _role;</span></span>
+<span id="L94"><span class="lineNum">      94</span>              : </span>
+<span id="L95"><span class="lineNum">      95</span>              :   /// Checks if a user is currently logged in</span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaUNC">           0 :   bool get isLoggedIn =&gt; _employeeId != null &amp;&amp; _accessToken != null;</span></span>
+<span id="L97"><span class="lineNum">      97</span>              : </span>
+<span id="L98"><span class="lineNum">      98</span>              :   /// Clears the session (logout).</span>
+<span id="L99"><span class="lineNum">      99</span>              :   /// Removes all data from both memory cache and secure storage.</span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; clearSession() async {</span></span>
+<span id="L101"><span class="lineNum">     101</span>              :     // Clear in-memory cache</span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaUNC">           0 :     _employeeId = null;</span></span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaUNC">           0 :     _accessToken = null;</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaUNC">           0 :     _refreshToken = null;</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaUNC">           0 :     _email = null;</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaUNC">           0 :     _name = null;</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaUNC">           0 :     _role = null;</span></span>
+<span id="L108"><span class="lineNum">     108</span>              : </span>
+<span id="L109"><span class="lineNum">     109</span>              :     // Clear secure storage</span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaUNC">           0 :     await _storage.deleteAll();</span></span>
+<span id="L111"><span class="lineNum">     111</span>              :   }</span>
+<span id="L112"><span class="lineNum">     112</span>              : </span>
+<span id="L113"><span class="lineNum">     113</span>              :   /// Updates only the access token (useful for token refresh).</span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; updateAccessToken(String newAccessToken) async {</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaUNC">           0 :     _accessToken = newAccessToken;</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyAccessToken, value: newAccessToken);</span></span>
+<span id="L117"><span class="lineNum">     117</span>              :   }</span>
+<span id="L118"><span class="lineNum">     118</span>              : </span>
+<span id="L119"><span class="lineNum">     119</span>              :   /// Updates only the refresh token.</span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; updateRefreshToken(String newRefreshToken) async {</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC">           0 :     _refreshToken = newRefreshToken;</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyRefreshToken, value: newRefreshToken);</span></span>
+<span id="L123"><span class="lineNum">     123</span>              :   }</span>
+<span id="L124"><span class="lineNum">     124</span>              : </span>
+<span id="L125"><span class="lineNum">     125</span>              :   // ========== PENDING EMPLOYEE DATA ==========</span>
+<span id="L126"><span class="lineNum">     126</span>              :   // These methods store ALL employee data captured during registration</span>
+<span id="L127"><span class="lineNum">     127</span>              :   // to be sent to PUT /employees/me after the first successful login</span>
+<span id="L128"><span class="lineNum">     128</span>              : </span>
+<span id="L129"><span class="lineNum">     129</span>              :   static const String _keyPendingName = 'pending_name';</span>
+<span id="L130"><span class="lineNum">     130</span>              :   static const String _keyPendingIdentificationNumber =</span>
+<span id="L131"><span class="lineNum">     131</span>              :       'pending_identification_number';</span>
+<span id="L132"><span class="lineNum">     132</span>              :   static const String _keyPendingBp = 'pending_bp';</span>
+<span id="L133"><span class="lineNum">     133</span>              :   static const String _keyPendingAirlineId = 'pending_airline_id';</span>
+<span id="L134"><span class="lineNum">     134</span>              :   static const String _keyPendingStartDate = 'pending_start_date';</span>
+<span id="L135"><span class="lineNum">     135</span>              :   static const String _keyPendingEndDate = 'pending_end_date';</span>
+<span id="L136"><span class="lineNum">     136</span>              :   static const String _keyPendingActive = 'pending_active';</span>
+<span id="L137"><span class="lineNum">     137</span>              :   static const String _keyPendingRole = 'pending_role';</span>
+<span id="L138"><span class="lineNum">     138</span>              :   static const String _keyHasPendingPilotData = 'has_pending_pilot_data';</span>
+<span id="L139"><span class="lineNum">     139</span>              : </span>
+<span id="L140"><span class="lineNum">     140</span>              :   /// Saves ALL employee data to be sent after first login via PUT /employees/me</span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; setPendingPilotData({</span></span>
+<span id="L142"><span class="lineNum">     142</span>              :     required String name,</span>
+<span id="L143"><span class="lineNum">     143</span>              :     required String identificationNumber,</span>
+<span id="L144"><span class="lineNum">     144</span>              :     required String? bp,</span>
+<span id="L145"><span class="lineNum">     145</span>              :     required String? airlineId,</span>
+<span id="L146"><span class="lineNum">     146</span>              :     required String startDate,</span>
+<span id="L147"><span class="lineNum">     147</span>              :     required String endDate,</span>
+<span id="L148"><span class="lineNum">     148</span>              :     required bool active,</span>
+<span id="L149"><span class="lineNum">     149</span>              :     String role = 'pilot',</span>
+<span id="L150"><span class="lineNum">     150</span>              :   }) async {</span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingName, value: name);</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaUNC">           0 :     await _storage.write(</span></span>
+<span id="L153"><span class="lineNum">     153</span>              :       key: _keyPendingIdentificationNumber,</span>
+<span id="L154"><span class="lineNum">     154</span>              :       value: identificationNumber,</span>
+<span id="L155"><span class="lineNum">     155</span>              :     );</span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingBp, value: bp ?? '');</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingAirlineId, value: airlineId ?? '');</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingStartDate, value: startDate);</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingEndDate, value: endDate);</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingActive, value: active.toString());</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyPendingRole, value: role);</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaUNC">           0 :     await _storage.write(key: _keyHasPendingPilotData, value: 'true');</span></span>
+<span id="L163"><span class="lineNum">     163</span>              :   }</span>
+<span id="L164"><span class="lineNum">     164</span>              : </span>
+<span id="L165"><span class="lineNum">     165</span>              :   /// Checks if there is pending employee data to send</span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaUNC">           0 :   Future&lt;bool&gt; hasPendingPilotData() async {</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaUNC">           0 :     final value = await _storage.read(key: _keyHasPendingPilotData);</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaUNC">           0 :     return value == 'true';</span></span>
+<span id="L169"><span class="lineNum">     169</span>              :   }</span>
+<span id="L170"><span class="lineNum">     170</span>              : </span>
+<span id="L171"><span class="lineNum">     171</span>              :   /// Gets the pending employee data for PUT /employees/me</span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaUNC">           0 :   Future&lt;Map&lt;String, dynamic&gt;?&gt; getPendingPilotData() async {</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaUNC">           0 :     final hasPending = await hasPendingPilotData();</span></span>
+<span id="L174"><span class="lineNum">     174</span>              :     if (!hasPending) return null;</span>
+<span id="L175"><span class="lineNum">     175</span>              : </span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaUNC">           0 :     return {</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaUNC">           0 :       'name': await _storage.read(key: _keyPendingName) ?? '',</span></span>
+<span id="L178"><span class="lineNum">     178</span>              :       'identificationNumber':</span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaUNC">           0 :           await _storage.read(key: _keyPendingIdentificationNumber) ?? '',</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaUNC">           0 :       'bp': await _storage.read(key: _keyPendingBp) ?? '',</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaUNC">           0 :       'airlineId': await _storage.read(key: _keyPendingAirlineId) ?? '',</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaUNC">           0 :       'startDate': await _storage.read(key: _keyPendingStartDate) ?? '',</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaUNC">           0 :       'endDate': await _storage.read(key: _keyPendingEndDate) ?? '',</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaUNC">           0 :       'active': (await _storage.read(key: _keyPendingActive)) == 'true',</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC">           0 :       'role': await _storage.read(key: _keyPendingRole) ?? 'pilot',</span></span>
+<span id="L186"><span class="lineNum">     186</span>              :     };</span>
+<span id="L187"><span class="lineNum">     187</span>              :   }</span>
+<span id="L188"><span class="lineNum">     188</span>              : </span>
+<span id="L189"><span class="lineNum">     189</span>              :   /// Clears the pending employee data after successful update</span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; clearPendingPilotData() async {</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingName);</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingIdentificationNumber);</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingBp);</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingAirlineId);</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingStartDate);</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingEndDate);</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingActive);</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyPendingRole);</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaUNC">           0 :     await _storage.delete(key: _keyHasPendingPilotData);</span></span>
+<span id="L200"><span class="lineNum">     200</span>              :   }</span>
+<span id="L201"><span class="lineNum">     201</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.2-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

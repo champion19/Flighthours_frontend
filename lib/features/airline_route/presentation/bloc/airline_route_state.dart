@@ -44,3 +44,26 @@ class AirlineRouteError extends AirlineRouteState {
   @override
   List<Object> get props => [message];
 }
+
+/// Loading state while updating status
+class AirlineRouteStatusUpdating extends AirlineRouteState {}
+
+/// Success state after status update
+class AirlineRouteStatusUpdateSuccess extends AirlineRouteState {
+  final String message;
+
+  const AirlineRouteStatusUpdateSuccess(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+/// Error state after status update failure
+class AirlineRouteStatusUpdateError extends AirlineRouteState {
+  final String message;
+
+  const AirlineRouteStatusUpdateError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}

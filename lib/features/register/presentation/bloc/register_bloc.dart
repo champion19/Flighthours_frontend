@@ -7,33 +7,25 @@ import 'package:flight_hours_app/features/register/presentation/bloc/register_ev
 import 'package:flight_hours_app/features/register/presentation/bloc/register_state.dart';
 import 'package:flutter/foundation.dart';
 
+/// BLoC for managing registration state
+///
+/// Supports dependency injection for testing:
+/// - [registerUseCase] for handling registration operations
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
-  RegisterBloc() : super(RegisterInitial()) {
-    final registerUseCase = InjectorApp.resolve<RegisterUseCase>();
+  final RegisterUseCase _registerUseCase;
 
-    on<RegisterSubmitted>(
-      (event, emit) => _onRegisterSubmitted(event, emit, registerUseCase),
-    );
-    on<EnterPersonalInformation>(
-      (event, emit) => _onEnterPersonalInformation(event, emit),
-    );
-    on<EnterPilotInformation>(
-      (event, emit) => _onEnterPilotInformation(event, emit),
-    );
-    on<CompleteRegistrationFlow>(
-      (event, emit) =>
-          _onCompleteRegistrationFlow(event, emit, registerUseCase),
-    );
-    on<ForgotPasswordRequested>(
-      (event, emit) => _onForgotPasswordRequested(event, emit),
-    );
-    on<VerificationCodeSubmitted>(
-      (event, emit) => _onVerificationCodeSubmitted(event, emit),
-    );
-    on<PasswordResetSubmitted>(
-      (event, emit) => _onPasswordResetSubmitted(event, emit),
-    );
-    on<StartVerification>((event, emit) => _onStartVerification(event, emit));
+  RegisterBloc({RegisterUseCase? registerUseCase})
+    : _registerUseCase =
+          registerUseCase ?? InjectorApp.resolve<RegisterUseCase>(),
+      super(RegisterInitial()) {
+    on<RegisterSubmitted>(_onRegisterSubmitted);
+    on<EnterPersonalInformation>(_onEnterPersonalInformation);
+    on<EnterPilotInformation>(_onEnterPilotInformation);
+    on<CompleteRegistrationFlow>(_onCompleteRegistrationFlow);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
+    on<VerificationCodeSubmitted>(_onVerificationCodeSubmitted);
+    on<PasswordResetSubmitted>(_onPasswordResetSubmitted);
+    on<StartVerification>(_onStartVerification);
   }
 
   Future<void> _onStartVerification(
@@ -44,7 +36,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   Future<void> _onRegisterSubmitted(
     RegisterSubmitted event,
     Emitter<RegisterState> emit,
-    RegisterUseCase registerUseCase,
   ) async {
     emit(
       RegisterLoading(
@@ -53,7 +44,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     );
 
     try {
-      final response = await registerUseCase.call(event.employment);
+      final response = await _registerUseCase.call(event.employment);
       emit(
         RegisterSuccess(
           employee: event.employment,
@@ -109,7 +100,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   Future<void> _onCompleteRegistrationFlow(
     CompleteRegistrationFlow event,
     Emitter<RegisterState> emit,
-    RegisterUseCase registerUseCase,
   ) async {
     final employee = event.employee;
 
@@ -146,7 +136,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         ),
       );
 
-      final response = await registerUseCase.call(employee);
+      final response = await _registerUseCase.call(employee);
       debugPrint('✅ Registration successful');
 
       // Registration complete - pilot data will be sent after login
