@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-03 21:25:08</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -70,7 +70,7 @@
 <span id="L8"><span class="lineNum">       8</span>              :   final String message;</span>
 <span id="L9"><span class="lineNum">       9</span>              :   final TokenData? data;</span>
 <span id="L10"><span class="lineNum">      10</span>              : </span>
-<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           1 :   LoginResponseModel({</span></span>
+<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           2 :   LoginResponseModel({</span></span>
 <span id="L12"><span class="lineNum">      12</span>              :     required this.success,</span>
 <span id="L13"><span class="lineNum">      13</span>              :     required this.code,</span>
 <span id="L14"><span class="lineNum">      14</span>              :     required this.message,</span>
@@ -82,12 +82,12 @@
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">           3 :   String toJson() =&gt; json.encode(toMap());</span></span>
 <span id="L22"><span class="lineNum">      22</span>              : </span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">           1 :   factory LoginResponseModel.fromMap(Map&lt;String, dynamic&gt; json) =&gt;</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           1 :       LoginResponseModel(</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           1 :         success: json[&quot;success&quot;] ?? false,</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           1 :         code: json[&quot;code&quot;] ?? '',</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           1 :         message: json[&quot;message&quot;] ?? '',</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">           3 :         data: json[&quot;data&quot;] != null ? TokenData.fromMap(json[&quot;data&quot;]) : null,</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">           2 :   factory LoginResponseModel.fromMap(Map&lt;String, dynamic&gt; json) =&gt;</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           2 :       LoginResponseModel(</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           2 :         success: json[&quot;success&quot;] ?? false,</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           2 :         code: json[&quot;code&quot;] ?? '',</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           2 :         message: json[&quot;message&quot;] ?? '',</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">           6 :         data: json[&quot;data&quot;] != null ? TokenData.fromMap(json[&quot;data&quot;]) : null,</span></span>
 <span id="L29"><span class="lineNum">      29</span>              :       );</span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
 <span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           2 :   Map&lt;String, dynamic&gt; toMap() =&gt; {</span></span>
@@ -106,7 +106,7 @@
 <span id="L44"><span class="lineNum">      44</span>              :   final String tokenType;</span>
 <span id="L45"><span class="lineNum">      45</span>              :   final String? employeeId;</span>
 <span id="L46"><span class="lineNum">      46</span>              : </span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           1 :   TokenData({</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           2 :   TokenData({</span></span>
 <span id="L48"><span class="lineNum">      48</span>              :     required this.accessToken,</span>
 <span id="L49"><span class="lineNum">      49</span>              :     required this.refreshToken,</span>
 <span id="L50"><span class="lineNum">      50</span>              :     required this.expiresIn,</span>
@@ -114,12 +114,12 @@
 <span id="L52"><span class="lineNum">      52</span>              :     this.employeeId,</span>
 <span id="L53"><span class="lineNum">      53</span>              :   });</span>
 <span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           2 :   factory TokenData.fromMap(Map&lt;String, dynamic&gt; json) =&gt; TokenData(</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :     accessToken: json[&quot;access_token&quot;] ?? '',</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           1 :     refreshToken: json[&quot;refresh_token&quot;] ?? '',</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           1 :     expiresIn: json[&quot;expires_in&quot;] ?? 0,</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           1 :     tokenType: json[&quot;token_type&quot;] ?? 'Bearer',</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           1 :     employeeId: json[&quot;employee_id&quot;],</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           4 :   factory TokenData.fromMap(Map&lt;String, dynamic&gt; json) =&gt; TokenData(</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           2 :     accessToken: json[&quot;access_token&quot;] ?? '',</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           2 :     refreshToken: json[&quot;refresh_token&quot;] ?? '',</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           2 :     expiresIn: json[&quot;expires_in&quot;] ?? 0,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           2 :     tokenType: json[&quot;token_type&quot;] ?? 'Bearer',</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           2 :     employeeId: json[&quot;employee_id&quot;],</span></span>
 <span id="L61"><span class="lineNum">      61</span>              :   );</span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
 <span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           2 :   Map&lt;String, dynamic&gt; toMap() =&gt; {</span></span>

@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
             <td class="headerCovTableEntry">23</td>
-            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">23</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-03 21:25:08</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -71,40 +71,40 @@
 <span id="L9"><span class="lineNum">       9</span>              : class LogbookRepositoryImpl implements LogbookRepository {</span>
 <span id="L10"><span class="lineNum">      10</span>              :   final LogbookRemoteDataSource _remoteDataSource;</span>
 <span id="L11"><span class="lineNum">      11</span>              : </span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaUNC">           0 :   LogbookRepositoryImpl({required LogbookRemoteDataSource remoteDataSource})</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">           1 :   LogbookRepositoryImpl({required LogbookRemoteDataSource remoteDataSource})</span></span>
 <span id="L13"><span class="lineNum">      13</span>              :     : _remoteDataSource = remoteDataSource;</span>
 <span id="L14"><span class="lineNum">      14</span>              : </span>
 <span id="L15"><span class="lineNum">      15</span>              :   // ========== Daily Logbook Operations ==========</span>
 <span id="L16"><span class="lineNum">      16</span>              : </span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L18"><span class="lineNum">      18</span>              :   Future&lt;List&lt;DailyLogbookEntity&gt;&gt; getDailyLogbooks() async {</span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.getDailyLogbooks();</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.getDailyLogbooks();</span></span>
 <span id="L20"><span class="lineNum">      20</span>              :   }</span>
 <span id="L21"><span class="lineNum">      21</span>              : </span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L23"><span class="lineNum">      23</span>              :   Future&lt;DailyLogbookEntity?&gt; getDailyLogbookById(String id) async {</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.getDailyLogbookById(id);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.getDailyLogbookById(id);</span></span>
 <span id="L25"><span class="lineNum">      25</span>              :   }</span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L28"><span class="lineNum">      28</span>              :   Future&lt;DailyLogbookEntity?&gt; createDailyLogbook({</span>
 <span id="L29"><span class="lineNum">      29</span>              :     required DateTime logDate,</span>
 <span id="L30"><span class="lineNum">      30</span>              :     required int bookPage,</span>
 <span id="L31"><span class="lineNum">      31</span>              :   }) async {</span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.createDailyLogbook(</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.createDailyLogbook(</span></span>
 <span id="L33"><span class="lineNum">      33</span>              :       logDate: logDate,</span>
 <span id="L34"><span class="lineNum">      34</span>              :       bookPage: bookPage,</span>
 <span id="L35"><span class="lineNum">      35</span>              :     );</span>
 <span id="L36"><span class="lineNum">      36</span>              :   }</span>
 <span id="L37"><span class="lineNum">      37</span>              : </span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L39"><span class="lineNum">      39</span>              :   Future&lt;DailyLogbookEntity?&gt; updateDailyLogbook({</span>
 <span id="L40"><span class="lineNum">      40</span>              :     required String id,</span>
 <span id="L41"><span class="lineNum">      41</span>              :     required DateTime logDate,</span>
 <span id="L42"><span class="lineNum">      42</span>              :     required int bookPage,</span>
 <span id="L43"><span class="lineNum">      43</span>              :     required bool status,</span>
 <span id="L44"><span class="lineNum">      44</span>              :   }) async {</span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.updateDailyLogbook(</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.updateDailyLogbook(</span></span>
 <span id="L46"><span class="lineNum">      46</span>              :       id: id,</span>
 <span id="L47"><span class="lineNum">      47</span>              :       logDate: logDate,</span>
 <span id="L48"><span class="lineNum">      48</span>              :       bookPage: bookPage,</span>
@@ -112,26 +112,26 @@
 <span id="L50"><span class="lineNum">      50</span>              :     );</span>
 <span id="L51"><span class="lineNum">      51</span>              :   }</span>
 <span id="L52"><span class="lineNum">      52</span>              : </span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L54"><span class="lineNum">      54</span>              :   Future&lt;bool&gt; deleteDailyLogbook(String id) async {</span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.deleteDailyLogbook(id);</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.deleteDailyLogbook(id);</span></span>
 <span id="L56"><span class="lineNum">      56</span>              :   }</span>
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              :   // ========== Logbook Detail Operations ==========</span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L61"><span class="lineNum">      61</span>              :   Future&lt;List&lt;LogbookDetailEntity&gt;&gt; getLogbookDetails(</span>
 <span id="L62"><span class="lineNum">      62</span>              :     String dailyLogbookId,</span>
 <span id="L63"><span class="lineNum">      63</span>              :   ) async {</span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.getLogbookDetails(dailyLogbookId);</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.getLogbookDetails(dailyLogbookId);</span></span>
 <span id="L65"><span class="lineNum">      65</span>              :   }</span>
 <span id="L66"><span class="lineNum">      66</span>              : </span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L68"><span class="lineNum">      68</span>              :   Future&lt;LogbookDetailEntity?&gt; getLogbookDetailById(String id) async {</span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.getLogbookDetailById(id);</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.getLogbookDetailById(id);</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :   }</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L73"><span class="lineNum">      73</span>              :   Future&lt;LogbookDetailEntity?&gt; createLogbookDetail({</span>
 <span id="L74"><span class="lineNum">      74</span>              :     required String dailyLogbookId,</span>
 <span id="L75"><span class="lineNum">      75</span>              :     required String flightRealDate,</span>
@@ -151,7 +151,7 @@
 <span id="L89"><span class="lineNum">      89</span>              :     required String approachType,</span>
 <span id="L90"><span class="lineNum">      90</span>              :     required String flightType,</span>
 <span id="L91"><span class="lineNum">      91</span>              :   }) async {</span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaUNC">           0 :     final data = LogbookDetailModel.createRequest(</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">           1 :     final data = LogbookDetailModel.createRequest(</span></span>
 <span id="L93"><span class="lineNum">      93</span>              :       flightRealDate: flightRealDate,</span>
 <span id="L94"><span class="lineNum">      94</span>              :       flightNumber: flightNumber,</span>
 <span id="L95"><span class="lineNum">      95</span>              :       airlineRouteId: airlineRouteId,</span>
@@ -170,13 +170,13 @@
 <span id="L108"><span class="lineNum">     108</span>              :       flightType: flightType,</span>
 <span id="L109"><span class="lineNum">     109</span>              :     );</span>
 <span id="L110"><span class="lineNum">     110</span>              : </span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.createLogbookDetail(</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.createLogbookDetail(</span></span>
 <span id="L112"><span class="lineNum">     112</span>              :       dailyLogbookId: dailyLogbookId,</span>
 <span id="L113"><span class="lineNum">     113</span>              :       data: data,</span>
 <span id="L114"><span class="lineNum">     114</span>              :     );</span>
 <span id="L115"><span class="lineNum">     115</span>              :   }</span>
 <span id="L116"><span class="lineNum">     116</span>              : </span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L118"><span class="lineNum">     118</span>              :   Future&lt;LogbookDetailEntity?&gt; updateLogbookDetail({</span>
 <span id="L119"><span class="lineNum">     119</span>              :     required String id,</span>
 <span id="L120"><span class="lineNum">     120</span>              :     required String flightRealDate,</span>
@@ -196,7 +196,7 @@
 <span id="L134"><span class="lineNum">     134</span>              :     required String approachType,</span>
 <span id="L135"><span class="lineNum">     135</span>              :     required String flightType,</span>
 <span id="L136"><span class="lineNum">     136</span>              :   }) async {</span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaUNC">           0 :     final data = LogbookDetailModel.updateRequest(</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           1 :     final data = LogbookDetailModel.updateRequest(</span></span>
 <span id="L138"><span class="lineNum">     138</span>              :       flightRealDate: flightRealDate,</span>
 <span id="L139"><span class="lineNum">     139</span>              :       flightNumber: flightNumber,</span>
 <span id="L140"><span class="lineNum">     140</span>              :       airlineRouteId: airlineRouteId,</span>
@@ -215,12 +215,12 @@
 <span id="L153"><span class="lineNum">     153</span>              :       flightType: flightType,</span>
 <span id="L154"><span class="lineNum">     154</span>              :     );</span>
 <span id="L155"><span class="lineNum">     155</span>              : </span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.updateLogbookDetail(id: id, data: data);</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.updateLogbookDetail(id: id, data: data);</span></span>
 <span id="L157"><span class="lineNum">     157</span>              :   }</span>
 <span id="L158"><span class="lineNum">     158</span>              : </span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L160"><span class="lineNum">     160</span>              :   Future&lt;bool&gt; deleteLogbookDetail(String id) async {</span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC">           0 :     return await _remoteDataSource.deleteLogbookDetail(id);</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">           2 :     return await _remoteDataSource.deleteLogbookDetail(id);</span></span>
 <span id="L162"><span class="lineNum">     162</span>              :   }</span>
 <span id="L163"><span class="lineNum">     163</span>              : }</span>
         </pre>

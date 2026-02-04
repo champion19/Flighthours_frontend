@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-03 21:25:08</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -67,13 +67,13 @@
 <span id="L5"><span class="lineNum">       5</span>              : class ListLogbookDetailsUseCase {</span>
 <span id="L6"><span class="lineNum">       6</span>              :   final LogbookRepository _repository;</span>
 <span id="L7"><span class="lineNum">       7</span>              : </span>
-<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">           1 :   ListLogbookDetailsUseCase({required LogbookRepository repository})</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">           2 :   ListLogbookDetailsUseCase({required LogbookRepository repository})</span></span>
 <span id="L9"><span class="lineNum">       9</span>              :     : _repository = repository;</span>
 <span id="L10"><span class="lineNum">      10</span>              : </span>
 <span id="L11"><span class="lineNum">      11</span>              :   /// Execute the use case</span>
 <span id="L12"><span class="lineNum">      12</span>              :   /// [dailyLogbookId] - The ID of the daily logbook to get details for</span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">           1 :   Future&lt;List&lt;LogbookDetailEntity&gt;&gt; call(String dailyLogbookId) async {</span></span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           2 :     return await _repository.getLogbookDetails(dailyLogbookId);</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">           2 :   Future&lt;List&lt;LogbookDetailEntity&gt;&gt; call(String dailyLogbookId) async {</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           4 :     return await _repository.getLogbookDetails(dailyLogbookId);</span></span>
 <span id="L15"><span class="lineNum">      15</span>              :   }</span>
 <span id="L16"><span class="lineNum">      16</span>              : }</span>
         </pre>

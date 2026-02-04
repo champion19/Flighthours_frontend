@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-03 21:25:08</td>
+            <td class="headerValue">2026-02-04 08:14:57</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -69,7 +69,7 @@
 <span id="L7"><span class="lineNum">       7</span>              :   final String message;</span>
 <span id="L8"><span class="lineNum">       8</span>              :   final EmployeeData? data;</span>
 <span id="L9"><span class="lineNum">       9</span>              : </span>
-<span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           2 :   EmployeeResponseModel({</span></span>
+<span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           3 :   EmployeeResponseModel({</span></span>
 <span id="L11"><span class="lineNum">      11</span>              :     required this.success,</span>
 <span id="L12"><span class="lineNum">      12</span>              :     required this.code,</span>
 <span id="L13"><span class="lineNum">      13</span>              :     required this.message,</span>
@@ -79,12 +79,12 @@
 <span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           1 :   factory EmployeeResponseModel.fromJson(String str) =&gt;</span></span>
 <span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">           2 :       EmployeeResponseModel.fromMap(json.decode(str));</span></span>
 <span id="L19"><span class="lineNum">      19</span>              : </span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">           1 :   factory EmployeeResponseModel.fromMap(Map&lt;String, dynamic&gt; json) =&gt;</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">           1 :       EmployeeResponseModel(</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           1 :         success: json[&quot;success&quot;] ?? false,</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">           1 :         code: json[&quot;code&quot;] ?? '',</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           1 :         message: json[&quot;message&quot;] ?? '',</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           3 :         data: json[&quot;data&quot;] != null ? EmployeeData.fromMap(json[&quot;data&quot;]) : null,</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">           2 :   factory EmployeeResponseModel.fromMap(Map&lt;String, dynamic&gt; json) =&gt;</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">           2 :       EmployeeResponseModel(</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           2 :         success: json[&quot;success&quot;] ?? false,</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">           2 :         code: json[&quot;code&quot;] ?? '',</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           2 :         message: json[&quot;message&quot;] ?? '',</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           6 :         data: json[&quot;data&quot;] != null ? EmployeeData.fromMap(json[&quot;data&quot;]) : null,</span></span>
 <span id="L26"><span class="lineNum">      26</span>              :       );</span>
 <span id="L27"><span class="lineNum">      27</span>              : }</span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
@@ -101,7 +101,7 @@
 <span id="L39"><span class="lineNum">      39</span>              :   final bool active;</span>
 <span id="L40"><span class="lineNum">      40</span>              :   final String? role;</span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           1 :   EmployeeData({</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           2 :   EmployeeData({</span></span>
 <span id="L43"><span class="lineNum">      43</span>              :     required this.id,</span>
 <span id="L44"><span class="lineNum">      44</span>              :     required this.name,</span>
 <span id="L45"><span class="lineNum">      45</span>              :     required this.email,</span>
@@ -114,21 +114,21 @@
 <span id="L52"><span class="lineNum">      52</span>              :     this.role,</span>
 <span id="L53"><span class="lineNum">      53</span>              :   });</span>
 <span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           2 :   factory EmployeeData.fromMap(Map&lt;String, dynamic&gt; json) =&gt; EmployeeData(</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :     id: json[&quot;id&quot;] ?? '',</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           1 :     name: json[&quot;name&quot;] ?? '',</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           1 :     email: json[&quot;email&quot;] ?? '',</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           1 :     airline: json[&quot;airline&quot;],</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           1 :     identificationNumber: json[&quot;identification_number&quot;],</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           1 :     bp: json[&quot;bp&quot;],</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           4 :   factory EmployeeData.fromMap(Map&lt;String, dynamic&gt; json) =&gt; EmployeeData(</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           2 :     id: json[&quot;id&quot;] ?? '',</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           2 :     name: json[&quot;name&quot;] ?? '',</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           2 :     email: json[&quot;email&quot;] ?? '',</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           2 :     airline: json[&quot;airline&quot;],</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           2 :     identificationNumber: json[&quot;identification_number&quot;],</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           2 :     bp: json[&quot;bp&quot;],</span></span>
 <span id="L62"><span class="lineNum">      62</span>              :     startDate:</span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           1 :         json[&quot;start_date&quot;] != null</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           2 :         json[&quot;start_date&quot;] != null</span></span>
 <span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :             ? DateTime.tryParse(json[&quot;start_date&quot;])</span></span>
 <span id="L65"><span class="lineNum">      65</span>              :             : null,</span>
 <span id="L66"><span class="lineNum">      66</span>              :     endDate:</span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           3 :         json[&quot;end_date&quot;] != null ? DateTime.tryParse(json[&quot;end_date&quot;]) : null,</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           1 :     active: json[&quot;active&quot;] ?? true,</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           1 :     role: json[&quot;role&quot;],</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           4 :         json[&quot;end_date&quot;] != null ? DateTime.tryParse(json[&quot;end_date&quot;]) : null,</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :     active: json[&quot;active&quot;] ?? true,</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           2 :     role: json[&quot;role&quot;],</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :   );</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           2 :   Map&lt;String, dynamic&gt; toMap() =&gt; {</span></span>
