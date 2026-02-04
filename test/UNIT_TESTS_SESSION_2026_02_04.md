@@ -4,15 +4,16 @@
 Aumentar la cobertura de tests unitarios del proyecto `flight_hours_app` hacia el objetivo del 80%.
 
 ## Estado Final
-- 🧪 **923 tests** pasando ✅
-- 📊 **63.9% cobertura de líneas** (2051 de 3211 líneas)
-- 📦 **65 commits** en rama `feature/admin`
-- 📁 **131 de 161 archivos** incluidos en reporte de cobertura
+- 🧪 **935 tests** pasando ✅
+- 📊 **64.2% cobertura de líneas** (2096 de 3265 líneas)
+- 📦 **68 commits** en rama `feature/admin`
+- 📁 **132 de 161 archivos** incluidos en reporte de cobertura
 
 ## Trabajo Completado en Esta Sesión
 
-### 1. Refactoring de Blocs para Inyección de Dependencias
+### 1. Refactoring de TODOS los Blocs para Inyección de Dependencias
 
+**Primera Ronda (5 blocs):**
 | Bloc | Use Cases Inyectables | Tests bloc_test |
 |------|----------------------|-----------------|
 | `AirlineBloc` | 4 (list, getById, activate, deactivate) | 6 |
@@ -21,7 +22,16 @@ Aumentar la cobertura de tests unitarios del proyecto `flight_hours_app` hacia e
 | `EmployeeBloc` | 7 (get, update, changePassword, delete, getAirline, updateAirline, getRoutes) | 4 |
 | `RouteBloc` | 2 (list, getById) | 5 |
 
-**Total: 5 blocs refactorizados, 26 nuevos bloc_test tests**
+**Segunda Ronda (5 blocs):**
+| Bloc | Use Cases Inyectables | Tests bloc_test |
+|------|----------------------|-----------------|
+| `LogbookBloc` | 3 (listDaily, listDetails, delete) | 5 |
+| `LoginBloc` | 2 (login, updateEmployee) | - |
+| `RegisterBloc` | 1 (register) | - |
+| `ResetPasswordBloc` | 1 (resetPassword) | 3 |
+| `EmailVerificationBloc` | 1 (emailVerification) | 4 |
+
+**Total: 10/10 blocs refactorizados, 38 nuevos bloc_test tests**
 
 ### 2. Widget Tests para Páginas
 
@@ -30,37 +40,19 @@ Aumentar la cobertura de tests unitarios del proyecto `flight_hours_app` hacia e
 | `LoginPage` | 7 |
 | `AdminHomePage` | 6 |
 
-**Total: 13 nuevos widget tests para páginas**
+**Total: 13 nuevos widget tests**
 
 ### 3. Nuevas Dependencias
 - `bloc_test: ^9.1.7` agregado para testing avanzado de blocs
-
-### 4. Tests Anteriores (Session Parte 1)
-#### Widget Tests
-- `login_form_test.dart`, `login_button_test.dart`, `reset_password_form_test.dart`
-
-#### Bloc Event/State Tests
-- `reset_password_bloc_test.dart`, `register_bloc_test.dart`
-- `email_verification_bloc_test.dart`, `employee_bloc_test.dart`
-
-#### Use Case Tests
-- `airline_route_usecases_test.dart`, `airline_usecases_test.dart`
-
-#### Datasource Tests
-- `employee_remote_data_source_test.dart`, `airline_remote_data_source_test.dart`
-
-#### Core Tests
-- `dio_client_sanitization_test.dart`, `admin_messages_test.dart`
-- `employee_messages_test.dart`, `login_messages_test.dart`
 
 ## Progreso de Cobertura
 
 | Métrica | Inicio Sesión | Final | Cambio |
 |---------|---------------|-------|--------|
-| 🧪 Tests | 884 | **923** | **+39** |
-| 📊 Cobertura | 61.7% | **63.9%** | **+2.2%** |
-| 📁 Archivos | 126 | **131** | **+5** |
-| 📦 Commits | 60 | **65** | **+5** |
+| 🧪 Tests | 884 | **935** | **+51** |
+| 📊 Cobertura | 61.7% | **64.2%** | **+2.5%** |
+| 📁 Archivos | 126 | **132** | **+6** |
+| 📦 Commits | 60 | **68** | **+8** |
 
 ## Cobertura por Categoría
 
@@ -73,20 +65,21 @@ Aumentar la cobertura de tests unitarios del proyecto `flight_hours_app` hacia e
 | Events/States | ✅ 100% (20/20) |
 | Validators | ✅ 100% (5/5) |
 | Widgets | ✅ 100% (4/4) |
-| **Blocs (lógica)** | ✅ **100% (10/10)** - Todos refactorizados |
+| **Blocs (lógica)** | ✅ **100% (10/10)** - Todos refactorizados con DI |
 | Pages | ⚠️ 50% (6/12) |
 
 ## Blocs Refactorizados (Patrón Transitionary Constructor)
 
-Todos los blocs ahora usan inyección de dependencias opcionales:
+Todos los 10 blocs ahora usan inyección de dependencias opcionales:
 
 ```dart
-AirlineBloc({
-  ListAirlineUseCase? listAirlineUseCase,
-  // ... otros use cases opcionales
-}) : _listAirlineUseCase = listAirlineUseCase ??
-        InjectorApp.resolve<ListAirlineUseCase>(),
-    // ...
+LogbookBloc({
+  ListDailyLogbooksUseCase? listDailyLogbooksUseCase,
+  ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
+  DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
+}) : _listDailyLogbooksUseCase = listDailyLogbooksUseCase ??
+        InjectorApp.resolve<ListDailyLogbooksUseCase>(),
+     // ...
 ```
 
 ### Beneficios:
@@ -102,4 +95,4 @@ AirlineBloc({
 ## Notas Técnicas
 - El error "Connection error: null" es un test esperado para verificar manejo de errores
 - `bloc_test` permite tests más expresivos con `blocTest<B, S>()`
-- Las líneas aumentaron de 2914 a 3211 debido a los refactorings (documentación y campos)
+- Todos los blocs ahora aceptan dependencias opcionales via constructor
