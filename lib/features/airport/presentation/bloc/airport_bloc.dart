@@ -7,39 +7,50 @@ import 'package:flight_hours_app/features/airport/domain/usecases/list_airport_u
 import 'package:flight_hours_app/features/airport/presentation/bloc/airport_event.dart';
 import 'package:flight_hours_app/features/airport/presentation/bloc/airport_state.dart';
 
+/// BLoC for managing airport-related state
+///
+/// Supports dependency injection for testing:
+/// - [listAirportUseCase] for listing airports
+/// - [getAirportByIdUseCase] for fetching airport details
+/// - [activateAirportUseCase] for activating airports
+/// - [deactivateAirportUseCase] for deactivating airports
 class AirportBloc extends Bloc<AirportEvent, AirportState> {
-  AirportBloc() : super(AirportInitial()) {
-    final listAirportUseCase = InjectorApp.resolve<ListAirportUseCase>();
-    final getAirportByIdUseCase = InjectorApp.resolve<GetAirportByIdUseCase>();
-    final activateAirportUseCase =
-        InjectorApp.resolve<ActivateAirportUseCase>();
-    final deactivateAirportUseCase =
-        InjectorApp.resolve<DeactivateAirportUseCase>();
+  final ListAirportUseCase _listAirportUseCase;
+  final GetAirportByIdUseCase _getAirportByIdUseCase;
+  final ActivateAirportUseCase _activateAirportUseCase;
+  final DeactivateAirportUseCase _deactivateAirportUseCase;
 
-    on<FetchAirports>(
-      (event, emit) => _onFetchAirports(event, emit, listAirportUseCase),
-    );
-    on<FetchAirportById>(
-      (event, emit) => _onFetchAirportById(event, emit, getAirportByIdUseCase),
-    );
-    on<ActivateAirport>(
-      (event, emit) => _onActivateAirport(event, emit, activateAirportUseCase),
-    );
-    on<DeactivateAirport>(
-      (event, emit) =>
-          _onDeactivateAirport(event, emit, deactivateAirportUseCase),
-    );
+  AirportBloc({
+    ListAirportUseCase? listAirportUseCase,
+    GetAirportByIdUseCase? getAirportByIdUseCase,
+    ActivateAirportUseCase? activateAirportUseCase,
+    DeactivateAirportUseCase? deactivateAirportUseCase,
+  }) : _listAirportUseCase =
+           listAirportUseCase ?? InjectorApp.resolve<ListAirportUseCase>(),
+       _getAirportByIdUseCase =
+           getAirportByIdUseCase ??
+           InjectorApp.resolve<GetAirportByIdUseCase>(),
+       _activateAirportUseCase =
+           activateAirportUseCase ??
+           InjectorApp.resolve<ActivateAirportUseCase>(),
+       _deactivateAirportUseCase =
+           deactivateAirportUseCase ??
+           InjectorApp.resolve<DeactivateAirportUseCase>(),
+       super(AirportInitial()) {
+    on<FetchAirports>(_onFetchAirports);
+    on<FetchAirportById>(_onFetchAirportById);
+    on<ActivateAirport>(_onActivateAirport);
+    on<DeactivateAirport>(_onDeactivateAirport);
   }
 
   Future<void> _onFetchAirports(
     FetchAirports event,
     Emitter<AirportState> emit,
-    ListAirportUseCase listAirportUseCase,
   ) async {
     emit(AirportLoading());
 
     try {
-      final airports = await listAirportUseCase.call();
+      final airports = await _listAirportUseCase.call();
       emit(AirportSuccess(airports));
     } catch (e) {
       emit(AirportError(e.toString()));
@@ -49,10 +60,9 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   Future<void> _onFetchAirportById(
     FetchAirportById event,
     Emitter<AirportState> emit,
-    GetAirportByIdUseCase getAirportByIdUseCase,
   ) async {
     try {
-      final airport = await getAirportByIdUseCase.call(event.airportId);
+      final airport = await _getAirportByIdUseCase.call(event.airportId);
       if (airport != null) {
         emit(AirportDetailSuccess(airport));
       }
@@ -64,12 +74,11 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   Future<void> _onActivateAirport(
     ActivateAirport event,
     Emitter<AirportState> emit,
-    ActivateAirportUseCase activateAirportUseCase,
   ) async {
     emit(AirportLoading());
 
     try {
-      final response = await activateAirportUseCase.call(event.airportId);
+      final response = await _activateAirportUseCase.call(event.airportId);
       if (response.success) {
         emit(AirportStatusUpdateSuccess(response, isActivation: true));
       } else {
@@ -83,12 +92,11 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   Future<void> _onDeactivateAirport(
     DeactivateAirport event,
     Emitter<AirportState> emit,
-    DeactivateAirportUseCase deactivateAirportUseCase,
   ) async {
     emit(AirportLoading());
 
     try {
-      final response = await deactivateAirportUseCase.call(event.airportId);
+      final response = await _deactivateAirportUseCase.call(event.airportId);
       if (response.success) {
         emit(AirportStatusUpdateSuccess(response, isActivation: false));
       } else {

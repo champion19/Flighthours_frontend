@@ -30,3 +30,23 @@ class SearchAirlineRoutes extends AirlineRouteEvent {
   @override
   List<Object> get props => [query];
 }
+
+/// Event to activate an airline route
+class ActivateAirlineRoute extends AirlineRouteEvent {
+  final String airlineRouteId;
+
+  const ActivateAirlineRoute({required this.airlineRouteId});
+
+  @override
+  List<Object> get props => [airlineRouteId];
+}
+
+/// Event to deactivate an airline route
+class DeactivateAirlineRoute extends AirlineRouteEvent {
+  final String airlineRouteId;
+
+  const DeactivateAirlineRoute({required this.airlineRouteId});
+
+  @override
+  List<Object> get props => [airlineRouteId];
+}

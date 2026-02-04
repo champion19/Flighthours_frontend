@@ -19,6 +19,7 @@ class SessionService {
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyEmail = 'email';
   static const String _keyName = 'name';
+  static const String _keyRole = 'role';
 
   // In-memory cache for fast access (avoids async calls during the session)
   String? _employeeId;
@@ -26,6 +27,7 @@ class SessionService {
   String? _refreshToken;
   String? _email;
   String? _name;
+  String? _role;
 
   /// Initializes the session by restoring any persisted data.
   /// Call this method in main.dart before runApp().
@@ -35,6 +37,7 @@ class SessionService {
     _refreshToken = await _storage.read(key: _keyRefreshToken);
     _email = await _storage.read(key: _keyEmail);
     _name = await _storage.read(key: _keyName);
+    _role = await _storage.read(key: _keyRole);
   }
 
   /// Sets the session data after a successful login.
@@ -45,6 +48,7 @@ class SessionService {
     required String refreshToken,
     String? email,
     String? name,
+    String? role,
   }) async {
     // Update in-memory cache
     _employeeId = employeeId;
@@ -52,6 +56,7 @@ class SessionService {
     _refreshToken = refreshToken;
     _email = email;
     _name = name;
+    _role = role;
 
     // Persist to secure storage
     await _storage.write(key: _keyEmployeeId, value: employeeId);
@@ -62,6 +67,9 @@ class SessionService {
     }
     if (name != null) {
       await _storage.write(key: _keyName, value: name);
+    }
+    if (role != null) {
+      await _storage.write(key: _keyRole, value: role);
     }
   }
 
@@ -80,6 +88,10 @@ class SessionService {
   /// Gets the current user's name (from memory cache)
   String? get name => _name;
 
+  /// Gets the current user's role (from memory cache)
+  /// Returns 'pilot' or 'admin'
+  String? get role => _role;
+
   /// Checks if a user is currently logged in
   bool get isLoggedIn => _employeeId != null && _accessToken != null;
 
@@ -92,6 +104,7 @@ class SessionService {
     _refreshToken = null;
     _email = null;
     _name = null;
+    _role = null;
 
     // Clear secure storage
     await _storage.deleteAll();

@@ -1,39 +1,21 @@
 import 'dart:convert';
 
-/// Request model for updating employee information
-/// PUT /employees/me requires ALL these fields
+/// Request model for updating employee basic information
+/// PUT /employees - only name and identificationNumber
 class EmployeeUpdateRequest {
   final String name;
-  final String airline;
   final String identificationNumber;
-  final String bp;
-  final String startDate;
-  final String endDate;
-  final bool active;
-  final String role;
 
   EmployeeUpdateRequest({
     required this.name,
-    required this.airline,
     required this.identificationNumber,
-    required this.bp,
-    required this.startDate,
-    required this.endDate,
-    required this.active,
-    required this.role,
   });
 
   String toJson() => json.encode(toMap());
 
   Map<String, dynamic> toMap() => {
     "name": name,
-    "airline": airline,
     "identificationNumber": identificationNumber,
-    "bp": bp,
-    "start_date": startDate,
-    "end_date": endDate,
-    "active": active,
-    "role": role,
   };
 }
 

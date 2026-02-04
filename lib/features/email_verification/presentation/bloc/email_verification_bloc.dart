@@ -7,34 +7,38 @@ import 'package:flight_hours_app/features/email_verification/domain/usecases/ema
 part 'email_verification_event.dart';
 part 'email_verification_state.dart';
 
+/// BLoC for managing email verification state
+///
+/// Supports dependency injection for testing:
+/// - [emailVerificationUseCase] for handling email verification operations
 class EmailVerificationBloc
     extends Bloc<EmailVerificationEvent, EmailVerificationState> {
-  EmailVerificationBloc() : super(EmailVerificationInitial()) {
-    final emailVerificationUseCase =
-        InjectorApp.resolve<EmailVerificationUseCase>();
+  final EmailVerificationUseCase _emailVerificationUseCase;
 
-    on<VerifyEmailEvent>(
-      (event, emit) => _onVerifyEmail(event, emit, emailVerificationUseCase),
-    );
+  EmailVerificationBloc({EmailVerificationUseCase? emailVerificationUseCase})
+    : _emailVerificationUseCase =
+          emailVerificationUseCase ??
+          InjectorApp.resolve<EmailVerificationUseCase>(),
+      super(EmailVerificationInitial()) {
+    on<VerifyEmailEvent>(_onVerifyEmail);
   }
-}
 
-Future<void> _onVerifyEmail(
-  VerifyEmailEvent event,
-  Emitter<EmailVerificationState> emit,
-  EmailVerificationUseCase emailVerificationUseCase,
-) async {
-  emit(EmailVerificationLoading());
-  try {
-    final result = await emailVerificationUseCase.call(event.email);
-    if (result.emailconfirmed) {
-      emit(EmailVerificationSuccess(result: result));
-    } else {
-      emit(
-        const EmailVerificationError(message: 'El correo no está verificado'),
-      );
+  Future<void> _onVerifyEmail(
+    VerifyEmailEvent event,
+    Emitter<EmailVerificationState> emit,
+  ) async {
+    emit(EmailVerificationLoading());
+    try {
+      final result = await _emailVerificationUseCase.call(event.email);
+      if (result.emailconfirmed) {
+        emit(EmailVerificationSuccess(result: result));
+      } else {
+        emit(
+          const EmailVerificationError(message: 'El correo no está verificado'),
+        );
+      }
+    } catch (e) {
+      emit(EmailVerificationError(message: e.toString()));
     }
-  } catch (e) {
-    emit(EmailVerificationError(message: e.toString()));
   }
 }

@@ -8,63 +8,50 @@ import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_even
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
 
 /// BLoC for managing logbook state
+///
+/// Supports dependency injection for testing:
+/// - [listDailyLogbooksUseCase] for fetching daily logbooks
+/// - [listLogbookDetailsUseCase] for fetching logbook details
+/// - [deleteLogbookDetailUseCase] for deleting logbook details
 class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
+  final ListDailyLogbooksUseCase _listDailyLogbooksUseCase;
+  final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
+  final DeleteLogbookDetailUseCase _deleteLogbookDetailUseCase;
+
   // Track the current selected logbook for refresh operations
   DailyLogbookEntity? _currentSelectedLogbook;
 
-  LogbookBloc() : super(const LogbookInitial()) {
-    // Resolve use cases from injector
-    final listDailyLogbooksUseCase =
-        InjectorApp.resolve<ListDailyLogbooksUseCase>();
-    final listLogbookDetailsUseCase =
-        InjectorApp.resolve<ListLogbookDetailsUseCase>();
-    final deleteLogbookDetailUseCase =
-        InjectorApp.resolve<DeleteLogbookDetailUseCase>();
-
-    on<FetchDailyLogbooks>(
-      (event, emit) =>
-          _onFetchDailyLogbooks(event, emit, listDailyLogbooksUseCase),
-    );
-    on<SelectDailyLogbook>(
-      (event, emit) =>
-          _onSelectDailyLogbook(event, emit, listLogbookDetailsUseCase),
-    );
-    on<FetchLogbookDetails>(
-      (event, emit) =>
-          _onFetchLogbookDetails(event, emit, listLogbookDetailsUseCase),
-    );
-    on<DeleteLogbookDetail>(
-      (event, emit) => _onDeleteLogbookDetail(
-        event,
-        emit,
-        deleteLogbookDetailUseCase,
-        listLogbookDetailsUseCase,
-      ),
-    );
-    on<ClearSelectedLogbook>(
-      (event, emit) =>
-          _onClearSelectedLogbook(event, emit, listDailyLogbooksUseCase),
-    );
-    on<RefreshLogbook>(
-      (event, emit) => _onRefreshLogbook(
-        event,
-        emit,
-        listDailyLogbooksUseCase,
-        listLogbookDetailsUseCase,
-      ),
-    );
+  LogbookBloc({
+    ListDailyLogbooksUseCase? listDailyLogbooksUseCase,
+    ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
+    DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
+  }) : _listDailyLogbooksUseCase =
+           listDailyLogbooksUseCase ??
+           InjectorApp.resolve<ListDailyLogbooksUseCase>(),
+       _listLogbookDetailsUseCase =
+           listLogbookDetailsUseCase ??
+           InjectorApp.resolve<ListLogbookDetailsUseCase>(),
+       _deleteLogbookDetailUseCase =
+           deleteLogbookDetailUseCase ??
+           InjectorApp.resolve<DeleteLogbookDetailUseCase>(),
+       super(const LogbookInitial()) {
+    on<FetchDailyLogbooks>(_onFetchDailyLogbooks);
+    on<SelectDailyLogbook>(_onSelectDailyLogbook);
+    on<FetchLogbookDetails>(_onFetchLogbookDetails);
+    on<DeleteLogbookDetail>(_onDeleteLogbookDetail);
+    on<ClearSelectedLogbook>(_onClearSelectedLogbook);
+    on<RefreshLogbook>(_onRefreshLogbook);
   }
 
   /// Handle fetching all daily logbooks
   Future<void> _onFetchDailyLogbooks(
     FetchDailyLogbooks event,
     Emitter<LogbookState> emit,
-    ListDailyLogbooksUseCase listDailyLogbooksUseCase,
   ) async {
     emit(const LogbookLoading());
 
     try {
-      final logbooks = await listDailyLogbooksUseCase.call();
+      final logbooks = await _listDailyLogbooksUseCase.call();
       emit(DailyLogbooksLoaded(logbooks));
     } catch (e) {
       emit(LogbookError('Failed to load logbooks: ${e.toString()}'));
@@ -75,7 +62,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   Future<void> _onSelectDailyLogbook(
     SelectDailyLogbook event,
     Emitter<LogbookState> emit,
-    ListLogbookDetailsUseCase listLogbookDetailsUseCase,
   ) async {
     emit(const LogbookLoading());
     _currentSelectedLogbook = event.logbook;
@@ -83,7 +69,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     try {
       // Use uuid if available, otherwise use id
       final logbookId = event.logbook.uuid ?? event.logbook.id;
-      final details = await listLogbookDetailsUseCase.call(logbookId);
+      final details = await _listLogbookDetailsUseCase.call(logbookId);
 
       emit(
         LogbookDetailsLoaded(selectedLogbook: event.logbook, details: details),
@@ -97,7 +83,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   Future<void> _onFetchLogbookDetails(
     FetchLogbookDetails event,
     Emitter<LogbookState> emit,
-    ListLogbookDetailsUseCase listLogbookDetailsUseCase,
   ) async {
     if (_currentSelectedLogbook == null) {
       emit(const LogbookError('No logbook selected'));
@@ -107,7 +92,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     emit(const LogbookLoading());
 
     try {
-      final details = await listLogbookDetailsUseCase.call(
+      final details = await _listLogbookDetailsUseCase.call(
         event.dailyLogbookId,
       );
 
@@ -126,8 +111,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   Future<void> _onDeleteLogbookDetail(
     DeleteLogbookDetail event,
     Emitter<LogbookState> emit,
-    DeleteLogbookDetailUseCase deleteLogbookDetailUseCase,
-    ListLogbookDetailsUseCase listLogbookDetailsUseCase,
   ) async {
     if (_currentSelectedLogbook == null) {
       emit(const LogbookError('No logbook selected'));
@@ -137,11 +120,11 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     emit(const LogbookLoading());
 
     try {
-      final success = await deleteLogbookDetailUseCase.call(event.detailId);
+      final success = await _deleteLogbookDetailUseCase.call(event.detailId);
 
       if (success) {
         // Refresh the details list after successful deletion
-        final details = await listLogbookDetailsUseCase.call(
+        final details = await _listLogbookDetailsUseCase.call(
           event.dailyLogbookId,
         );
 
@@ -164,13 +147,12 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   Future<void> _onClearSelectedLogbook(
     ClearSelectedLogbook event,
     Emitter<LogbookState> emit,
-    ListDailyLogbooksUseCase listDailyLogbooksUseCase,
   ) async {
     _currentSelectedLogbook = null;
     emit(const LogbookLoading());
 
     try {
-      final logbooks = await listDailyLogbooksUseCase.call();
+      final logbooks = await _listDailyLogbooksUseCase.call();
       emit(DailyLogbooksLoaded(logbooks));
     } catch (e) {
       emit(LogbookError('Failed to load logbooks: ${e.toString()}'));
@@ -181,8 +163,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   Future<void> _onRefreshLogbook(
     RefreshLogbook event,
     Emitter<LogbookState> emit,
-    ListDailyLogbooksUseCase listDailyLogbooksUseCase,
-    ListLogbookDetailsUseCase listLogbookDetailsUseCase,
   ) async {
     emit(const LogbookLoading());
 
@@ -191,7 +171,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
         // Refresh details
         final logbookId =
             _currentSelectedLogbook!.uuid ?? _currentSelectedLogbook!.id;
-        final details = await listLogbookDetailsUseCase.call(logbookId);
+        final details = await _listLogbookDetailsUseCase.call(logbookId);
         emit(
           LogbookDetailsLoaded(
             selectedLogbook: _currentSelectedLogbook!,
@@ -200,7 +180,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
         );
       } else {
         // Refresh logbooks list
-        final logbooks = await listDailyLogbooksUseCase.call();
+        final logbooks = await _listDailyLogbooksUseCase.call();
         emit(DailyLogbooksLoaded(logbooks));
       }
     } catch (e) {

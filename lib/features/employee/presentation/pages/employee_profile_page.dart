@@ -1,9 +1,9 @@
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/features/airline/domain/entities/airline_entity.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
-import 'package:flight_hours_app/features/airline/presentation/bloc/airline_event.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_state.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
@@ -35,6 +35,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
 
   // Airline data
   String? _airlineId;
+  String? _airlineName; // From GET /employees/airline
   AirlineEntity? _selectedAirline;
   List<AirlineEntity> _airlines = [];
   EmployeeData? _currentData;
@@ -67,23 +68,31 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   void _populateForm(EmployeeData data) {
     _currentData = data;
     _nameController.text = data.name;
-    _airlineId = data.airline;
     _identificationController.text = data.identificationNumber ?? '';
-    _bpController.text = data.bp ?? '';
-    // Try to find the airline in local list (if available)
-    _updateSelectedAirline();
-    // Role is always 'pilot'
-    _startDate = data.startDate;
-    _endDate = data.endDate;
+    // Note: bp, airline, startDate, endDate come from /employees/airline endpoint
     _isActive = data.active;
   }
 
-  void _updateSelectedAirline() {
-    if (_airlineId != null && _airlines.isNotEmpty) {
-      // Try to find by obfuscated id OR by uuid (from database)
-      _selectedAirline = _airlines.firstWhere(
-        (a) => a.id == _airlineId || a.uuid == _airlineId,
-        orElse: () => AirlineEntity(id: _airlineId!, name: _airlineId!),
+  /// Populates airline-specific fields from GET /employees/airline response
+  void _populateAirlineForm(EmployeeAirlineData data) {
+    debugPrint('📥 Airline data received:');
+    debugPrint('   airline_id: ${data.airlineId}');
+    debugPrint('   airline_name: ${data.airlineName}');
+    debugPrint('   bp: ${data.bp}');
+    debugPrint('   start_date: ${data.startDate}');
+    debugPrint('   end_date: ${data.endDate}');
+
+    _airlineId = data.airlineId;
+    _airlineName = data.airlineName;
+    _bpController.text = data.bp ?? '';
+    _startDate = data.startDate;
+    _endDate = data.endDate;
+    // Update selected airline if we have the data
+    if (_airlineName != null && _airlineId != null) {
+      _selectedAirline = AirlineEntity(
+        id: _airlineId!,
+        name: _airlineName!,
+        code: data.airlineCode,
       );
     }
   }
@@ -91,6 +100,9 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
   String _getAirlineDisplayName() {
     if (_selectedAirline != null) {
       return _selectedAirline!.name;
+    }
+    if (_airlineName != null && _airlineName!.isNotEmpty) {
+      return _airlineName!;
     }
     if (_airlineId != null && _airlineId!.isNotEmpty) {
       return _airlineId!; // Fallback to show ID if airline not found
@@ -118,22 +130,31 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       return;
     }
 
-    final request = EmployeeUpdateRequest(
+    // 1. Update basic employee info (PUT /employees)
+    final employeeRequest = EmployeeUpdateRequest(
       name: _nameController.text.trim(),
-      airline: _airlineId ?? '',
       identificationNumber: _identificationController.text.trim(),
-      bp: _bpController.text.trim(),
-      startDate:
-          _startDate != null
-              ? DateFormat('yyyy-MM-dd').format(_startDate!)
-              : '',
-      endDate:
-          _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : '',
-      active: _isActive,
-      role: 'pilot', // Fixed role for all employees
     );
+    debugPrint('📤 PUT /employees request: ${employeeRequest.toJson()}');
+    context.read<EmployeeBloc>().add(UpdateEmployee(request: employeeRequest));
 
-    context.read<EmployeeBloc>().add(UpdateEmployee(request: request));
+    // 2. Update airline association (PUT /employees/airline)
+    // Only if we have an airline selected
+    if (_airlineId != null && _airlineId!.isNotEmpty) {
+      final airlineRequest = EmployeeAirlineUpdateRequest(
+        airlineId: _airlineId!,
+        bp: _bpController.text.trim(),
+        startDate:
+            _startDate != null
+                ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                : '',
+        endDate:
+            _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : '',
+      );
+      context.read<EmployeeBloc>().add(
+        UpdateEmployeeAirline(request: airlineRequest),
+      );
+    }
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -267,7 +288,6 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               if (airlineState is AirlineSuccess) {
                 setState(() {
                   _airlines = airlineState.airlines;
-                  _updateSelectedAirline();
                 });
               } else if (airlineState is AirlineDetailSuccess) {
                 // Got airline details by ID
@@ -280,13 +300,14 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               listener: (context, state) async {
                 if (state is EmployeeDetailSuccess) {
                   _populateForm(state.response.data!);
-                  // After loading employee data, fetch airline name if needed
-                  final airlineId = state.response.data!.airline;
-                  if (airlineId != null && airlineId.isNotEmpty) {
-                    // Fetch airline by ID to get the name
-                    context.read<AirlineBloc>().add(
-                      FetchAirlineById(airlineId: airlineId),
-                    );
+                  // After loading employee data, fetch airline association
+                  context.read<EmployeeBloc>().add(LoadEmployeeAirline());
+                } else if (state is EmployeeAirlineSuccess) {
+                  // Got airline employee data (bp, airline, dates)
+                  if (state.response.data != null) {
+                    setState(() {
+                      _populateAirlineForm(state.response.data!);
+                    });
                   }
                 } else if (state is EmployeeUpdateSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -298,9 +319,11 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                   setState(() {
                     _isEditing = false;
                   });
-                  // Reload the data - this will trigger EmployeeDetailSuccess
-                  // which will then call FetchAirlineById to get the airline name
+                  // Reload the data
                   context.read<EmployeeBloc>().add(LoadCurrentEmployee());
+                } else if (state is EmployeeAirlineUpdateSuccess) {
+                  // Airline data updated - reload airline data
+                  context.read<EmployeeBloc>().add(LoadEmployeeAirline());
                 } else if (state is EmployeeDeleteSuccess) {
                   // Clear session and navigate to login
                   await SessionService().clearSession();
@@ -389,7 +412,7 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
               ],
             ),
           ),
-          if (state is EmployeeDetailSuccess && !_isEditing)
+          if (_currentData != null && !_isEditing)
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF4facfe).withValues(alpha: 0.1),

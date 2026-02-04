@@ -9,10 +9,19 @@ class LoginPage extends StatelessWidget {
 
   const LoginPage({super.key, this.onSwitchToRegister});
 
-  void _handleLoginSuccess(BuildContext context) {
+  void _handleLoginSuccess(BuildContext context, LoginSuccess state) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {
-        Navigator.pushNamed(context, '/home');
+        // Navigate based on user role
+        if (state.role == 'admin') {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/admin-home',
+            (route) => false,
+          );
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
       }
     });
   }
@@ -105,7 +114,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               );
-              _handleLoginSuccess(context);
+              _handleLoginSuccess(context, state);
             }
           },
           builder: (context, state) {

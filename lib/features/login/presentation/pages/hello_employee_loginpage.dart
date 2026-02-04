@@ -1,233 +1,242 @@
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
+import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
+import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
+import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HelloEmployee extends StatelessWidget {
+class HelloEmployee extends StatefulWidget {
   const HelloEmployee({super.key});
+
+  @override
+  State<HelloEmployee> createState() => _HelloEmployeeState();
+}
+
+class _HelloEmployeeState extends State<HelloEmployee> {
+  int _selectedIndex = 0;
+  String _currentAirline = '';
+  String _pilotName = 'Pilot';
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<EmployeeBloc>().add(LoadCurrentEmployee());
+    context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildSimpleHeader(context),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Mensaje de bienvenida
-                      const Text(
-                        'Welcome, Pilot!',
-                        style: TextStyle(
-                          color: Color(0xFF1a1a2e),
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Ready to manage your flight hours?',
-                        style: TextStyle(
-                          color: const Color(0xFF6c757d),
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
+      body: SafeArea(child: _buildBody()),
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
 
-                      // Logbook Card - Main CTA
-                      _buildMainActionCard(
-                        context,
-                        icon: Icons.book,
-                        title: 'My Logbook',
-                        subtitle: 'View and manage your flight records',
-                        gradientColors: [
-                          const Color(0xFF4facfe),
-                          const Color(0xFF00f2fe),
-                        ],
-                        onTap: () => Navigator.pushNamed(context, '/logbook'),
-                      ),
+  Widget _buildBody() {
+    return BlocListener<EmployeeBloc, EmployeeState>(
+      listener: (context, state) {
+        if (state is EmployeeDetailSuccess && state.response.data != null) {
+          setState(() {
+            final data = state.response.data!;
+            _pilotName = data.name;
+            _currentAirline = data.airline ?? '';
+          });
+        }
+      },
+      child: _buildCurrentPage(),
+    );
+  }
 
-                      const SizedBox(height: 16),
+  Widget _buildCurrentPage() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomePage();
+      case 1:
+        // Flights - Navigate to new flight page
+        _selectedIndex = 0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushNamed(context, '/new-flight');
+        });
+        return _buildHomePage();
+      case 2:
+        // Logbook - Navigate to logbook page
+        _selectedIndex = 0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushNamed(context, '/logbook');
+        });
+        return _buildHomePage();
+      case 3:
+        return _buildSettingsPage();
+      default:
+        return _buildHomePage();
+    }
+  }
 
-                      // Routes Card
-                      _buildSecondaryActionCard(
-                        context,
-                        icon: Icons.route,
-                        title: 'Routes',
-                        color: const Color(0xFF667eea),
-                        onTap:
-                            () =>
-                                Navigator.pushNamed(context, '/airline-routes'),
-                      ),
+  Widget _buildHomePage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 24),
+          _buildWelcomeCard(),
+        ],
+      ),
+    );
+  }
 
-                      const SizedBox(height: 24),
-                      Text(
-                        'Use the menu in your profile to access\nall features and settings.',
-                        style: TextStyle(
-                          color: const Color(0xFF6c757d).withValues(alpha: 0.7),
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+            ),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Center(
+            child: Text(
+              _pilotName.isNotEmpty ? _pilotName[0].toUpperCase() : 'P',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _pilotName,
+                style: const TextStyle(
+                  color: Color(0xFF1a1a2e),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                _getGreeting(),
+                style: const TextStyle(color: Color(0xFF6c757d), fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.notifications_outlined,
+            color: Color(0xFF6c757d),
+            size: 26,
+          ),
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(
+            Icons.account_circle_outlined,
+            color: Color(0xFF6c757d),
+            size: 26,
+          ),
+          offset: const Offset(0, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          onSelected: (value) async {
+            switch (value) {
+              case 'profile':
+                Navigator.pushNamed(context, '/employee-profile');
+                break;
+              case 'password':
+                Navigator.pushNamed(context, '/change-password');
+                break;
+              case 'logout':
+                await SessionService().clearSession();
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/',
+                    (route) => false,
+                  );
+                }
+                break;
+            }
+          },
+          itemBuilder:
+              (context) => [
+                _buildPopupMenuItem(
+                  value: 'profile',
+                  icon: Icons.person_outline,
+                  title: 'My Profile',
+                ),
+                _buildPopupMenuItem(
+                  value: 'password',
+                  icon: Icons.lock_outline,
+                  title: 'Change Password',
+                ),
+                const PopupMenuDivider(),
+                _buildPopupMenuItem(
+                  value: 'logout',
+                  icon: Icons.logout,
+                  title: 'Log Out',
+                  color: const Color(0xFFe17055),
+                ),
+              ],
+        ),
+      ],
     );
   }
 
-  // Main action card with gradient
-  Widget _buildMainActionCard(
-    BuildContext context, {
+  PopupMenuItem<String> _buildPopupMenuItem({
+    required String value,
     required IconData icon,
     required String title,
-    required String subtitle,
-    required List<Color> gradientColors,
-    required VoidCallback onTap,
+    Color? color,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: gradientColors,
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, color: color ?? const Color(0xFF1a1a2e), size: 20),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              color: color ?? const Color(0xFF1a1a2e),
+              fontSize: 14,
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: gradientColors[0].withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white70,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
 
-  // Secondary action card (smaller)
-  Widget _buildSecondaryActionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFe9ecef)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: color.withValues(alpha: 0.5),
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   }
 
-  // Welcome card with light theme
-  Widget _buildWelcomeCardLight() {
+  Widget _buildWelcomeCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -238,15 +247,40 @@ class HelloEmployee extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF4facfe).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome back!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _currentAirline.isNotEmpty
+                      ? 'Flying with $_currentAirline'
+                      : 'Ready for your next flight',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
@@ -257,255 +291,217 @@ class HelloEmployee extends StatelessWidget {
               size: 32,
             ),
           ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome, Pilot!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+        ],
+      ),
+    );
+  }
+
+  // ==================== ROUTES PAGE ====================
+  Widget _buildRoutesPage() {
+    return BlocBuilder<EmployeeBloc, EmployeeState>(
+      builder: (context, state) {
+        if (state is EmployeeAirlineRoutesLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFF4facfe)),
+          );
+        }
+
+        List<AirlineRouteEntity> allRoutes = [];
+
+        if (state is EmployeeAirlineRoutesSuccess) {
+          allRoutes = state.response.data;
+        }
+
+        // Filter routes by search query
+        final filteredRoutes =
+            _searchQuery.isEmpty
+                ? allRoutes
+                : allRoutes.where((route) {
+                  final origin = (route.originAirportCode ?? '').toLowerCase();
+                  final dest =
+                      (route.destinationAirportCode ?? '').toLowerCase();
+                  final airlineName = (route.airlineName ?? '').toLowerCase();
+                  final routeName = (route.routeName ?? '').toLowerCase();
+                  final query = _searchQuery.toLowerCase();
+                  return origin.contains(query) ||
+                      dest.contains(query) ||
+                      airlineName.contains(query) ||
+                      routeName.contains(query);
+                }).toList();
+
+        return Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'My Routes',
+                        style: TextStyle(
+                          color: Color(0xFF1a1a2e),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${filteredRoutes.length} routes',
+                        style: const TextStyle(
+                          color: Color(0xFF6c757d),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Ready to manage your flight hours?',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                  const SizedBox(height: 16),
 
-  // Section title with light theme
-  Widget _buildSectionTitleLight(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: Color(0xFF6c757d),
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 1.2,
-      ),
-    );
-  }
-
-  // Menu card with light theme
-  Widget _buildMenuCardLight(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color iconColor,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF212529)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Color(0xFF1a1a2e),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                  // Search bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() => _searchQuery = value);
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search routes...',
+                        hintStyle: const TextStyle(color: Color(0xFF6c757d)),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6c757d),
+                        ),
+                        suffixIcon:
+                            _searchQuery.isNotEmpty
+                                ? IconButton(
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    color: Color(0xFF6c757d),
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                                : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: Color(0xFF6c757d),
-                        fontSize: 13,
+                  ),
+                ],
+              ),
+            ),
+
+            // Routes list
+            Expanded(
+              child:
+                  filteredRoutes.isEmpty
+                      ? _buildEmptyRoutesState()
+                      : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: filteredRoutes.length,
+                        itemBuilder: (context, index) {
+                          return _buildRouteCard(filteredRoutes[index]);
+                        },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: iconColor.withValues(alpha: 0.5),
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Header estilo moderno (tipo Instagram)
-  Widget _buildSimpleHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
-      ),
-      child: Row(
-        children: [
-          // Logo sin contenedor
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/images/flight_hours_logo.png',
-              width: 36,
-              height: 36,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Título estilo Instagram
-          const Text(
-            'FlightHours',
-            style: TextStyle(
-              color: Color(0xFF262626),
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const Spacer(),
-          // Icono de menú hamburgesa (estilo Instagram)
-          _buildProfileMenuLight(context),
-        ],
-      ),
-    );
-  }
-
-  // Menú de perfil con estilo claro
-  Widget _buildProfileMenuLight(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white,
-      elevation: 8,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFf8f9fa),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF212529)),
-        ),
-        child: const Icon(Icons.person, color: Color(0xFF4facfe), size: 24),
-      ),
-      itemBuilder:
-          (context) => [
-            _buildPopupMenuItemLight(
-              value: 'profile',
-              icon: Icons.person_outline,
-              title: 'My Profile',
-              subtitle: 'View and edit your info',
-              color: const Color(0xFF667eea),
-            ),
-            const PopupMenuDivider(height: 1),
-            _buildPopupMenuItemLight(
-              value: 'password',
-              icon: Icons.lock_outline,
-              title: 'Change Password',
-              subtitle: 'Update your security',
-              color: const Color(0xFFf5576c),
-            ),
-            const PopupMenuDivider(height: 1),
-            _buildPopupMenuItemLight(
-              value: 'logout',
-              icon: Icons.logout,
-              title: 'Log out',
-              subtitle: 'Sign out of your account',
-              color: const Color(0xFFe17055),
             ),
           ],
-      onSelected: (value) async {
-        switch (value) {
-          case 'profile':
-            Navigator.pushNamed(context, '/employee-profile');
-            break;
-          case 'password':
-            Navigator.pushNamed(context, '/change-password');
-            break;
-          case 'logout':
-            await SessionService().clearSession();
-            if (context.mounted) {
-              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-            }
-            break;
-        }
+        );
       },
     );
   }
 
-  PopupMenuItem<String> _buildPopupMenuItemLight({
-    required String value,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return PopupMenuItem<String>(
-      value: value,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  Widget _buildEmptyRoutesState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.flight, color: Color(0xFF6c757d), size: 64),
+          const SizedBox(height: 16),
+          Text(
+            _searchQuery.isNotEmpty
+                ? 'No routes matching "$_searchQuery"'
+                : (_currentAirline.isNotEmpty
+                    ? 'No routes found for $_currentAirline'
+                    : 'No airline assigned'),
+            style: const TextStyle(color: Color(0xFF6c757d), fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          if (_searchQuery.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: TextButton(
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Text('Clear search'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRouteCard(AirlineRouteEntity airlineRoute) {
+    // Get route details
+    String originCode = airlineRoute.originAirportCode ?? '???';
+    String destCode = airlineRoute.destinationAirportCode ?? '???';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFe0e0e0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
+          // Route icon
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: const Icon(Icons.flight, color: Color(0xFF4facfe), size: 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
+
+          // Route info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  '$originCode → $destCode',
                   style: const TextStyle(
                     color: Color(0xFF1a1a2e),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
-                  subtitle,
+                  airlineRoute.airlineName ?? 'Unknown Airline',
                   style: const TextStyle(
                     color: Color(0xFF6c757d),
                     fontSize: 12,
@@ -514,191 +510,106 @@ class HelloEmployee extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  // ============================================================
-  // MÉTODOS PRESERVADOS PARA USO FUTURO
-  // ============================================================
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
+          // Status badge
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF4facfe).withValues(alpha: 0.8),
-                  const Color(0xFF00f2fe).withValues(alpha: 0.8),
-                ],
+              color:
+                  airlineRoute.isActive
+                      ? const Color(0xFF00b894).withValues(alpha: 0.1)
+                      : const Color(0xFFe17055).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              airlineRoute.displayStatus,
+              style: TextStyle(
+                color:
+                    airlineRoute.isActive
+                        ? const Color(0xFF00b894)
+                        : const Color(0xFFe17055),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.flight_takeoff,
-              color: Colors.white,
-              size: 28,
             ),
           ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Flight Hours',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Employee Dashboard',
-                  style: TextStyle(color: Colors.white60, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          _buildProfileMenu(context),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
+  // ==================== SETTINGS PAGE ====================
+  Widget _buildSettingsPage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.settings_outlined,
+            color: Color(0xFF6c757d),
+            size: 64,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Settings',
+            style: TextStyle(
+              color: Color(0xFF1a1a2e),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Coming soon...',
+            style: TextStyle(color: Color(0xFF6c757d), fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==================== BOTTOM NAV BAR ====================
+  Widget _buildBottomNavBar() {
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF667eea).withValues(alpha: 0.8),
-            const Color(0xFF764ba2).withValues(alpha: 0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667eea).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.waving_hand, color: Colors.amber, size: 28),
-              SizedBox(width: 12),
-              Text(
-                'Hey Employee!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Welcome to the Flight Hours management system. Select an option below to get started.',
-            style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required List<Color> gradientColors,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: gradientColors),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: gradientColors[0].withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(icon, color: Colors.white, size: 24),
+              _buildNavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home,
+                label: 'Home',
+                index: 0,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+              _buildNavItem(
+                icon: Icons.flight_outlined,
+                activeIcon: Icons.flight,
+                label: 'Flights',
+                index: 1,
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white.withValues(alpha: 0.3),
-                size: 18,
+              _buildNavItem(
+                icon: Icons.book_outlined,
+                activeIcon: Icons.book,
+                label: 'Logbook',
+                index: 2,
+              ),
+              _buildNavItem(
+                icon: Icons.settings_outlined,
+                activeIcon: Icons.settings,
+                label: 'Settings',
+                index: 3,
               ),
             ],
           ),
@@ -707,113 +618,34 @@ class HelloEmployee extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: const Color(0xFF1a1a2e),
-      elevation: 8,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.person, color: Colors.white, size: 24),
-      ),
-      itemBuilder:
-          (context) => [
-            _buildPopupMenuItem(
-              value: 'profile',
-              icon: Icons.person_outline,
-              title: 'My Profile',
-              subtitle: 'View and edit your info',
-              gradientColors: [
-                const Color(0xFF667eea),
-                const Color(0xFF764ba2),
-              ],
-            ),
-            const PopupMenuDivider(height: 1),
-            _buildPopupMenuItem(
-              value: 'password',
-              icon: Icons.lock_outline,
-              title: 'Change Password',
-              subtitle: 'Update your security',
-              gradientColors: [
-                const Color(0xFFf093fb),
-                const Color(0xFFf5576c),
-              ],
-            ),
-            const PopupMenuDivider(height: 1),
-            _buildPopupMenuItem(
-              value: 'logout',
-              icon: Icons.logout,
-              title: 'Log out',
-              subtitle: 'Sign out of your account',
-              gradientColors: [
-                const Color(0xFFe17055),
-                const Color(0xFFd63031),
-              ],
-            ),
-          ],
-      onSelected: (value) async {
-        switch (value) {
-          case 'profile':
-            Navigator.pushNamed(context, '/employee-profile');
-            break;
-          case 'password':
-            Navigator.pushNamed(context, '/change-password');
-            break;
-          case 'logout':
-            await SessionService().clearSession();
-            if (context.mounted) {
-              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-            }
-            break;
-        }
-      },
-    );
-  }
-
-  PopupMenuItem<String> _buildPopupMenuItem({
-    required String value,
+  Widget _buildNavItem({
     required IconData icon,
-    required String title,
-    required String subtitle,
-    required List<Color> gradientColors,
+    required IconData activeIcon,
+    required String label,
+    required int index,
   }) {
-    return PopupMenuItem<String>(
-      value: value,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: gradientColors),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Colors.white, size: 18),
+          Icon(
+            isSelected ? activeIcon : icon,
+            color:
+                isSelected ? const Color(0xFF4facfe) : const Color(0xFF6c757d),
+            size: 26,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white60, fontSize: 12),
-                ),
-              ],
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color:
+                  isSelected
+                      ? const Color(0xFF4facfe)
+                      : const Color(0xFF6c757d),
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ],
