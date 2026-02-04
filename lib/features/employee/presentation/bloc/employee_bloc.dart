@@ -11,62 +11,73 @@ import 'package:flight_hours_app/features/employee/presentation/bloc/employee_ev
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
 
 /// BLoC for managing employee-related state
+///
+/// Supports dependency injection for testing:
+/// - [getEmployeeUseCase] for fetching employee info
+/// - [updateEmployeeUseCase] for updating employee info
+/// - [changePasswordUseCase] for changing password
+/// - [deleteEmployeeUseCase] for deleting account
+/// - [getEmployeeAirlineUseCase] for fetching airline association
+/// - [updateEmployeeAirlineUseCase] for updating airline association
+/// - [getEmployeeAirlineRoutesUseCase] for fetching airline routes
 class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
-  EmployeeBloc() : super(EmployeeInitial()) {
-    final getEmployeeUseCase = InjectorApp.resolve<GetEmployeeUseCase>();
-    final updateEmployeeUseCase = InjectorApp.resolve<UpdateEmployeeUseCase>();
-    final changePasswordUseCase = InjectorApp.resolve<ChangePasswordUseCase>();
-    final deleteEmployeeUseCase = InjectorApp.resolve<DeleteEmployeeUseCase>();
-    final getEmployeeAirlineUseCase =
-        InjectorApp.resolve<GetEmployeeAirlineUseCase>();
-    final updateEmployeeAirlineUseCase =
-        InjectorApp.resolve<UpdateEmployeeAirlineUseCase>();
-    final getEmployeeAirlineRoutesUseCase =
-        InjectorApp.resolve<GetEmployeeAirlineRoutesUseCase>();
+  final GetEmployeeUseCase _getEmployeeUseCase;
+  final UpdateEmployeeUseCase _updateEmployeeUseCase;
+  final ChangePasswordUseCase _changePasswordUseCase;
+  final DeleteEmployeeUseCase _deleteEmployeeUseCase;
+  final GetEmployeeAirlineUseCase _getEmployeeAirlineUseCase;
+  final UpdateEmployeeAirlineUseCase _updateEmployeeAirlineUseCase;
+  final GetEmployeeAirlineRoutesUseCase _getEmployeeAirlineRoutesUseCase;
 
-    on<LoadCurrentEmployee>(
-      (event, emit) => _onLoadCurrentEmployee(emit, getEmployeeUseCase),
-    );
-
-    on<LoadEmployeeAirline>(
-      (event, emit) => _onLoadEmployeeAirline(emit, getEmployeeAirlineUseCase),
-    );
-
-    on<LoadEmployeeAirlineRoutes>(
-      (event, emit) =>
-          _onLoadEmployeeAirlineRoutes(emit, getEmployeeAirlineRoutesUseCase),
-    );
-
-    on<UpdateEmployee>(
-      (event, emit) => _onUpdateEmployee(event, emit, updateEmployeeUseCase),
-    );
-
-    on<UpdateEmployeeAirline>(
-      (event, emit) =>
-          _onUpdateEmployeeAirline(event, emit, updateEmployeeAirlineUseCase),
-    );
-
-    on<ChangePassword>(
-      (event, emit) => _onChangePassword(event, emit, changePasswordUseCase),
-    );
-
-    on<DeleteEmployee>(
-      (event, emit) => _onDeleteEmployee(emit, deleteEmployeeUseCase),
-    );
-
+  EmployeeBloc({
+    GetEmployeeUseCase? getEmployeeUseCase,
+    UpdateEmployeeUseCase? updateEmployeeUseCase,
+    ChangePasswordUseCase? changePasswordUseCase,
+    DeleteEmployeeUseCase? deleteEmployeeUseCase,
+    GetEmployeeAirlineUseCase? getEmployeeAirlineUseCase,
+    UpdateEmployeeAirlineUseCase? updateEmployeeAirlineUseCase,
+    GetEmployeeAirlineRoutesUseCase? getEmployeeAirlineRoutesUseCase,
+  }) : _getEmployeeUseCase =
+           getEmployeeUseCase ?? InjectorApp.resolve<GetEmployeeUseCase>(),
+       _updateEmployeeUseCase =
+           updateEmployeeUseCase ??
+           InjectorApp.resolve<UpdateEmployeeUseCase>(),
+       _changePasswordUseCase =
+           changePasswordUseCase ??
+           InjectorApp.resolve<ChangePasswordUseCase>(),
+       _deleteEmployeeUseCase =
+           deleteEmployeeUseCase ??
+           InjectorApp.resolve<DeleteEmployeeUseCase>(),
+       _getEmployeeAirlineUseCase =
+           getEmployeeAirlineUseCase ??
+           InjectorApp.resolve<GetEmployeeAirlineUseCase>(),
+       _updateEmployeeAirlineUseCase =
+           updateEmployeeAirlineUseCase ??
+           InjectorApp.resolve<UpdateEmployeeAirlineUseCase>(),
+       _getEmployeeAirlineRoutesUseCase =
+           getEmployeeAirlineRoutesUseCase ??
+           InjectorApp.resolve<GetEmployeeAirlineRoutesUseCase>(),
+       super(EmployeeInitial()) {
+    on<LoadCurrentEmployee>(_onLoadCurrentEmployee);
+    on<LoadEmployeeAirline>(_onLoadEmployeeAirline);
+    on<LoadEmployeeAirlineRoutes>(_onLoadEmployeeAirlineRoutes);
+    on<UpdateEmployee>(_onUpdateEmployee);
+    on<UpdateEmployeeAirline>(_onUpdateEmployeeAirline);
+    on<ChangePassword>(_onChangePassword);
+    on<DeleteEmployee>(_onDeleteEmployee);
     on<ResetEmployeeState>((event, emit) => emit(EmployeeInitial()));
   }
 
   /// Loads the current employee's information
   /// Uses /employees endpoint - no employeeId needed, extracted from JWT
   Future<void> _onLoadCurrentEmployee(
+    LoadCurrentEmployee event,
     Emitter<EmployeeState> emit,
-    GetEmployeeUseCase getEmployeeUseCase,
   ) async {
     emit(EmployeeLoading());
 
     try {
-      final response = await getEmployeeUseCase.call();
+      final response = await _getEmployeeUseCase.call();
 
       if (response.success) {
         emit(EmployeeDetailSuccess(response));
@@ -87,13 +98,13 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   /// Loads the employee's airline association
   /// Uses GET /employees/airline endpoint
   Future<void> _onLoadEmployeeAirline(
+    LoadEmployeeAirline event,
     Emitter<EmployeeState> emit,
-    GetEmployeeAirlineUseCase getEmployeeAirlineUseCase,
   ) async {
     emit(EmployeeAirlineLoading());
 
     try {
-      final response = await getEmployeeAirlineUseCase.call();
+      final response = await _getEmployeeAirlineUseCase.call();
 
       if (response.success) {
         emit(EmployeeAirlineSuccess(response));
@@ -110,13 +121,13 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   /// Loads the airline routes for the employee's airline
   /// Uses GET /employees/airline-routes endpoint
   Future<void> _onLoadEmployeeAirlineRoutes(
+    LoadEmployeeAirlineRoutes event,
     Emitter<EmployeeState> emit,
-    GetEmployeeAirlineRoutesUseCase getEmployeeAirlineRoutesUseCase,
   ) async {
     emit(EmployeeAirlineRoutesLoading());
 
     try {
-      final response = await getEmployeeAirlineRoutesUseCase.call();
+      final response = await _getEmployeeAirlineRoutesUseCase.call();
 
       if (response.success) {
         emit(EmployeeAirlineRoutesSuccess(response));
@@ -137,12 +148,11 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   Future<void> _onUpdateEmployee(
     UpdateEmployee event,
     Emitter<EmployeeState> emit,
-    UpdateEmployeeUseCase updateEmployeeUseCase,
   ) async {
     emit(EmployeeUpdating());
 
     try {
-      final response = await updateEmployeeUseCase.call(event.request);
+      final response = await _updateEmployeeUseCase.call(event.request);
 
       if (response.success) {
         emit(EmployeeUpdateSuccess(response));
@@ -164,12 +174,11 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   Future<void> _onUpdateEmployeeAirline(
     UpdateEmployeeAirline event,
     Emitter<EmployeeState> emit,
-    UpdateEmployeeAirlineUseCase updateEmployeeAirlineUseCase,
   ) async {
     emit(EmployeeUpdating());
 
     try {
-      final response = await updateEmployeeAirlineUseCase.call(event.request);
+      final response = await _updateEmployeeAirlineUseCase.call(event.request);
 
       if (response.success) {
         emit(EmployeeAirlineUpdateSuccess(response));
@@ -191,12 +200,11 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   Future<void> _onChangePassword(
     ChangePassword event,
     Emitter<EmployeeState> emit,
-    ChangePasswordUseCase changePasswordUseCase,
   ) async {
     emit(PasswordChanging());
 
     try {
-      final response = await changePasswordUseCase.call(event.request);
+      final response = await _changePasswordUseCase.call(event.request);
 
       if (response.success) {
         emit(PasswordChangeSuccess(response));
@@ -216,13 +224,13 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
 
   /// Handles account deletion request
   Future<void> _onDeleteEmployee(
+    DeleteEmployee event,
     Emitter<EmployeeState> emit,
-    DeleteEmployeeUseCase deleteEmployeeUseCase,
   ) async {
     emit(EmployeeDeleting());
 
     try {
-      final response = await deleteEmployeeUseCase.call();
+      final response = await _deleteEmployeeUseCase.call();
 
       if (response.success) {
         emit(EmployeeDeleteSuccess(response));

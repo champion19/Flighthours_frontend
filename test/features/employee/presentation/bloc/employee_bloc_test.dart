@@ -1,9 +1,37 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_airline_use_case.dart';
+import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';
+import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
-import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+
+class MockGetEmployeeUseCase extends Mock implements GetEmployeeUseCase {}
+
+class MockUpdateEmployeeUseCase extends Mock implements UpdateEmployeeUseCase {}
+
+class MockChangePasswordUseCase extends Mock implements ChangePasswordUseCase {}
+
+class MockDeleteEmployeeUseCase extends Mock implements DeleteEmployeeUseCase {}
+
+class MockGetEmployeeAirlineUseCase extends Mock
+    implements GetEmployeeAirlineUseCase {}
+
+class MockUpdateEmployeeAirlineUseCase extends Mock
+    implements UpdateEmployeeAirlineUseCase {}
+
+class MockGetEmployeeAirlineRoutesUseCase extends Mock
+    implements GetEmployeeAirlineRoutesUseCase {}
 
 void main() {
   group('EmployeeEvent', () {
@@ -159,5 +187,82 @@ void main() {
         expect(state1, equals(state2));
       });
     });
+  });
+
+  // Tests for EmployeeBloc logic using bloc_test
+  group('EmployeeBloc', () {
+    late MockGetEmployeeUseCase mockGetUseCase;
+    late MockUpdateEmployeeUseCase mockUpdateUseCase;
+    late MockChangePasswordUseCase mockChangePasswordUseCase;
+    late MockDeleteEmployeeUseCase mockDeleteUseCase;
+    late MockGetEmployeeAirlineUseCase mockGetAirlineUseCase;
+    late MockUpdateEmployeeAirlineUseCase mockUpdateAirlineUseCase;
+    late MockGetEmployeeAirlineRoutesUseCase mockGetRoutesUseCase;
+
+    setUp(() {
+      mockGetUseCase = MockGetEmployeeUseCase();
+      mockUpdateUseCase = MockUpdateEmployeeUseCase();
+      mockChangePasswordUseCase = MockChangePasswordUseCase();
+      mockDeleteUseCase = MockDeleteEmployeeUseCase();
+      mockGetAirlineUseCase = MockGetEmployeeAirlineUseCase();
+      mockUpdateAirlineUseCase = MockUpdateEmployeeAirlineUseCase();
+      mockGetRoutesUseCase = MockGetEmployeeAirlineRoutesUseCase();
+    });
+
+    EmployeeBloc buildBloc() {
+      return EmployeeBloc(
+        getEmployeeUseCase: mockGetUseCase,
+        updateEmployeeUseCase: mockUpdateUseCase,
+        changePasswordUseCase: mockChangePasswordUseCase,
+        deleteEmployeeUseCase: mockDeleteUseCase,
+        getEmployeeAirlineUseCase: mockGetAirlineUseCase,
+        updateEmployeeAirlineUseCase: mockUpdateAirlineUseCase,
+        getEmployeeAirlineRoutesUseCase: mockGetRoutesUseCase,
+      );
+    }
+
+    test('initial state should be EmployeeInitial', () {
+      final bloc = buildBloc();
+      expect(bloc.state, isA<EmployeeInitial>());
+    });
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Loading, DetailSuccess] when LoadCurrentEmployee succeeds',
+      setUp: () {
+        when(() => mockGetUseCase.call()).thenAnswer(
+          (_) async => EmployeeResponseModel(
+            success: true,
+            code: 'OK',
+            message: 'Employee fetched',
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadCurrentEmployee()),
+      expect: () => [isA<EmployeeLoading>(), isA<EmployeeDetailSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Loading, Error] when LoadCurrentEmployee fails',
+      setUp: () {
+        when(() => mockGetUseCase.call()).thenAnswer(
+          (_) async => EmployeeResponseModel(
+            success: false,
+            code: 'NOT_FOUND',
+            message: 'Employee not found',
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadCurrentEmployee()),
+      expect: () => [isA<EmployeeLoading>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits EmployeeInitial when ResetEmployeeState is called',
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(ResetEmployeeState()),
+      expect: () => [isA<EmployeeInitial>()],
+    );
   });
 }

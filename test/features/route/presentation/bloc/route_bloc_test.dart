@@ -1,7 +1,17 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/route/data/models/route_model.dart';
+import 'package:flight_hours_app/features/route/domain/entities/route_entity.dart';
+import 'package:flight_hours_app/features/route/domain/usecases/get_route_by_id_use_case.dart';
+import 'package:flight_hours_app/features/route/domain/usecases/list_routes_use_case.dart';
+import 'package:flight_hours_app/features/route/presentation/bloc/route_bloc.dart';
 import 'package:flight_hours_app/features/route/presentation/bloc/route_event.dart';
 import 'package:flight_hours_app/features/route/presentation/bloc/route_state.dart';
-import 'package:flight_hours_app/features/route/domain/entities/route_entity.dart';
+
+class MockListRoutesUseCase extends Mock implements ListRoutesUseCase {}
+
+class MockGetRouteByIdUseCase extends Mock implements GetRouteByIdUseCase {}
 
 void main() {
   group('RouteEvent', () {
@@ -129,5 +139,98 @@ void main() {
         expect(state.props.length, equals(1));
       });
     });
+  });
+
+  // Tests for RouteBloc logic using bloc_test
+  group('RouteBloc', () {
+    late MockListRoutesUseCase mockListUseCase;
+    late MockGetRouteByIdUseCase mockGetByIdUseCase;
+
+    setUp(() {
+      mockListUseCase = MockListRoutesUseCase();
+      mockGetByIdUseCase = MockGetRouteByIdUseCase();
+    });
+
+    test('initial state should be RouteInitial', () {
+      final bloc = RouteBloc(
+        listRoutesUseCase: mockListUseCase,
+        getRouteByIdUseCase: mockGetByIdUseCase,
+      );
+      expect(bloc.state, isA<RouteInitial>());
+    });
+
+    blocTest<RouteBloc, RouteState>(
+      'emits [Loading, Success] when FetchRoutes succeeds',
+      setUp: () {
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => [
+            const RouteModel(
+              id: 'r1',
+              originAirportId: 'o1',
+              destinationAirportId: 'd1',
+            ),
+          ],
+        );
+      },
+      build:
+          () => RouteBloc(
+            listRoutesUseCase: mockListUseCase,
+            getRouteByIdUseCase: mockGetByIdUseCase,
+          ),
+      act: (bloc) => bloc.add(FetchRoutes()),
+      expect: () => [isA<RouteLoading>(), isA<RouteSuccess>()],
+    );
+
+    blocTest<RouteBloc, RouteState>(
+      'emits [Loading, Error] when FetchRoutes fails',
+      setUp: () {
+        when(
+          () => mockListUseCase.call(),
+        ).thenThrow(Exception('Failed to load routes'));
+      },
+      build:
+          () => RouteBloc(
+            listRoutesUseCase: mockListUseCase,
+            getRouteByIdUseCase: mockGetByIdUseCase,
+          ),
+      act: (bloc) => bloc.add(FetchRoutes()),
+      expect: () => [isA<RouteLoading>(), isA<RouteError>()],
+    );
+
+    blocTest<RouteBloc, RouteState>(
+      'emits [DetailSuccess] when FetchRouteById succeeds',
+      setUp: () {
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async => const RouteModel(
+            id: 'r1',
+            originAirportId: 'o1',
+            destinationAirportId: 'd1',
+          ),
+        );
+      },
+      build:
+          () => RouteBloc(
+            listRoutesUseCase: mockListUseCase,
+            getRouteByIdUseCase: mockGetByIdUseCase,
+          ),
+      act: (bloc) => bloc.add(const FetchRouteById(routeId: 'r1')),
+      expect: () => [isA<RouteDetailSuccess>()],
+    );
+
+    blocTest<RouteBloc, RouteState>(
+      'emits nothing when FetchRouteById returns null',
+      setUp: () {
+        when(
+          () => mockGetByIdUseCase.call(any()),
+        ).thenAnswer((_) async => null);
+      },
+      build:
+          () => RouteBloc(
+            listRoutesUseCase: mockListUseCase,
+            getRouteByIdUseCase: mockGetByIdUseCase,
+          ),
+      act: (bloc) => bloc.add(const FetchRouteById(routeId: 'notfound')),
+      expect: () => [],
+    );
   });
 }
