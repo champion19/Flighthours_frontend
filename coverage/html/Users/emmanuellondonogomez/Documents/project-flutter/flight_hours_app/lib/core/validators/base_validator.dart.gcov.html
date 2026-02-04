@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">8.7&nbsp;%</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
             <td class="headerCovTableEntry">23</td>
-            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">23</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-03 18:11:15</td>
+            <td class="headerValue">2026-02-03 21:25:08</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -66,14 +66,14 @@
 <span id="L4"><span class="lineNum">       4</span>              : abstract class BaseValidator {</span>
 <span id="L5"><span class="lineNum">       5</span>              :   final String? customMessage;</span>
 <span id="L6"><span class="lineNum">       6</span>              : </span>
-<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">           7 :   const BaseValidator({this.customMessage});</span></span>
+<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">          57 :   const BaseValidator({this.customMessage});</span></span>
 <span id="L8"><span class="lineNum">       8</span>              : </span>
 <span id="L9"><span class="lineNum">       9</span>              :   /// Método principal que todas las clases deben implementar</span>
 <span id="L10"><span class="lineNum">      10</span>              :   String? validate(String? value);</span>
 <span id="L11"><span class="lineNum">      11</span>              : </span>
 <span id="L12"><span class="lineNum">      12</span>              :   /// Método auxiliar para retornar mensaje personalizado o por defecto</span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaUNC">           0 :   String? getMessage(String defaultMessage) {</span></span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaUNC">           0 :     return customMessage ?? defaultMessage;</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">           3 :   String? getMessage(String defaultMessage) {</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           3 :     return customMessage ?? defaultMessage;</span></span>
 <span id="L15"><span class="lineNum">      15</span>              :   }</span>
 <span id="L16"><span class="lineNum">      16</span>              : }</span>
 <span id="L17"><span class="lineNum">      17</span>              : </span>
@@ -81,12 +81,12 @@
 <span id="L19"><span class="lineNum">      19</span>              : class ValidatorComposer extends BaseValidator {</span>
 <span id="L20"><span class="lineNum">      20</span>              :   final List&lt;BaseValidator&gt; validators;</span>
 <span id="L21"><span class="lineNum">      21</span>              : </span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaUNC">           0 :   const ValidatorComposer(this.validators, {super.customMessage});</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           2 :   const ValidatorComposer(this.validators, {super.customMessage});</span></span>
 <span id="L23"><span class="lineNum">      23</span>              : </span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           2 :   @override</span></span>
 <span id="L25"><span class="lineNum">      25</span>              :   String? validate(String? value) {</span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaUNC">           0 :     for (final validator in validators) {</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 :       final result = validator.validate(value);</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           4 :     for (final validator in validators) {</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           2 :       final result = validator.validate(value);</span></span>
 <span id="L28"><span class="lineNum">      28</span>              :       if (result != null) {</span>
 <span id="L29"><span class="lineNum">      29</span>              :         return result;</span>
 <span id="L30"><span class="lineNum">      30</span>              :       }</span>
@@ -97,12 +97,12 @@
 <span id="L35"><span class="lineNum">      35</span>              : </span>
 <span id="L36"><span class="lineNum">      36</span>              : /// Validador para campos requeridos</span>
 <span id="L37"><span class="lineNum">      37</span>              : class RequiredValidator extends BaseValidator {</span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           7 :   const RequiredValidator({super.customMessage});</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          55 :   const RequiredValidator({super.customMessage});</span></span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L41"><span class="lineNum">      41</span>              :   String? validate(String? value) {</span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC">           0 :     if (value == null || value.trim().isEmpty) {</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaUNC">           0 :       return getMessage(ValidationMessages.requiredField);</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           6 :     if (value == null || value.trim().isEmpty) {</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           3 :       return getMessage(ValidationMessages.requiredField);</span></span>
 <span id="L44"><span class="lineNum">      44</span>              :     }</span>
 <span id="L45"><span class="lineNum">      45</span>              :     return null;</span>
 <span id="L46"><span class="lineNum">      46</span>              :   }</span>
@@ -112,12 +112,12 @@
 <span id="L50"><span class="lineNum">      50</span>              : class MinLengthValidator extends BaseValidator {</span>
 <span id="L51"><span class="lineNum">      51</span>              :   final int minLength;</span>
 <span id="L52"><span class="lineNum">      52</span>              : </span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :   const MinLengthValidator(this.minLength, {super.customMessage});</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           2 :   const MinLengthValidator(this.minLength, {super.customMessage});</span></span>
 <span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           2 :   @override</span></span>
 <span id="L56"><span class="lineNum">      56</span>              :   String? validate(String? value) {</span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :     if (value == null || value.length &lt; minLength) {</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :       return getMessage(ValidationMessages.minLengthWithValue(minLength));</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           6 :     if (value == null || value.length &lt; minLength) {</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           6 :       return getMessage(ValidationMessages.minLengthWithValue(minLength));</span></span>
 <span id="L59"><span class="lineNum">      59</span>              :     }</span>
 <span id="L60"><span class="lineNum">      60</span>              :     return null;</span>
 <span id="L61"><span class="lineNum">      61</span>              :   }</span>
@@ -127,12 +127,12 @@
 <span id="L65"><span class="lineNum">      65</span>              : class MaxLengthValidator extends BaseValidator {</span>
 <span id="L66"><span class="lineNum">      66</span>              :   final int maxLength;</span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaUNC">           0 :   const MaxLengthValidator(this.maxLength, {super.customMessage});</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :   const MaxLengthValidator(this.maxLength, {super.customMessage});</span></span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">           2 :   @override</span></span>
 <span id="L71"><span class="lineNum">      71</span>              :   String? validate(String? value) {</span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC">           0 :     if (value != null &amp;&amp; value.length &gt; maxLength) {</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaUNC">           0 :       return getMessage(ValidationMessages.maxLengthWithValue(maxLength));</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           6 :     if (value != null &amp;&amp; value.length &gt; maxLength) {</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           6 :       return getMessage(ValidationMessages.maxLengthWithValue(maxLength));</span></span>
 <span id="L74"><span class="lineNum">      74</span>              :     }</span>
 <span id="L75"><span class="lineNum">      75</span>              :     return null;</span>
 <span id="L76"><span class="lineNum">      76</span>              :   }</span>
@@ -142,12 +142,12 @@
 <span id="L80"><span class="lineNum">      80</span>              : class RegexValidator extends BaseValidator {</span>
 <span id="L81"><span class="lineNum">      81</span>              :   final RegExp pattern;</span>
 <span id="L82"><span class="lineNum">      82</span>              : </span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaUNC">           0 :   const RegexValidator(this.pattern, {super.customMessage});</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           2 :   const RegexValidator(this.pattern, {super.customMessage});</span></span>
 <span id="L84"><span class="lineNum">      84</span>              : </span>
-<span id="L85"><span class="lineNum">      85</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           2 :   @override</span></span>
 <span id="L86"><span class="lineNum">      86</span>              :   String? validate(String? value) {</span>
-<span id="L87"><span class="lineNum">      87</span> <span class="tlaUNC">           0 :     if (value != null &amp;&amp; !pattern.hasMatch(value)) {</span></span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaUNC">           0 :       return getMessage(ValidationMessages.invalidFormat);</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">           4 :     if (value != null &amp;&amp; !pattern.hasMatch(value)) {</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">           2 :       return getMessage(ValidationMessages.invalidFormat);</span></span>
 <span id="L89"><span class="lineNum">      89</span>              :     }</span>
 <span id="L90"><span class="lineNum">      90</span>              :     return null;</span>
 <span id="L91"><span class="lineNum">      91</span>              :   }</span>
