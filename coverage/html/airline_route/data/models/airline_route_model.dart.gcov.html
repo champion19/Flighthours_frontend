@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td class="headerValue">2026-02-05 22:14:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -64,7 +64,7 @@
 <span id="L2"><span class="lineNum">       2</span>              : </span>
 <span id="L3"><span class="lineNum">       3</span>              : /// Model class that extends AirlineRouteEntity and provides JSON serialization</span>
 <span id="L4"><span class="lineNum">       4</span>              : class AirlineRouteModel extends AirlineRouteEntity {</span>
-<span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">           3 :   const AirlineRouteModel({</span></span>
+<span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">           5 :   const AirlineRouteModel({</span></span>
 <span id="L6"><span class="lineNum">       6</span>              :     required super.id,</span>
 <span id="L7"><span class="lineNum">       7</span>              :     super.uuid,</span>
 <span id="L8"><span class="lineNum">       8</span>              :     required super.routeId,</span>
@@ -90,44 +90,44 @@
 <span id="L28"><span class="lineNum">      28</span>              :   ///   &quot;destination_airport_code&quot;: &quot;LAX&quot;,</span>
 <span id="L29"><span class="lineNum">      29</span>              :   ///   &quot;status&quot;: &quot;active&quot;</span>
 <span id="L30"><span class="lineNum">      30</span>              :   /// }</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           2 :   factory AirlineRouteModel.fromJson(Map&lt;String, dynamic&gt; json) {</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           2 :     return AirlineRouteModel(</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           4 :       id: json['id']?.toString() ?? '',</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           4 :       uuid: json['uuid']?.toString(),</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           4 :       routeId: json['route_id']?.toString() ?? '',</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           4 :       airlineId: json['airline_id']?.toString() ?? '',</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           3 :       routeName: json['route_name']?.toString(),</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           3 :       airlineName: json['airline_name']?.toString(),</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           3 :   factory AirlineRouteModel.fromJson(Map&lt;String, dynamic&gt; json) {</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           3 :     return AirlineRouteModel(</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           6 :       id: json['id']?.toString() ?? '',</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           6 :       uuid: json['uuid']?.toString(),</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           6 :       routeId: json['route_id']?.toString() ?? '',</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           6 :       airlineId: json['airline_id']?.toString() ?? '',</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           5 :       routeName: json['route_name']?.toString(),</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           5 :       airlineName: json['airline_name']?.toString(),</span></span>
 <span id="L39"><span class="lineNum">      39</span>              :       originAirportCode:</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           5 :           (json['origin_airport_code'] ?? json['origin_iata_code'])?.toString(),</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           8 :           (json['origin_airport_code'] ?? json['origin_iata_code'])?.toString(),</span></span>
 <span id="L41"><span class="lineNum">      41</span>              :       destinationAirportCode:</span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           3 :           (json['destination_airport_code'] ?? json['destination_iata_code'])</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           2 :               ?.toString(),</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           4 :       status: _parseStatus(json['status']),</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           5 :           (json['destination_airport_code'] ?? json['destination_iata_code'])</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           3 :               ?.toString(),</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           6 :       status: _parseStatus(json['status']),</span></span>
 <span id="L45"><span class="lineNum">      45</span>              :     );</span>
 <span id="L46"><span class="lineNum">      46</span>              :   }</span>
 <span id="L47"><span class="lineNum">      47</span>              : </span>
 <span id="L48"><span class="lineNum">      48</span>              :   /// Parse status from various types (bool, string)</span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           2 :   static String? _parseStatus(dynamic value) {</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           3 :   static String? _parseStatus(dynamic value) {</span></span>
 <span id="L50"><span class="lineNum">      50</span>              :     if (value == null) return null;</span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           2 :     if (value is bool) {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           3 :     if (value is bool) {</span></span>
 <span id="L52"><span class="lineNum">      52</span>              :       return value ? 'active' : 'inactive';</span>
 <span id="L53"><span class="lineNum">      53</span>              :     }</span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           2 :     return value.toString();</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           3 :     return value.toString();</span></span>
 <span id="L55"><span class="lineNum">      55</span>              :   }</span>
 <span id="L56"><span class="lineNum">      56</span>              : </span>
 <span id="L57"><span class="lineNum">      57</span>              :   /// Convert AirlineRouteModel to JSON</span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           1 :   Map&lt;String, dynamic&gt; toJson() {</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           1 :     return {</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           1 :       'id': id,</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           1 :       'uuid': uuid,</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           1 :       'route_id': routeId,</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           1 :       'airline_id': airlineId,</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           1 :       'route_name': routeName,</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           1 :       'airline_name': airlineName,</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           1 :       'origin_airport_code': originAirportCode,</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           1 :       'destination_airport_code': destinationAirportCode,</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           1 :       'status': status,</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           2 :   Map&lt;String, dynamic&gt; toJson() {</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           2 :     return {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           2 :       'id': id,</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           2 :       'uuid': uuid,</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           2 :       'route_id': routeId,</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           2 :       'airline_id': airlineId,</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :       'route_name': routeName,</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           2 :       'airline_name': airlineName,</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           2 :       'origin_airport_code': originAirportCode,</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           2 :       'destination_airport_code': destinationAirportCode,</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :       'status': status,</span></span>
 <span id="L69"><span class="lineNum">      69</span>              :     };</span>
 <span id="L70"><span class="lineNum">      70</span>              :   }</span>
 <span id="L71"><span class="lineNum">      71</span>              : }</span>
