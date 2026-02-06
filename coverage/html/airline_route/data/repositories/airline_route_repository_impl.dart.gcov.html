@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
             <td class="headerCovTableEntry">5</td>
-            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">5</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td class="headerValue">2026-02-05 22:14:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -68,16 +68,16 @@
 <span id="L6"><span class="lineNum">       6</span>              : class AirlineRouteRepositoryImpl implements AirlineRouteRepository {</span>
 <span id="L7"><span class="lineNum">       7</span>              :   final AirlineRouteRemoteDataSource remoteDataSource;</span>
 <span id="L8"><span class="lineNum">       8</span>              : </span>
-<span id="L9"><span class="lineNum">       9</span> <span class="tlaUNC">           0 :   AirlineRouteRepositoryImpl({required this.remoteDataSource});</span></span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">           1 :   AirlineRouteRepositoryImpl({required this.remoteDataSource});</span></span>
 <span id="L10"><span class="lineNum">      10</span>              : </span>
-<span id="L11"><span class="lineNum">      11</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L12"><span class="lineNum">      12</span>              :   Future&lt;List&lt;AirlineRouteEntity&gt;&gt; getAirlineRoutes() async {</span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaUNC">           0 :     return await remoteDataSource.getAirlineRoutes();</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">           2 :     return await remoteDataSource.getAirlineRoutes();</span></span>
 <span id="L14"><span class="lineNum">      14</span>              :   }</span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">           1 :   @override</span></span>
 <span id="L17"><span class="lineNum">      17</span>              :   Future&lt;AirlineRouteEntity?&gt; getAirlineRouteById(String id) async {</span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC">           0 :     return await remoteDataSource.getAirlineRouteById(id);</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">           2 :     return await remoteDataSource.getAirlineRouteById(id);</span></span>
 <span id="L19"><span class="lineNum">      19</span>              :   }</span>
 <span id="L20"><span class="lineNum">      20</span>              : }</span>
         </pre>

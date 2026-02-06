@@ -59,9 +59,15 @@ class AirlineModel extends AirlineEntity {
     super.uuid,
     required super.name,
     super.code,
+    super.active,
   });
 
   factory AirlineModel.fromJson(Map<String, dynamic> json) {
+    // Parse status: "1" or 1 = active, "0" or 0 = inactive
+    final statusValue = json['status'];
+    final isActive =
+        statusValue == '1' || statusValue == 1 || statusValue == true;
+
     return AirlineModel(
       id: json['id'] ?? '',
       uuid: json['uuid'],
@@ -69,10 +75,17 @@ class AirlineModel extends AirlineEntity {
       name: json['name'] ?? json['airline_name'] ?? '',
       // Support both 'code' and 'airline_code' field names
       code: json['code'] ?? json['airline_code'],
+      active: isActive,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'uuid': uuid, 'name': name, 'code': code};
+    return {
+      'id': id,
+      'uuid': uuid,
+      'name': name,
+      'code': code,
+      'status': active ? '1' : '0',
+    };
   }
 }

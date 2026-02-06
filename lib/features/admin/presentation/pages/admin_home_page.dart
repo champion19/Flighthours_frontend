@@ -78,17 +78,17 @@ class AdminHomePage extends StatelessWidget {
                       title: AdminMessages.airportsTitle,
                       color: const Color(0xFFf093fb),
                       onTap: () {
-                        _showComingSoon(context, 'Airport Management');
+                        Navigator.pushNamed(context, '/airports');
                       },
                     ),
                     const SizedBox(height: 12),
                     _buildSecondaryCard(
                       context,
-                      icon: Icons.airplanemode_active,
-                      title: AdminMessages.aircraftModelsTitle,
+                      icon: Icons.precision_manufacturing,
+                      title: 'Manufacturers',
                       color: const Color(0xFFf5576c),
                       onTap: () {
-                        _showComingSoon(context, 'Aircraft Model Management');
+                        Navigator.pushNamed(context, '/manufacturers');
                       },
                     ),
                     const SizedBox(height: 12),

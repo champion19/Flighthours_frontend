@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td class="headerValue">2026-02-05 22:14:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -75,7 +75,7 @@
 <span id="L13"><span class="lineNum">      13</span>              :   final String? destinationAirportCode; // Destination IATA code (e.g., &quot;LAX&quot;)</span>
 <span id="L14"><span class="lineNum">      14</span>              :   final String? status; // &quot;active&quot;, &quot;inactive&quot;, &quot;pending&quot;</span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">           6 :   const AirlineRouteEntity({</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">           9 :   const AirlineRouteEntity({</span></span>
 <span id="L17"><span class="lineNum">      17</span>              :     required this.id,</span>
 <span id="L18"><span class="lineNum">      18</span>              :     this.uuid,</span>
 <span id="L19"><span class="lineNum">      19</span>              :     required this.routeId,</span>
@@ -130,17 +130,17 @@
 <span id="L68"><span class="lineNum">      68</span>              :   /// Returns whether the route is inactive</span>
 <span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           4 :   bool get isInactive =&gt; (status ?? '').toLowerCase() == 'inactive';</span></span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           1 :   @override</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           1 :   List&lt;Object?&gt; get props =&gt; [</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           1 :     id,</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           1 :     uuid,</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           1 :     routeId,</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           1 :     airlineId,</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">           1 :     routeName,</span></span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">           1 :     airlineName,</span></span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           1 :     originAirportCode,</span></span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           1 :     destinationAirportCode,</span></span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           1 :     status,</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           2 :   List&lt;Object?&gt; get props =&gt; [</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           2 :     id,</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           2 :     uuid,</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           2 :     routeId,</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           2 :     airlineId,</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">           2 :     routeName,</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">           2 :     airlineName,</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           2 :     originAirportCode,</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           2 :     destinationAirportCode,</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           2 :     status,</span></span>
 <span id="L82"><span class="lineNum">      82</span>              :   ];</span>
 <span id="L83"><span class="lineNum">      83</span>              : }</span>
         </pre>

@@ -32,12 +32,12 @@
             <td></td>
             <td class="headerItem">Lines:</td>
             <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
-            <td class="headerCovTableEntry">100</td>
+            <td class="headerCovTableEntry">93</td>
             <td class="headerCovTableEntry">0</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-02-04 08:14:57</td>
+            <td class="headerValue">2026-02-05 22:14:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -69,226 +69,216 @@
 <span id="L7"><span class="lineNum">       7</span>              : import 'package:flight_hours_app/features/register/presentation/bloc/register_state.dart';</span>
 <span id="L8"><span class="lineNum">       8</span>              : import 'package:flutter/foundation.dart';</span>
 <span id="L9"><span class="lineNum">       9</span>              : </span>
-<span id="L10"><span class="lineNum">      10</span>              : class RegisterBloc extends Bloc&lt;RegisterEvent, RegisterState&gt; {</span>
-<span id="L11"><span class="lineNum">      11</span> <span class="tlaUNC">           0 :   RegisterBloc() : super(RegisterInitial()) {</span></span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaUNC">           0 :     final registerUseCase = InjectorApp.resolve&lt;RegisterUseCase&gt;();</span></span>
-<span id="L13"><span class="lineNum">      13</span>              : </span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaUNC">           0 :     on&lt;RegisterSubmitted&gt;(</span></span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onRegisterSubmitted(event, emit, registerUseCase),</span></span>
-<span id="L16"><span class="lineNum">      16</span>              :     );</span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :     on&lt;EnterPersonalInformation&gt;(</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onEnterPersonalInformation(event, emit),</span></span>
-<span id="L19"><span class="lineNum">      19</span>              :     );</span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaUNC">           0 :     on&lt;EnterPilotInformation&gt;(</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onEnterPilotInformation(event, emit),</span></span>
-<span id="L22"><span class="lineNum">      22</span>              :     );</span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :     on&lt;CompleteRegistrationFlow&gt;(</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :       (event, emit) =&gt;</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaUNC">           0 :           _onCompleteRegistrationFlow(event, emit, registerUseCase),</span></span>
-<span id="L26"><span class="lineNum">      26</span>              :     );</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 :     on&lt;ForgotPasswordRequested&gt;(</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onForgotPasswordRequested(event, emit),</span></span>
-<span id="L29"><span class="lineNum">      29</span>              :     );</span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaUNC">           0 :     on&lt;VerificationCodeSubmitted&gt;(</span></span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onVerificationCodeSubmitted(event, emit),</span></span>
-<span id="L32"><span class="lineNum">      32</span>              :     );</span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC">           0 :     on&lt;PasswordResetSubmitted&gt;(</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 :       (event, emit) =&gt; _onPasswordResetSubmitted(event, emit),</span></span>
-<span id="L35"><span class="lineNum">      35</span>              :     );</span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :     on&lt;StartVerification&gt;((event, emit) =&gt; _onStartVerification(event, emit));</span></span>
-<span id="L37"><span class="lineNum">      37</span>              :   }</span>
-<span id="L38"><span class="lineNum">      38</span>              : </span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onStartVerification(</span></span>
-<span id="L40"><span class="lineNum">      40</span>              :     StartVerification event,</span>
-<span id="L41"><span class="lineNum">      41</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L42"><span class="lineNum">      42</span>              :   ) async {}</span>
-<span id="L43"><span class="lineNum">      43</span>              : </span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onRegisterSubmitted(</span></span>
-<span id="L45"><span class="lineNum">      45</span>              :     RegisterSubmitted event,</span>
-<span id="L46"><span class="lineNum">      46</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L47"><span class="lineNum">      47</span>              :     RegisterUseCase registerUseCase,</span>
-<span id="L48"><span class="lineNum">      48</span>              :   ) async {</span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC">           0 :     emit(</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L52"><span class="lineNum">      52</span>              :       ),</span>
-<span id="L53"><span class="lineNum">      53</span>              :     );</span>
-<span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span>              :     try {</span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :       final response = await registerUseCase.call(event.employment);</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :         RegisterSuccess(</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaUNC">           0 :           employee: event.employment,</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaUNC">           0 :           message: response.message,</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaUNC">           0 :           code: response.code,</span></span>
-<span id="L62"><span class="lineNum">      62</span>              :         ),</span>
-<span id="L63"><span class="lineNum">      63</span>              :       );</span>
-<span id="L64"><span class="lineNum">      64</span>              :     } catch (e) {</span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaUNC">           0 :         RegisterError(</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaUNC">           0 :           message: e.toString(),</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaUNC">           0 :           employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L69"><span class="lineNum">      69</span>              :         ),</span>
-<span id="L70"><span class="lineNum">      70</span>              :       );</span>
-<span id="L71"><span class="lineNum">      71</span>              :     }</span>
-<span id="L72"><span class="lineNum">      72</span>              :   }</span>
-<span id="L73"><span class="lineNum">      73</span>              : </span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onEnterPersonalInformation(</span></span>
-<span id="L75"><span class="lineNum">      75</span>              :     EnterPersonalInformation event,</span>
-<span id="L76"><span class="lineNum">      76</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L77"><span class="lineNum">      77</span>              :   ) async {</span>
-<span id="L78"><span class="lineNum">      78</span>              :     try {</span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaUNC">           0 :       emit(PersonalInfoCompleted(employee: event.employment));</span></span>
-<span id="L80"><span class="lineNum">      80</span>              :     } catch (e) {</span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaUNC">           0 :         RegisterError(</span></span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaUNC">           0 :           message: e.toString(),</span></span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaUNC">           0 :           employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L85"><span class="lineNum">      85</span>              :         ),</span>
-<span id="L86"><span class="lineNum">      86</span>              :       );</span>
-<span id="L87"><span class="lineNum">      87</span>              :     }</span>
-<span id="L88"><span class="lineNum">      88</span>              :   }</span>
-<span id="L89"><span class="lineNum">      89</span>              : </span>
-<span id="L90"><span class="lineNum">      90</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onEnterPilotInformation(</span></span>
-<span id="L91"><span class="lineNum">      91</span>              :     EnterPilotInformation event,</span>
-<span id="L92"><span class="lineNum">      92</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L93"><span class="lineNum">      93</span>              :   ) async {</span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaUNC">           0 :     final updatedEmployee = (state.employee ?? EmployeeEntityRegister.empty())</span></span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaUNC">           0 :         .copyWith(</span></span>
-<span id="L96"><span class="lineNum">      96</span> <span class="tlaUNC">           0 :           bp: event.employment.bp,</span></span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaUNC">           0 :           fechaInicio: event.employment.fechaInicio,</span></span>
-<span id="L98"><span class="lineNum">      98</span> <span class="tlaUNC">           0 :           fechaFin: event.employment.fechaFin,</span></span>
-<span id="L99"><span class="lineNum">      99</span> <span class="tlaUNC">           0 :           vigente: event.employment.vigente,</span></span>
-<span id="L100"><span class="lineNum">     100</span> <span class="tlaUNC">           0 :           airline: event.employment.airline,</span></span>
-<span id="L101"><span class="lineNum">     101</span>              :         );</span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaUNC">           0 :     emit(PilotInfoCompleted(employee: updatedEmployee));</span></span>
-<span id="L103"><span class="lineNum">     103</span>              :   }</span>
-<span id="L104"><span class="lineNum">     104</span>              : </span>
-<span id="L105"><span class="lineNum">     105</span>              :   /// Handles the complete registration flow:</span>
-<span id="L106"><span class="lineNum">     106</span>              :   /// 1. Save pilot data (bp, airline, active) to secure storage</span>
-<span id="L107"><span class="lineNum">     107</span>              :   /// 2. POST /register with basic data only</span>
-<span id="L108"><span class="lineNum">     108</span>              :   /// 3. After login, PUT /employees/me with pilot data</span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onCompleteRegistrationFlow(</span></span>
-<span id="L110"><span class="lineNum">     110</span>              :     CompleteRegistrationFlow event,</span>
-<span id="L111"><span class="lineNum">     111</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L112"><span class="lineNum">     112</span>              :     RegisterUseCase registerUseCase,</span>
-<span id="L113"><span class="lineNum">     113</span>              :   ) async {</span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaUNC">           0 :     final employee = event.employee;</span></span>
-<span id="L115"><span class="lineNum">     115</span>              : </span>
-<span id="L116"><span class="lineNum">     116</span>              :     try {</span>
-<span id="L117"><span class="lineNum">     117</span>              :       // Step 1: Save pilot data to secure storage for later</span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaUNC">           0 :       debugPrint('📦 Step 1: Saving pilot data for later...');</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaUNC">           0 :         RegistrationFlowInProgress(</span></span>
-<span id="L121"><span class="lineNum">     121</span>              :           employee: employee,</span>
-<span id="L122"><span class="lineNum">     122</span>              :           currentStep: '1/2',</span>
-<span id="L123"><span class="lineNum">     123</span>              :           stepDescription: 'Saving your pilot information...',</span>
-<span id="L124"><span class="lineNum">     124</span>              :         ),</span>
-<span id="L125"><span class="lineNum">     125</span>              :       );</span>
-<span id="L126"><span class="lineNum">     126</span>              : </span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaUNC">           0 :       await SessionService().setPendingPilotData(</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaUNC">           0 :         name: employee.name,</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaUNC">           0 :         identificationNumber: employee.idNumber,</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaUNC">           0 :         bp: employee.bp,</span></span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaUNC">           0 :         airlineId: employee.airline,</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :         startDate: employee.fechaInicio,</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaUNC">           0 :         endDate: employee.fechaFin,</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaUNC">           0 :         active: employee.vigente ?? false,</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaUNC">           0 :         role: employee.role ?? 'pilot',</span></span>
-<span id="L136"><span class="lineNum">     136</span>              :       );</span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaUNC">           0 :       debugPrint('✅ Employee data saved to secure storage');</span></span>
+<span id="L10"><span class="lineNum">      10</span>              : /// BLoC for managing registration state</span>
+<span id="L11"><span class="lineNum">      11</span>              : ///</span>
+<span id="L12"><span class="lineNum">      12</span>              : /// Supports dependency injection for testing:</span>
+<span id="L13"><span class="lineNum">      13</span>              : /// - [registerUseCase] for handling registration operations</span>
+<span id="L14"><span class="lineNum">      14</span>              : class RegisterBloc extends Bloc&lt;RegisterEvent, RegisterState&gt; {</span>
+<span id="L15"><span class="lineNum">      15</span>              :   final RegisterUseCase _registerUseCase;</span>
+<span id="L16"><span class="lineNum">      16</span>              : </span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :   RegisterBloc({RegisterUseCase? registerUseCase})</span></span>
+<span id="L18"><span class="lineNum">      18</span>              :     : _registerUseCase =</span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 :           registerUseCase ?? InjectorApp.resolve&lt;RegisterUseCase&gt;(),</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaUNC">           0 :       super(RegisterInitial()) {</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaUNC">           0 :     on&lt;RegisterSubmitted&gt;(_onRegisterSubmitted);</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaUNC">           0 :     on&lt;EnterPersonalInformation&gt;(_onEnterPersonalInformation);</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :     on&lt;EnterPilotInformation&gt;(_onEnterPilotInformation);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :     on&lt;CompleteRegistrationFlow&gt;(_onCompleteRegistrationFlow);</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaUNC">           0 :     on&lt;ForgotPasswordRequested&gt;(_onForgotPasswordRequested);</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaUNC">           0 :     on&lt;VerificationCodeSubmitted&gt;(_onVerificationCodeSubmitted);</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 :     on&lt;PasswordResetSubmitted&gt;(_onPasswordResetSubmitted);</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaUNC">           0 :     on&lt;StartVerification&gt;(_onStartVerification);</span></span>
+<span id="L29"><span class="lineNum">      29</span>              :   }</span>
+<span id="L30"><span class="lineNum">      30</span>              : </span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onStartVerification(</span></span>
+<span id="L32"><span class="lineNum">      32</span>              :     StartVerification event,</span>
+<span id="L33"><span class="lineNum">      33</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L34"><span class="lineNum">      34</span>              :   ) async {}</span>
+<span id="L35"><span class="lineNum">      35</span>              : </span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onRegisterSubmitted(</span></span>
+<span id="L37"><span class="lineNum">      37</span>              :     RegisterSubmitted event,</span>
+<span id="L38"><span class="lineNum">      38</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L39"><span class="lineNum">      39</span>              :   ) async {</span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 :     emit(</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L43"><span class="lineNum">      43</span>              :       ),</span>
+<span id="L44"><span class="lineNum">      44</span>              :     );</span>
+<span id="L45"><span class="lineNum">      45</span>              : </span>
+<span id="L46"><span class="lineNum">      46</span>              :     try {</span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaUNC">           0 :       final response = await _registerUseCase.call(event.employment);</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC">           0 :         RegisterSuccess(</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaUNC">           0 :           employee: event.employment,</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaUNC">           0 :           message: response.message,</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaUNC">           0 :           code: response.code,</span></span>
+<span id="L53"><span class="lineNum">      53</span>              :         ),</span>
+<span id="L54"><span class="lineNum">      54</span>              :       );</span>
+<span id="L55"><span class="lineNum">      55</span>              :     } catch (e) {</span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :         RegisterError(</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :           message: e.toString(),</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaUNC">           0 :           employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L60"><span class="lineNum">      60</span>              :         ),</span>
+<span id="L61"><span class="lineNum">      61</span>              :       );</span>
+<span id="L62"><span class="lineNum">      62</span>              :     }</span>
+<span id="L63"><span class="lineNum">      63</span>              :   }</span>
+<span id="L64"><span class="lineNum">      64</span>              : </span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onEnterPersonalInformation(</span></span>
+<span id="L66"><span class="lineNum">      66</span>              :     EnterPersonalInformation event,</span>
+<span id="L67"><span class="lineNum">      67</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L68"><span class="lineNum">      68</span>              :   ) async {</span>
+<span id="L69"><span class="lineNum">      69</span>              :     try {</span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaUNC">           0 :       emit(PersonalInfoCompleted(employee: event.employment));</span></span>
+<span id="L71"><span class="lineNum">      71</span>              :     } catch (e) {</span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaUNC">           0 :         RegisterError(</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaUNC">           0 :           message: e.toString(),</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaUNC">           0 :           employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L76"><span class="lineNum">      76</span>              :         ),</span>
+<span id="L77"><span class="lineNum">      77</span>              :       );</span>
+<span id="L78"><span class="lineNum">      78</span>              :     }</span>
+<span id="L79"><span class="lineNum">      79</span>              :   }</span>
+<span id="L80"><span class="lineNum">      80</span>              : </span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onEnterPilotInformation(</span></span>
+<span id="L82"><span class="lineNum">      82</span>              :     EnterPilotInformation event,</span>
+<span id="L83"><span class="lineNum">      83</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L84"><span class="lineNum">      84</span>              :   ) async {</span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaUNC">           0 :     final updatedEmployee = (state.employee ?? EmployeeEntityRegister.empty())</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaUNC">           0 :         .copyWith(</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaUNC">           0 :           bp: event.employment.bp,</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaUNC">           0 :           fechaInicio: event.employment.fechaInicio,</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaUNC">           0 :           fechaFin: event.employment.fechaFin,</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaUNC">           0 :           vigente: event.employment.vigente,</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaUNC">           0 :           airline: event.employment.airline,</span></span>
+<span id="L92"><span class="lineNum">      92</span>              :         );</span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaUNC">           0 :     emit(PilotInfoCompleted(employee: updatedEmployee));</span></span>
+<span id="L94"><span class="lineNum">      94</span>              :   }</span>
+<span id="L95"><span class="lineNum">      95</span>              : </span>
+<span id="L96"><span class="lineNum">      96</span>              :   /// Handles the complete registration flow:</span>
+<span id="L97"><span class="lineNum">      97</span>              :   /// 1. Save pilot data (bp, airline, active) to secure storage</span>
+<span id="L98"><span class="lineNum">      98</span>              :   /// 2. POST /register with basic data only</span>
+<span id="L99"><span class="lineNum">      99</span>              :   /// 3. After login, PUT /employees/me with pilot data</span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onCompleteRegistrationFlow(</span></span>
+<span id="L101"><span class="lineNum">     101</span>              :     CompleteRegistrationFlow event,</span>
+<span id="L102"><span class="lineNum">     102</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L103"><span class="lineNum">     103</span>              :   ) async {</span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaUNC">           0 :     final employee = event.employee;</span></span>
+<span id="L105"><span class="lineNum">     105</span>              : </span>
+<span id="L106"><span class="lineNum">     106</span>              :     try {</span>
+<span id="L107"><span class="lineNum">     107</span>              :       // Step 1: Save pilot data to secure storage for later</span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaUNC">           0 :       debugPrint('📦 Step 1: Saving pilot data for later...');</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaUNC">           0 :         RegistrationFlowInProgress(</span></span>
+<span id="L111"><span class="lineNum">     111</span>              :           employee: employee,</span>
+<span id="L112"><span class="lineNum">     112</span>              :           currentStep: '1/2',</span>
+<span id="L113"><span class="lineNum">     113</span>              :           stepDescription: 'Saving your pilot information...',</span>
+<span id="L114"><span class="lineNum">     114</span>              :         ),</span>
+<span id="L115"><span class="lineNum">     115</span>              :       );</span>
+<span id="L116"><span class="lineNum">     116</span>              : </span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaUNC">           0 :       await SessionService().setPendingPilotData(</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaUNC">           0 :         name: employee.name,</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaUNC">           0 :         identificationNumber: employee.idNumber,</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaUNC">           0 :         bp: employee.bp,</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC">           0 :         airlineId: employee.airline,</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaUNC">           0 :         startDate: employee.fechaInicio,</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaUNC">           0 :         endDate: employee.fechaFin,</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaUNC">           0 :         active: employee.vigente ?? false,</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaUNC">           0 :         role: employee.role ?? 'pilot',</span></span>
+<span id="L126"><span class="lineNum">     126</span>              :       );</span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaUNC">           0 :       debugPrint('✅ Employee data saved to secure storage');</span></span>
+<span id="L128"><span class="lineNum">     128</span>              : </span>
+<span id="L129"><span class="lineNum">     129</span>              :       // Step 2: Register with basic data only</span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaUNC">           0 :       debugPrint('📝 Step 2: Registering user...');</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :         RegistrationFlowInProgress(</span></span>
+<span id="L133"><span class="lineNum">     133</span>              :           employee: employee,</span>
+<span id="L134"><span class="lineNum">     134</span>              :           currentStep: '2/2',</span>
+<span id="L135"><span class="lineNum">     135</span>              :           stepDescription: 'Creating your account...',</span>
+<span id="L136"><span class="lineNum">     136</span>              :         ),</span>
+<span id="L137"><span class="lineNum">     137</span>              :       );</span>
 <span id="L138"><span class="lineNum">     138</span>              : </span>
-<span id="L139"><span class="lineNum">     139</span>              :       // Step 2: Register with basic data only</span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaUNC">           0 :       debugPrint('📝 Step 2: Registering user...');</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaUNC">           0 :         RegistrationFlowInProgress(</span></span>
-<span id="L143"><span class="lineNum">     143</span>              :           employee: employee,</span>
-<span id="L144"><span class="lineNum">     144</span>              :           currentStep: '2/2',</span>
-<span id="L145"><span class="lineNum">     145</span>              :           stepDescription: 'Creating your account...',</span>
-<span id="L146"><span class="lineNum">     146</span>              :         ),</span>
-<span id="L147"><span class="lineNum">     147</span>              :       );</span>
-<span id="L148"><span class="lineNum">     148</span>              : </span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaUNC">           0 :       final response = await registerUseCase.call(employee);</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaUNC">           0 :       debugPrint('✅ Registration successful');</span></span>
-<span id="L151"><span class="lineNum">     151</span>              : </span>
-<span id="L152"><span class="lineNum">     152</span>              :       // Registration complete - pilot data will be sent after login</span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC">           0 :       emit(</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC">           0 :         RegistrationFlowComplete(</span></span>
-<span id="L155"><span class="lineNum">     155</span>              :           employee: employee,</span>
-<span id="L156"><span class="lineNum">     156</span>              :           message:</span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaUNC">           0 :               response.message.isNotEmpty</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 :                   ? response.message</span></span>
-<span id="L159"><span class="lineNum">     159</span>              :                   : 'Account created! Please verify your email to continue.',</span>
-<span id="L160"><span class="lineNum">     160</span>              :         ),</span>
-<span id="L161"><span class="lineNum">     161</span>              :       );</span>
-<span id="L162"><span class="lineNum">     162</span>              :     } catch (e) {</span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaUNC">           0 :       debugPrint('❌ Registration error: $e');</span></span>
-<span id="L164"><span class="lineNum">     164</span>              :       // Clear pending data if registration fails</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaUNC">           0 :       await SessionService().clearPendingPilotData();</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaUNC">           0 :       emit(RegisterError(message: e.toString(), employee: employee));</span></span>
-<span id="L167"><span class="lineNum">     167</span>              :     }</span>
-<span id="L168"><span class="lineNum">     168</span>              :   }</span>
-<span id="L169"><span class="lineNum">     169</span>              : </span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onForgotPasswordRequested(</span></span>
-<span id="L171"><span class="lineNum">     171</span>              :     ForgotPasswordRequested event,</span>
-<span id="L172"><span class="lineNum">     172</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L173"><span class="lineNum">     173</span>              :   ) async {</span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaUNC">           0 :     emit(</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L177"><span class="lineNum">     177</span>              :       ),</span>
-<span id="L178"><span class="lineNum">     178</span>              :     );</span>
-<span id="L179"><span class="lineNum">     179</span>              :     try {</span>
-<span id="L180"><span class="lineNum">     180</span>              :       // Simulación de envío de código</span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaUNC">           0 :       debugPrint('Enviando código de recuperación a ${event.email}');</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaUNC">           0 :       emit(RecoveryCodeSent());</span></span>
-<span id="L184"><span class="lineNum">     184</span>              :     } catch (e) {</span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
-<span id="L186"><span class="lineNum">     186</span>              :     }</span>
-<span id="L187"><span class="lineNum">     187</span>              :   }</span>
-<span id="L188"><span class="lineNum">     188</span>              : </span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onVerificationCodeSubmitted(</span></span>
-<span id="L190"><span class="lineNum">     190</span>              :     VerificationCodeSubmitted event,</span>
-<span id="L191"><span class="lineNum">     191</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L192"><span class="lineNum">     192</span>              :   ) async {</span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaUNC">           0 :     emit(</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L196"><span class="lineNum">     196</span>              :       ),</span>
-<span id="L197"><span class="lineNum">     197</span>              :     );</span>
-<span id="L198"><span class="lineNum">     198</span>              :     try {</span>
-<span id="L199"><span class="lineNum">     199</span>              :       // Simulación de verificación de código</span>
-<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :       if (event.code == '1234') {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :         emit(RecoveryCodeVerified());</span></span>
-<span id="L203"><span class="lineNum">     203</span>              :       } else {</span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaUNC">           0 :         emit(const RecoveryError(message: 'Código de verificación incorrecto'));</span></span>
-<span id="L205"><span class="lineNum">     205</span>              :       }</span>
-<span id="L206"><span class="lineNum">     206</span>              :     } catch (e) {</span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
-<span id="L208"><span class="lineNum">     208</span>              :     }</span>
-<span id="L209"><span class="lineNum">     209</span>              :   }</span>
-<span id="L210"><span class="lineNum">     210</span>              : </span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onPasswordResetSubmitted(</span></span>
-<span id="L212"><span class="lineNum">     212</span>              :     PasswordResetSubmitted event,</span>
-<span id="L213"><span class="lineNum">     213</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
-<span id="L214"><span class="lineNum">     214</span>              :   ) async {</span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaUNC">           0 :     emit(</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
-<span id="L218"><span class="lineNum">     218</span>              :       ),</span>
-<span id="L219"><span class="lineNum">     219</span>              :     );</span>
-<span id="L220"><span class="lineNum">     220</span>              :     try {</span>
-<span id="L221"><span class="lineNum">     221</span>              :       // Simulación de reseteo de contraseña</span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaUNC">           0 :       debugPrint('Contraseña actualizada a: ${event.newPassword}');</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaUNC">           0 :       emit(PasswordResetSuccess());</span></span>
-<span id="L225"><span class="lineNum">     225</span>              :     } catch (e) {</span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
-<span id="L227"><span class="lineNum">     227</span>              :     }</span>
-<span id="L228"><span class="lineNum">     228</span>              :   }</span>
-<span id="L229"><span class="lineNum">     229</span>              : }</span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :       final response = await _registerUseCase.call(employee);</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaUNC">           0 :       debugPrint('✅ Registration successful');</span></span>
+<span id="L141"><span class="lineNum">     141</span>              : </span>
+<span id="L142"><span class="lineNum">     142</span>              :       // Registration complete - pilot data will be sent after login</span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaUNC">           0 :       emit(</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaUNC">           0 :         RegistrationFlowComplete(</span></span>
+<span id="L145"><span class="lineNum">     145</span>              :           employee: employee,</span>
+<span id="L146"><span class="lineNum">     146</span>              :           message:</span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaUNC">           0 :               response.message.isNotEmpty</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaUNC">           0 :                   ? response.message</span></span>
+<span id="L149"><span class="lineNum">     149</span>              :                   : 'Account created! Please verify your email to continue.',</span>
+<span id="L150"><span class="lineNum">     150</span>              :         ),</span>
+<span id="L151"><span class="lineNum">     151</span>              :       );</span>
+<span id="L152"><span class="lineNum">     152</span>              :     } catch (e) {</span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC">           0 :       debugPrint('❌ Registration error: $e');</span></span>
+<span id="L154"><span class="lineNum">     154</span>              :       // Clear pending data if registration fails</span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaUNC">           0 :       await SessionService().clearPendingPilotData();</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC">           0 :       emit(RegisterError(message: e.toString(), employee: employee));</span></span>
+<span id="L157"><span class="lineNum">     157</span>              :     }</span>
+<span id="L158"><span class="lineNum">     158</span>              :   }</span>
+<span id="L159"><span class="lineNum">     159</span>              : </span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onForgotPasswordRequested(</span></span>
+<span id="L161"><span class="lineNum">     161</span>              :     ForgotPasswordRequested event,</span>
+<span id="L162"><span class="lineNum">     162</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L163"><span class="lineNum">     163</span>              :   ) async {</span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaUNC">           0 :     emit(</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L167"><span class="lineNum">     167</span>              :       ),</span>
+<span id="L168"><span class="lineNum">     168</span>              :     );</span>
+<span id="L169"><span class="lineNum">     169</span>              :     try {</span>
+<span id="L170"><span class="lineNum">     170</span>              :       // Simulación de envío de código</span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaUNC">           0 :       debugPrint('Enviando código de recuperación a ${event.email}');</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaUNC">           0 :       emit(RecoveryCodeSent());</span></span>
+<span id="L174"><span class="lineNum">     174</span>              :     } catch (e) {</span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
+<span id="L176"><span class="lineNum">     176</span>              :     }</span>
+<span id="L177"><span class="lineNum">     177</span>              :   }</span>
+<span id="L178"><span class="lineNum">     178</span>              : </span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onVerificationCodeSubmitted(</span></span>
+<span id="L180"><span class="lineNum">     180</span>              :     VerificationCodeSubmitted event,</span>
+<span id="L181"><span class="lineNum">     181</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L182"><span class="lineNum">     182</span>              :   ) async {</span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaUNC">           0 :     emit(</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L186"><span class="lineNum">     186</span>              :       ),</span>
+<span id="L187"><span class="lineNum">     187</span>              :     );</span>
+<span id="L188"><span class="lineNum">     188</span>              :     try {</span>
+<span id="L189"><span class="lineNum">     189</span>              :       // Simulación de verificación de código</span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :       if (event.code == '1234') {</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaUNC">           0 :         emit(RecoveryCodeVerified());</span></span>
+<span id="L193"><span class="lineNum">     193</span>              :       } else {</span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC">           0 :         emit(const RecoveryError(message: 'Código de verificación incorrecto'));</span></span>
+<span id="L195"><span class="lineNum">     195</span>              :       }</span>
+<span id="L196"><span class="lineNum">     196</span>              :     } catch (e) {</span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
+<span id="L198"><span class="lineNum">     198</span>              :     }</span>
+<span id="L199"><span class="lineNum">     199</span>              :   }</span>
+<span id="L200"><span class="lineNum">     200</span>              : </span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _onPasswordResetSubmitted(</span></span>
+<span id="L202"><span class="lineNum">     202</span>              :     PasswordResetSubmitted event,</span>
+<span id="L203"><span class="lineNum">     203</span>              :     Emitter&lt;RegisterState&gt; emit,</span>
+<span id="L204"><span class="lineNum">     204</span>              :   ) async {</span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaUNC">           0 :     emit(</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaUNC">           0 :       RegisterLoading(</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaUNC">           0 :         employee: state.employee ?? EmployeeEntityRegister.empty(),</span></span>
+<span id="L208"><span class="lineNum">     208</span>              :       ),</span>
+<span id="L209"><span class="lineNum">     209</span>              :     );</span>
+<span id="L210"><span class="lineNum">     210</span>              :     try {</span>
+<span id="L211"><span class="lineNum">     211</span>              :       // Simulación de reseteo de contraseña</span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaUNC">           0 :       await Future.delayed(const Duration(seconds: 1));</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaUNC">           0 :       debugPrint('Contraseña actualizada a: ${event.newPassword}');</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaUNC">           0 :       emit(PasswordResetSuccess());</span></span>
+<span id="L215"><span class="lineNum">     215</span>              :     } catch (e) {</span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 :       emit(RecoveryError(message: e.toString()));</span></span>
+<span id="L217"><span class="lineNum">     217</span>              :     }</span>
+<span id="L218"><span class="lineNum">     218</span>              :   }</span>
+<span id="L219"><span class="lineNum">     219</span>              : }</span>
         </pre>
               </td>
             </tr>

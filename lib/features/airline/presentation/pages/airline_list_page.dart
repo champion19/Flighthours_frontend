@@ -116,12 +116,16 @@ class _AirlineListPageState extends State<AirlineListPage> {
   }
 
   Widget _buildAirlineCard(AirlineEntity airline) {
+    final isActive = airline.active;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF212529)),
+        border: Border.all(
+          color: isActive ? const Color(0xFF212529) : const Color(0xFFdee2e6),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -134,30 +138,68 @@ class _AirlineListPageState extends State<AirlineListPage> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Airline icon
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                gradient: LinearGradient(
+                  colors:
+                      isActive
+                          ? [const Color(0xFF4facfe), const Color(0xFF00f2fe)]
+                          : [const Color(0xFFadb5bd), const Color(0xFFced4da)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.flight, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 16),
-            // Airline info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    airline.name,
-                    style: const TextStyle(
-                      color: Color(0xFF1a1a2e),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          airline.name,
+                          style: TextStyle(
+                            color:
+                                isActive
+                                    ? const Color(0xFF1a1a2e)
+                                    : const Color(0xFF6c757d),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isActive
+                                  ? const Color(
+                                    0xFF00b894,
+                                  ).withValues(alpha: 0.1)
+                                  : const Color(
+                                    0xFFe17055,
+                                  ).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isActive ? 'Active' : 'Inactive',
+                          style: TextStyle(
+                            color:
+                                isActive
+                                    ? const Color(0xFF00b894)
+                                    : const Color(0xFFe17055),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   if (airline.code != null && airline.code!.isNotEmpty)
                     Text(
@@ -170,27 +212,64 @@ class _AirlineListPageState extends State<AirlineListPage> {
                 ],
               ),
             ),
-            // Action buttons
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Activate button
-                IconButton(
-                  onPressed: () => _showActivateConfirmation(airline),
-                  icon: const Icon(Icons.check_circle_outline),
-                  color: const Color(0xFF00b894),
-                  tooltip: 'Activate',
-                ),
-                // Deactivate button (coming soon)
-                IconButton(
-                  onPressed: () => _showDeactivateComingSoon(),
-                  icon: const Icon(Icons.cancel_outlined),
-                  color: Colors.grey,
-                  tooltip: 'Deactivate (Coming soon)',
-                ),
-              ],
-            ),
+            const SizedBox(width: 8),
+            _buildStatusToggleButton(airline, isActive),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusToggleButton(AirlineEntity airline, bool isActive) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap:
+            () =>
+                isActive
+                    ? _showDeactivateConfirmation(airline)
+                    : _showActivateConfirmation(airline),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color:
+                isActive
+                    ? const Color(0xFFe17055).withValues(alpha: 0.1)
+                    : const Color(0xFF00b894).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  isActive
+                      ? const Color(0xFFe17055).withValues(alpha: 0.3)
+                      : const Color(0xFF00b894).withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isActive ? Icons.cancel_outlined : Icons.check_circle_outline,
+                color:
+                    isActive
+                        ? const Color(0xFFe17055)
+                        : const Color(0xFF00b894),
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isActive ? 'Deactivate' : 'Activate',
+                style: TextStyle(
+                  color:
+                      isActive
+                          ? const Color(0xFFe17055)
+                          : const Color(0xFF00b894),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -247,14 +326,88 @@ class _AirlineListPageState extends State<AirlineListPage> {
     );
   }
 
-  void _showDeactivateComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Deactivate airline - Coming soon!'),
-        backgroundColor: Colors.grey,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  void _showDeactivateConfirmation(AirlineEntity airline) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Deactivate Airline',
+              style: TextStyle(
+                color: Color(0xFF1a1a2e),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to deactivate "${airline.name}"?',
+                  style: const TextStyle(color: Color(0xFF6c757d)),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFffeaa7).withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFfdcb6e)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber,
+                        color: Color(0xFFe17055),
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Employees will not see this airline.',
+                          style: TextStyle(
+                            color: Color(0xFF1a1a2e),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFF6c757d)),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<AirlineBloc>().add(
+                    DeactivateAirline(airlineId: airline.id),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFe17055),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Deactivate',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
     );
   }
 

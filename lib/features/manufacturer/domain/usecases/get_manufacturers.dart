@@ -1,0 +1,12 @@
+import 'package:flight_hours_app/features/manufacturer/domain/entities/manufacturer_entity.dart';
+import 'package:flight_hours_app/features/manufacturer/domain/repositories/manufacturer_repository.dart';
+
+class GetManufacturers {
+  final ManufacturerRepository repository;
+
+  GetManufacturers(this.repository);
+
+  Future<List<ManufacturerEntity>> call() async {
+    return await repository.getManufacturers();
+  }
+}
