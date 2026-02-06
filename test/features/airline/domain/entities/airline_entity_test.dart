@@ -39,7 +39,7 @@ void main() {
         code: 'TS',
       );
 
-      expect(entity.props.length, equals(4));
+      expect(entity.props.length, equals(5));
       expect(entity.props, contains('test'));
       expect(entity.props, contains('uuid'));
       expect(entity.props, contains('Test'));

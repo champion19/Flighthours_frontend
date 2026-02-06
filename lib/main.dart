@@ -17,6 +17,10 @@ import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc
 import 'package:flight_hours_app/features/logbook/presentation/pages/logbook_page.dart';
 import 'package:flight_hours_app/features/logbook/presentation/pages/new_flight_page.dart';
 import 'package:flight_hours_app/features/admin/presentation/pages/admin_home_page.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_bloc.dart';
+import 'package:flight_hours_app/features/airport/presentation/pages/airport_list_page.dart';
+import 'package:flight_hours_app/features/manufacturer/presentation/bloc/manufacturer_bloc.dart';
+import 'package:flight_hours_app/features/manufacturer/presentation/pages/manufacturer_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -43,6 +47,8 @@ void main() async {
         BlocProvider(create: (_) => RouteBloc()),
         BlocProvider(create: (_) => AirlineRouteBloc()),
         BlocProvider(create: (_) => LogbookBloc()),
+        BlocProvider(create: (_) => AirportBloc()),
+        BlocProvider(create: (_) => ManufacturerBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -61,6 +67,8 @@ void main() async {
           '/logbook': (context) => const LogbookPage(),
           '/new-flight': (context) => const NewFlightPage(),
           '/admin-home': (context) => const AdminHomePage(),
+          '/airports': (context) => const AirportListPage(),
+          '/manufacturers': (context) => const ManufacturerListPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

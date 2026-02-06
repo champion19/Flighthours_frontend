@@ -40,7 +40,7 @@ void main() {
 
       expect(find.text('SYSTEM CONFIGURATION'), findsOneWidget);
       expect(find.text('Airports'), findsOneWidget);
-      expect(find.text('Aircraft Models'), findsOneWidget);
+      expect(find.text('Manufacturers'), findsOneWidget);
       expect(find.text('System Settings'), findsOneWidget);
     });
 
