@@ -26,6 +26,9 @@ class AdminMessages {
   // System configuration cards
   static const String airportsTitle = 'Airports';
   static const String aircraftModelsTitle = 'Aircraft Models';
+  static const String aircraftModelsSubtitle =
+      'Activate or deactivate aircraft models';
+  static const String aircraftFamiliesTitle = 'Aircraft Families';
   static const String systemSettingsTitle = 'System Settings';
 
   // Snackbar messages

@@ -34,6 +34,13 @@ import 'package:flight_hours_app/features/airport/domain/usecases/list_airport_u
 import 'package:flight_hours_app/features/airport/domain/usecases/get_airport_by_id_use_case.dart';
 import 'package:flight_hours_app/features/airport/domain/usecases/activate_airport_use_case.dart';
 import 'package:flight_hours_app/features/airport/domain/usecases/deactivate_airport_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/data/datasources/aircraft_model_remote_data_source.dart';
+import 'package:flight_hours_app/features/aircraft_model/data/repositories/aircraft_model_repository_impl.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/repositories/aircraft_model_repository.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/list_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/activate_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/deactivate_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_models_by_family_use_case.dart';
 import 'package:flight_hours_app/features/register/domain/usecases/register_use_case.dart';
 import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
 import 'package:flight_hours_app/features/reset_password/data/repositories/reset_password_repository_impl.dart';
@@ -103,6 +110,16 @@ abstract class InjectorApp {
   @Register.factory(DeactivateAirportUseCase)
   @Register.factory(AirportRepository, from: AirportRepositoryImpl)
   @Register.factory(AirportRemoteDataSource, from: AirportRemoteDataSourceImpl)
+  // Aircraft Model
+  @Register.factory(ListAircraftModelUseCase)
+  @Register.factory(GetAircraftModelsByFamilyUseCase)
+  @Register.factory(ActivateAircraftModelUseCase)
+  @Register.factory(DeactivateAircraftModelUseCase)
+  @Register.factory(AircraftModelRepository, from: AircraftModelRepositoryImpl)
+  @Register.factory(
+    AircraftModelRemoteDataSource,
+    from: AircraftModelRemoteDataSourceImpl,
+  )
   // Email Verification
   @Register.factory(
     EmailVerificationRepository,

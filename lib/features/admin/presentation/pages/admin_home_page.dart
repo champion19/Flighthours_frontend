@@ -84,6 +84,26 @@ class AdminHomePage extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildSecondaryCard(
                       context,
+                      icon: Icons.airplanemode_active,
+                      title: AdminMessages.aircraftModelsTitle,
+                      color: const Color(0xFF667eea),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/aircraft-models');
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSecondaryCard(
+                      context,
+                      icon: Icons.flight_takeoff,
+                      title: AdminMessages.aircraftFamiliesTitle,
+                      color: const Color(0xFF764ba2),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/aircraft-families');
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSecondaryCard(
+                      context,
                       icon: Icons.precision_manufacturing,
                       title: 'Manufacturers',
                       color: const Color(0xFFf5576c),

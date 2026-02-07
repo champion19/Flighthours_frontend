@@ -50,7 +50,7 @@ class RouteModel extends RouteEntity {
       destinationAirportCode:
           json['destination_airport_code'] ?? json['destination_iata_code'],
       destinationCountry: json['destination_country'],
-      routeType: json['route_type'],
+      routeType: json['route_type'] ?? json['airport_type'],
       estimatedFlightTime: json['estimated_flight_time'],
       status: json['status'],
     );

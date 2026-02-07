@@ -21,6 +21,9 @@ import 'package:flight_hours_app/features/airport/presentation/bloc/airport_bloc
 import 'package:flight_hours_app/features/airport/presentation/pages/airport_list_page.dart';
 import 'package:flight_hours_app/features/manufacturer/presentation/bloc/manufacturer_bloc.dart';
 import 'package:flight_hours_app/features/manufacturer/presentation/pages/manufacturer_list_page.dart';
+import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircraft_model_bloc.dart';
+import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_model_list_page.dart';
+import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -49,6 +52,7 @@ void main() async {
         BlocProvider(create: (_) => LogbookBloc()),
         BlocProvider(create: (_) => AirportBloc()),
         BlocProvider(create: (_) => ManufacturerBloc()),
+        BlocProvider(create: (_) => AircraftModelBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -69,6 +73,8 @@ void main() async {
           '/admin-home': (context) => const AdminHomePage(),
           '/airports': (context) => const AirportListPage(),
           '/manufacturers': (context) => const ManufacturerListPage(),
+          '/aircraft-models': (context) => const AircraftModelListPage(),
+          '/aircraft-families': (context) => const AircraftFamiliesPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

@@ -312,21 +312,12 @@ class _FlightRoutesPageState extends State<FlightRoutesPage> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Route ID and Type badge
+                // Type badge
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Route ID: ${route.displayId}',
-                      style: const TextStyle(
-                        color: Color(0xFF6c757d),
-                        fontSize: 13,
-                      ),
-                    ),
-                    _buildTypeBadge(route.isInternational),
-                  ],
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [_buildTypeBadge(route.isInternational)],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Airport codes with plane icon
                 Row(
@@ -361,16 +352,6 @@ class _FlightRoutesPageState extends State<FlightRoutesPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // Countries
-                Text(
-                  route.countriesDisplay,
-                  style: const TextStyle(
-                    color: Color(0xFF6c757d),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
 
                 // Estimated flight time
                 Text(
