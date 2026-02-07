@@ -121,11 +121,17 @@ void main() {
     });
 
     testWidgets('should show loading indicator when loading', (tester) async {
-      when(
-        () => mockBloc.state,
-      ).thenReturn(RegisterLoading(employee: EmployeeEntityRegister.empty()));
+      final loadingState = RegisterLoading(
+        employee: EmployeeEntityRegister.empty(),
+      );
+      whenListen(
+        mockBloc,
+        Stream<RegisterState>.value(loadingState),
+        initialState: loadingState,
+      );
 
       await tester.pumpWidget(buildTestWidget());
+      await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });

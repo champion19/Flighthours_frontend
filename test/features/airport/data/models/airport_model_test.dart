@@ -152,5 +152,33 @@ void main() {
       // Assert
       expect(result, isEmpty);
     });
+
+    test('should handle data as direct array', () {
+      const jsonString = '''
+      {
+        "success": true,
+        "data": [
+          {"id": "1", "name": "El Dorado", "iata_code": "BOG"}
+        ]
+      }
+      ''';
+
+      final result = airportModelFromMap(jsonString);
+      expect(result.length, equals(1));
+      expect(result[0].name, equals('El Dorado'));
+    });
+  });
+
+  group('airportModelToMap', () {
+    test('should serialize list of models to JSON string', () {
+      final models = [
+        const AirportModel(id: '1', name: 'El Dorado', iataCode: 'BOG'),
+        const AirportModel(id: '2', name: 'JMC', iataCode: 'MDE'),
+      ];
+
+      final result = airportModelToMap(models);
+      expect(result, contains('"name":"El Dorado"'));
+      expect(result, contains('"name":"JMC"'));
+    });
   });
 }
