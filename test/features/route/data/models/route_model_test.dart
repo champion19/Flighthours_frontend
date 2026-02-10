@@ -3,153 +3,116 @@ import 'package:flight_hours_app/features/route/data/models/route_model.dart';
 
 void main() {
   group('RouteModel', () {
-    test('fromJson should parse valid JSON correctly', () {
-      // Arrange
+    test('fromJson creates model with all fields', () {
       final json = {
-        'id': 'route123',
-        'uuid': 'uuid-1234-5678',
-        'origin_airport_id': 'airport1',
-        'destination_airport_id': 'airport2',
+        'id': 'rt-001',
+        'uuid': 'uuid-123',
+        'origin_airport_id': 'ap-001',
+        'destination_airport_id': 'ap-002',
         'origin_airport_name': 'El Dorado International',
         'origin_airport_code': 'BOG',
         'origin_country': 'Colombia',
-        'destination_airport_name': 'Jose Maria Cordova',
-        'destination_airport_code': 'MDE',
-        'destination_country': 'Colombia',
-        'route_type': 'Nacional',
-        'estimated_flight_time': '00:45:00',
+        'destination_airport_name': 'London Heathrow',
+        'destination_airport_code': 'LHR',
+        'destination_country': 'United Kingdom',
+        'route_type': 'Internacional',
+        'estimated_flight_time': '07:30:00',
         'status': 'active',
       };
 
-      // Act
-      final result = RouteModel.fromJson(json);
+      final model = RouteModel.fromJson(json);
 
-      // Assert
-      expect(result.id, equals('route123'));
-      expect(result.uuid, equals('uuid-1234-5678'));
-      expect(result.originAirportId, equals('airport1'));
-      expect(result.destinationAirportId, equals('airport2'));
-      expect(result.originAirportName, equals('El Dorado International'));
-      expect(result.originAirportCode, equals('BOG'));
-      expect(result.originCountry, equals('Colombia'));
-      expect(result.destinationAirportName, equals('Jose Maria Cordova'));
-      expect(result.destinationAirportCode, equals('MDE'));
-      expect(result.destinationCountry, equals('Colombia'));
-      expect(result.routeType, equals('Nacional'));
-      expect(result.estimatedFlightTime, equals('00:45:00'));
-      expect(result.status, equals('active'));
+      expect(model.id, 'rt-001');
+      expect(model.uuid, 'uuid-123');
+      expect(model.originAirportId, 'ap-001');
+      expect(model.destinationAirportId, 'ap-002');
+      expect(model.originAirportName, 'El Dorado International');
+      expect(model.originAirportCode, 'BOG');
+      expect(model.originCountry, 'Colombia');
+      expect(model.destinationAirportName, 'London Heathrow');
+      expect(model.destinationAirportCode, 'LHR');
+      expect(model.destinationCountry, 'United Kingdom');
+      expect(model.routeType, 'Internacional');
+      expect(model.estimatedFlightTime, '07:30:00');
+      expect(model.status, 'active');
     });
 
-    test('fromJson should handle iata_code field names', () {
-      // Arrange
+    test('fromJson handles alternative field names', () {
       final json = {
-        'id': 'route123',
-        'origin_airport_id': 'airport1',
-        'destination_airport_id': 'airport2',
+        'id': '1',
+        'origin_airport_id': 'ap-001',
+        'destination_airport_id': 'ap-002',
         'origin_iata_code': 'BOG',
-        'destination_iata_code': 'MDE',
+        'destination_iata_code': 'LHR',
+        'airport_type': 'Nacional',
       };
 
-      // Act
-      final result = RouteModel.fromJson(json);
+      final model = RouteModel.fromJson(json);
 
-      // Assert
-      expect(result.originAirportCode, equals('BOG'));
-      expect(result.destinationAirportCode, equals('MDE'));
+      expect(model.originAirportCode, 'BOG');
+      expect(model.destinationAirportCode, 'LHR');
+      expect(model.routeType, 'Nacional');
     });
 
-    test('fromJson should use defaults for missing required fields', () {
-      // Arrange
+    test('fromJson handles missing fields with defaults', () {
       final json = <String, dynamic>{};
 
-      // Act
-      final result = RouteModel.fromJson(json);
+      final model = RouteModel.fromJson(json);
 
-      // Assert
-      expect(result.id, equals(''));
-      expect(result.originAirportId, equals(''));
-      expect(result.destinationAirportId, equals(''));
-      expect(result.uuid, isNull);
-      expect(result.originAirportName, isNull);
-      expect(result.routeType, isNull);
+      expect(model.id, '');
+      expect(model.originAirportId, '');
+      expect(model.destinationAirportId, '');
+      expect(model.uuid, isNull);
+      expect(model.originAirportName, isNull);
+      expect(model.status, isNull);
     });
 
-    test('fromJson should handle null optional fields', () {
-      // Arrange
+    test('fromJson converts non-string id to string', () {
       final json = {
-        'id': 'route123',
-        'origin_airport_id': 'airport1',
-        'destination_airport_id': 'airport2',
+        'id': 42,
+        'origin_airport_id': 10,
+        'destination_airport_id': 20,
       };
 
-      // Act
-      final result = RouteModel.fromJson(json);
+      final model = RouteModel.fromJson(json);
 
-      // Assert
-      expect(result.originAirportName, isNull);
-      expect(result.originAirportCode, isNull);
-      expect(result.destinationAirportName, isNull);
-      expect(result.status, isNull);
+      expect(model.id, '42');
+      expect(model.originAirportId, '10');
+      expect(model.destinationAirportId, '20');
     });
 
-    test('toJson should serialize correctly', () {
-      // Arrange
+    test('toJson serializes all fields correctly', () {
       const model = RouteModel(
-        id: 'route123',
-        uuid: 'uuid-1234',
-        originAirportId: 'airport1',
-        destinationAirportId: 'airport2',
+        id: 'rt-001',
+        uuid: 'uuid-123',
+        originAirportId: 'ap-001',
+        destinationAirportId: 'ap-002',
         originAirportName: 'El Dorado',
         originAirportCode: 'BOG',
         originCountry: 'Colombia',
-        destinationAirportName: 'Jose Maria Cordova',
-        destinationAirportCode: 'MDE',
-        destinationCountry: 'Colombia',
-        routeType: 'Nacional',
-        estimatedFlightTime: '00:45:00',
+        destinationAirportName: 'Heathrow',
+        destinationAirportCode: 'LHR',
+        destinationCountry: 'UK',
+        routeType: 'Internacional',
+        estimatedFlightTime: '07:30:00',
         status: 'active',
       );
 
-      // Act
-      final result = model.toJson();
+      final json = model.toJson();
 
-      // Assert
-      expect(result['id'], equals('route123'));
-      expect(result['uuid'], equals('uuid-1234'));
-      expect(result['origin_airport_id'], equals('airport1'));
-      expect(result['destination_airport_id'], equals('airport2'));
-      expect(result['origin_airport_name'], equals('El Dorado'));
-      expect(result['origin_airport_code'], equals('BOG'));
-      expect(result['destination_airport_code'], equals('MDE'));
-      expect(result['route_type'], equals('Nacional'));
-      expect(result['estimated_flight_time'], equals('00:45:00'));
-      expect(result['status'], equals('active'));
-    });
-
-    test('fromJson should handle international route', () {
-      // Arrange
-      final json = {
-        'id': 'route456',
-        'origin_airport_id': 'airport1',
-        'destination_airport_id': 'airport3',
-        'origin_airport_name': 'El Dorado International',
-        'origin_airport_code': 'BOG',
-        'origin_country': 'Colombia',
-        'destination_airport_name': 'Miami International',
-        'destination_airport_code': 'MIA',
-        'destination_country': 'United States',
-        'route_type': 'Internacional',
-        'estimated_flight_time': '03:30:00',
-        'status': 'active',
-      };
-
-      // Act
-      final result = RouteModel.fromJson(json);
-
-      // Assert
-      expect(result.routeType, equals('Internacional'));
-      expect(result.originCountry, equals('Colombia'));
-      expect(result.destinationCountry, equals('United States'));
+      expect(json['id'], 'rt-001');
+      expect(json['uuid'], 'uuid-123');
+      expect(json['origin_airport_id'], 'ap-001');
+      expect(json['destination_airport_id'], 'ap-002');
+      expect(json['origin_airport_name'], 'El Dorado');
+      expect(json['origin_airport_code'], 'BOG');
+      expect(json['origin_country'], 'Colombia');
+      expect(json['destination_airport_name'], 'Heathrow');
+      expect(json['destination_airport_code'], 'LHR');
+      expect(json['destination_country'], 'UK');
+      expect(json['route_type'], 'Internacional');
+      expect(json['estimated_flight_time'], '07:30:00');
+      expect(json['status'], 'active');
     });
   });
 }
