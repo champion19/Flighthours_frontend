@@ -122,6 +122,21 @@ void main() {
         expect(state.currentStep, equals('2'));
         expect(state.stepDescription, equals('Logging in...'));
       });
+
+      test(
+        'props should contain employee, currentStep, and stepDescription',
+        () {
+          final employee = EmployeeEntityRegister.empty();
+
+          final state = RegistrationFlowInProgress(
+            employee: employee,
+            currentStep: '1',
+            stepDescription: 'Step 1',
+          );
+
+          expect(state.props, [employee, '1', 'Step 1']);
+        },
+      );
     });
 
     group('RegistrationFlowComplete', () {
@@ -135,6 +150,22 @@ void main() {
 
         expect(state.message, equals('Registration complete!'));
       });
+
+      test('props should contain employee and message', () {
+        final employee = EmployeeEntityRegister.empty();
+
+        final state = RegistrationFlowComplete(
+          employee: employee,
+          message: 'Done',
+        );
+
+        expect(state.props, [employee, 'Done']);
+      });
+    });
+
+    test('RegisterState base props contains employee', () {
+      final state = RegisterInitial();
+      expect(state.props, [state.employee]);
     });
   });
 }

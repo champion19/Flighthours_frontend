@@ -14,6 +14,11 @@ class AircraftModelRepositoryImpl implements AircraftModelRepository {
   }
 
   @override
+  Future<AircraftModelEntity> getAircraftModelById(String id) async {
+    return await remoteDataSource.getAircraftModelById(id);
+  }
+
+  @override
   Future<List<AircraftModelEntity>> getAircraftModelsByFamily(
     String family,
   ) async {

@@ -238,5 +238,72 @@ void main() {
         expect(result.success, isFalse);
       });
     });
+
+    group('getAirports - parse fallbacks', () {
+      test('should handle data as direct array', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {
+              'success': true,
+              'data': [
+                {'id': 'apt1', 'name': 'El Dorado', 'status': 'active'},
+              ],
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airports'),
+          ),
+        );
+
+        final result = await datasource.getAirports();
+        expect(result.length, 1);
+      });
+
+      test('should handle direct array response', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: [
+              {'id': 'apt1', 'name': 'El Dorado', 'status': 'active'},
+            ],
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airports'),
+          ),
+        );
+
+        final result = await datasource.getAirports();
+        expect(result.length, 1);
+      });
+
+      test('should return empty list for empty data object', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {'success': true, 'data': <String, dynamic>{}},
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airports'),
+          ),
+        );
+
+        final result = await datasource.getAirports();
+        expect(result, isEmpty);
+      });
+    });
+
+    group('getAirportById - parse fallback', () {
+      test('should parse airport directly from data map', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {
+              'success': true,
+              'data': {'id': 'apt1', 'name': 'El Dorado', 'status': 'active'},
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airports/apt1'),
+          ),
+        );
+
+        final result = await datasource.getAirportById('apt1');
+        expect(result, isNotNull);
+        expect(result!.name, 'El Dorado');
+      });
+    });
   });
 }

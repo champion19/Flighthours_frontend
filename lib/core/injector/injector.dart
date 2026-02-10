@@ -41,6 +41,7 @@ import 'package:flight_hours_app/features/aircraft_model/domain/usecases/list_ai
 import 'package:flight_hours_app/features/aircraft_model/domain/usecases/activate_aircraft_model_use_case.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/usecases/deactivate_aircraft_model_use_case.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_models_by_family_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_model_by_id_use_case.dart';
 import 'package:flight_hours_app/features/register/domain/usecases/register_use_case.dart';
 import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
 import 'package:flight_hours_app/features/reset_password/data/repositories/reset_password_repository_impl.dart';
@@ -63,6 +64,11 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_log
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/license_plate/data/datasources/license_plate_remote_data_source.dart';
+import 'package:flight_hours_app/features/license_plate/data/repositories/license_plate_repository_impl.dart';
+import 'package:flight_hours_app/features/license_plate/domain/repositories/license_plate_repository.dart';
+import 'package:flight_hours_app/features/license_plate/domain/usecases/get_license_plate_by_id_use_case.dart';
+import 'package:flight_hours_app/features/license_plate/domain/usecases/list_license_plates_use_case.dart';
 import 'package:kiwi/kiwi.dart';
 
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -112,6 +118,7 @@ abstract class InjectorApp {
   @Register.factory(AirportRemoteDataSource, from: AirportRemoteDataSourceImpl)
   // Aircraft Model
   @Register.factory(ListAircraftModelUseCase)
+  @Register.factory(GetAircraftModelByIdUseCase)
   @Register.factory(GetAircraftModelsByFamilyUseCase)
   @Register.factory(ActivateAircraftModelUseCase)
   @Register.factory(DeactivateAircraftModelUseCase)
@@ -164,6 +171,14 @@ abstract class InjectorApp {
   @Register.factory(DeleteLogbookDetailUseCase)
   @Register.factory(LogbookRepository, from: LogbookRepositoryImpl)
   @Register.factory(LogbookRemoteDataSource, from: LogbookRemoteDataSourceImpl)
+  // License Plate
+  @Register.factory(ListLicensePlatesUseCase)
+  @Register.factory(GetLicensePlateByPlateUseCase)
+  @Register.factory(LicensePlateRepository, from: LicensePlateRepositoryImpl)
+  @Register.factory(
+    LicensePlateRemoteDataSource,
+    from: LicensePlateRemoteDataSourceImpl,
+  )
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs
 }

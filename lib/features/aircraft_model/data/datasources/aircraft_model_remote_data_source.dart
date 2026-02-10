@@ -5,6 +5,7 @@ import 'package:flight_hours_app/features/aircraft_model/data/models/aircraft_mo
 
 abstract class AircraftModelRemoteDataSource {
   Future<List<AircraftModelModel>> getAircraftModels();
+  Future<AircraftModelModel> getAircraftModelById(String id);
   Future<List<AircraftModelModel>> getAircraftModelsByFamily(String family);
   Future<AircraftModelStatusResponseModel> activateAircraftModel(String id);
   Future<AircraftModelStatusResponseModel> deactivateAircraftModel(String id);
@@ -35,6 +36,24 @@ class AircraftModelRemoteDataSourceImpl
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<AircraftModelModel> getAircraftModelById(String id) async {
+    final response = await _dio.get('/aircraft-models/$id');
+    final decoded = response.data;
+
+    if (decoded is Map<String, dynamic>) {
+      if (decoded.containsKey('data') &&
+          decoded['data'] is Map<String, dynamic>) {
+        return AircraftModelModel.fromJson(
+          decoded['data'] as Map<String, dynamic>,
+        );
+      }
+      return AircraftModelModel.fromJson(decoded);
+    }
+
+    throw Exception('Unexpected response format');
   }
 
   @override
