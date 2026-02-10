@@ -232,5 +232,91 @@ void main() {
         expect(result.success, isFalse);
       });
     });
+
+    group('getAirlines - parse fallbacks', () {
+      test('should handle data as direct array', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {
+              'success': true,
+              'data': [
+                {'id': 'a1', 'name': 'Avianca', 'status': 'active'},
+              ],
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airlines'),
+          ),
+        );
+
+        final result = await datasource.getAirlines();
+        expect(result.length, 1);
+      });
+
+      test('should handle direct array response', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: [
+              {'id': 'a1', 'name': 'Avianca', 'status': 'active'},
+            ],
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airlines'),
+          ),
+        );
+
+        final result = await datasource.getAirlines();
+        expect(result.length, 1);
+      });
+
+      test('should return empty list for empty data object', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {'success': true, 'data': <String, dynamic>{}},
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airlines'),
+          ),
+        );
+
+        final result = await datasource.getAirlines();
+        expect(result, isEmpty);
+      });
+    });
+
+    group('getAirlineById - parse airline', () {
+      test('should parse airline from data.airline', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {
+              'success': true,
+              'data': {
+                'airline': {'id': 'a1', 'name': 'Avianca', 'status': 'active'},
+              },
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airlines/a1'),
+          ),
+        );
+
+        final result = await datasource.getAirlineById('a1');
+        expect(result, isNotNull);
+        expect(result!.name, 'Avianca');
+      });
+
+      test('should parse airline directly from data map', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            data: {
+              'success': true,
+              'data': {'id': 'a1', 'name': 'LATAM', 'status': 'active'},
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/airlines/a1'),
+          ),
+        );
+
+        final result = await datasource.getAirlineById('a1');
+        expect(result, isNotNull);
+        expect(result!.name, 'LATAM');
+      });
+    });
   });
 }

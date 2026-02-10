@@ -23,6 +23,8 @@ import 'package:flight_hours_app/features/manufacturer/presentation/bloc/manufac
 import 'package:flight_hours_app/features/manufacturer/presentation/pages/manufacturer_list_page.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircraft_model_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_model_list_page.dart';
+import 'package:flight_hours_app/features/license_plate/presentation/bloc/license_plate_bloc.dart';
+import 'package:flight_hours_app/features/license_plate/presentation/pages/license_plate_lookup_page.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,6 +55,7 @@ void main() async {
         BlocProvider(create: (_) => AirportBloc()),
         BlocProvider(create: (_) => ManufacturerBloc()),
         BlocProvider(create: (_) => AircraftModelBloc()),
+        BlocProvider(create: (_) => LicensePlateBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -75,6 +78,7 @@ void main() async {
           '/manufacturers': (context) => const ManufacturerListPage(),
           '/aircraft-models': (context) => const AircraftModelListPage(),
           '/aircraft-families': (context) => const AircraftFamiliesPage(),
+          '/license-plate': (context) => const LicensePlateLookupPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

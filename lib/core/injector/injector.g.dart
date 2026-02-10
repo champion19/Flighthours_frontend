@@ -45,6 +45,8 @@ class _$InjectorApp extends InjectorApp {
           (c) => AirportRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory((c) => ListAircraftModelUseCase(
           repository: c.resolve<AircraftModelRepository>()))
+      ..registerFactory((c) =>
+          GetAircraftModelByIdUseCase(c.resolve<AircraftModelRepository>()))
       ..registerFactory((c) => GetAircraftModelsByFamilyUseCase(
           repository: c.resolve<AircraftModelRepository>()))
       ..registerFactory((c) => ActivateAircraftModelUseCase(
@@ -106,6 +108,14 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<LogbookRepository>((c) => LogbookRepositoryImpl(
           remoteDataSource: c.resolve<LogbookRemoteDataSource>()))
       ..registerFactory<LogbookRemoteDataSource>(
-          (c) => LogbookRemoteDataSourceImpl(dio: c.resolve<Dio>()));
+          (c) => LogbookRemoteDataSourceImpl(dio: c.resolve<Dio>()))
+      ..registerFactory(
+          (c) => ListLicensePlatesUseCase(c.resolve<LicensePlateRepository>()))
+      ..registerFactory((c) =>
+          GetLicensePlateByPlateUseCase(c.resolve<LicensePlateRepository>()))
+      ..registerFactory<LicensePlateRepository>((c) =>
+          LicensePlateRepositoryImpl(c.resolve<LicensePlateRemoteDataSource>()))
+      ..registerFactory<LicensePlateRemoteDataSource>(
+          (c) => LicensePlateRemoteDataSourceImpl(dio: c.resolve<Dio>()));
   }
 }
