@@ -3,6 +3,7 @@ import 'package:flight_hours_app/features/aircraft_model/domain/entities/aircraf
 
 abstract class AircraftModelRepository {
   Future<List<AircraftModelEntity>> getAircraftModels();
+  Future<AircraftModelEntity> getAircraftModelById(String id);
   Future<List<AircraftModelEntity>> getAircraftModelsByFamily(String family);
   Future<AircraftModelStatusResponseModel> activateAircraftModel(String id);
   Future<AircraftModelStatusResponseModel> deactivateAircraftModel(String id);
