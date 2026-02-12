@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/domain/entities/airport_entity.dart';
@@ -24,33 +26,36 @@ void main() {
       useCase = ListAirportUseCase(repository: mockRepository);
     });
 
-    test('should return list of airports from repository', () async {
-      // Arrange
+    test('should return Right with list of airports from repository', () async {
       final airports = [
         const AirportEntity(id: '1', name: 'El Dorado'),
         const AirportEntity(id: '2', name: 'JFK'),
       ];
       when(
         () => mockRepository.getAirports(),
-      ).thenAnswer((_) async => airports);
+      ).thenAnswer((_) async => Right(airports));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, equals(airports));
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, equals(airports)),
+      );
       verify(() => mockRepository.getAirports()).called(1);
     });
 
-    test('should return empty list when no airports', () async {
-      // Arrange
-      when(() => mockRepository.getAirports()).thenAnswer((_) async => []);
+    test('should return Right with empty list when no airports', () async {
+      when(
+        () => mockRepository.getAirports(),
+      ).thenAnswer((_) async => const Right([]));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, isEmpty);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isEmpty),
+      );
     });
   });
 
@@ -61,18 +66,19 @@ void main() {
       useCase = GetAirportByIdUseCase(repository: mockRepository);
     });
 
-    test('should return airport by id from repository', () async {
-      // Arrange
+    test('should return Right with airport by id from repository', () async {
       const airport = AirportEntity(id: 'air123', name: 'LAX');
       when(
         () => mockRepository.getAirportById('air123'),
-      ).thenAnswer((_) async => airport);
+      ).thenAnswer((_) async => const Right(airport));
 
-      // Act
       final result = await useCase.call('air123');
 
-      // Assert
-      expect(result, equals(airport));
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, equals(airport)),
+      );
       verify(() => mockRepository.getAirportById('air123')).called(1);
     });
   });
@@ -84,8 +90,7 @@ void main() {
       useCase = ActivateAirportUseCase(repository: mockRepository);
     });
 
-    test('should call repository activate and return response', () async {
-      // Arrange
+    test('should return Right with response from repository', () async {
       final response = AirportStatusResponseModel(
         success: true,
         code: 'OK',
@@ -93,13 +98,14 @@ void main() {
       );
       when(
         () => mockRepository.activateAirport('air123'),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('air123');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.activateAirport('air123')).called(1);
     });
   });
@@ -111,8 +117,7 @@ void main() {
       useCase = DeactivateAirportUseCase(repository: mockRepository);
     });
 
-    test('should call repository deactivate and return response', () async {
-      // Arrange
+    test('should return Right with response from repository', () async {
       final response = AirportStatusResponseModel(
         success: true,
         code: 'OK',
@@ -120,13 +125,14 @@ void main() {
       );
       when(
         () => mockRepository.deactivateAirport('air123'),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('air123');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.deactivateAirport('air123')).called(1);
     });
   });

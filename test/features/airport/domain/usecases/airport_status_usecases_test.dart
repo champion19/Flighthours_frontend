@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/domain/usecases/activate_airport_use_case.dart';
@@ -22,7 +24,6 @@ void main() {
     });
 
     test('should call repository.activateAirport with correct id', () async {
-      // Arrange
       const testId = 'airport-123';
       const response = AirportStatusResponseModel(
         success: true,
@@ -31,56 +32,58 @@ void main() {
       );
       when(
         () => mockRepository.activateAirport(testId),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => const Right(response));
 
-      // Act
       final result = await useCase.call(testId);
 
-      // Assert
-      expect(result, equals(response));
+      expect(result, isA<Right>());
       verify(() => mockRepository.activateAirport(testId)).called(1);
     });
 
-    test('should return success response when activation succeeds', () async {
-      // Arrange
-      const testId = 'airport-456';
-      const response = AirportStatusResponseModel(
-        success: true,
-        code: 'MOD_APT_ACTIVATE_00001',
-        message: 'Successfully activated',
-      );
-      when(
-        () => mockRepository.activateAirport(testId),
-      ).thenAnswer((_) async => response);
+    test(
+      'should return Right with success response when activation succeeds',
+      () async {
+        const testId = 'airport-456';
+        const response = AirportStatusResponseModel(
+          success: true,
+          code: 'MOD_APT_ACTIVATE_00001',
+          message: 'Successfully activated',
+        );
+        when(
+          () => mockRepository.activateAirport(testId),
+        ).thenAnswer((_) async => const Right(response));
 
-      // Act
-      final result = await useCase.call(testId);
+        final result = await useCase.call(testId);
 
-      // Assert
-      expect(result.success, isTrue);
-      expect(result.message, equals('Successfully activated'));
-      expect(result.code, equals('MOD_APT_ACTIVATE_00001'));
-    });
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data.success, isTrue);
+          expect(data.message, equals('Successfully activated'));
+          expect(data.code, equals('MOD_APT_ACTIVATE_00001'));
+        });
+      },
+    );
 
-    test('should return error response when activation fails', () async {
-      // Arrange
-      const testId = 'airport-789';
-      const response = AirportStatusResponseModel(
-        success: false,
-        code: 'MOD_APT_ACTIVATE_ERR_00001',
-        message: 'Activation failed',
-      );
-      when(
-        () => mockRepository.activateAirport(testId),
-      ).thenAnswer((_) async => response);
+    test(
+      'should return Right with error response when activation fails',
+      () async {
+        const testId = 'airport-789';
+        const response = AirportStatusResponseModel(
+          success: false,
+          code: 'MOD_APT_ACTIVATE_ERR_00001',
+          message: 'Activation failed',
+        );
+        when(
+          () => mockRepository.activateAirport(testId),
+        ).thenAnswer((_) async => const Right(response));
 
-      // Act
-      final result = await useCase.call(testId);
+        final result = await useCase.call(testId);
 
-      // Assert
-      expect(result.success, isFalse);
-      expect(result.message, equals('Activation failed'));
-    });
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data.success, isFalse);
+          expect(data.message, equals('Activation failed'));
+        });
+      },
+    );
   });
 
   group('DeactivateAirportUseCase', () {
@@ -91,7 +94,6 @@ void main() {
     });
 
     test('should call repository.deactivateAirport with correct id', () async {
-      // Arrange
       const testId = 'airport-123';
       const response = AirportStatusResponseModel(
         success: true,
@@ -100,54 +102,56 @@ void main() {
       );
       when(
         () => mockRepository.deactivateAirport(testId),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => const Right(response));
 
-      // Act
       final result = await useCase.call(testId);
 
-      // Assert
-      expect(result, equals(response));
+      expect(result, isA<Right>());
       verify(() => mockRepository.deactivateAirport(testId)).called(1);
     });
 
-    test('should return success response when deactivation succeeds', () async {
-      // Arrange
-      const testId = 'airport-456';
-      const response = AirportStatusResponseModel(
-        success: true,
-        code: 'MOD_APT_DEACTIVATE_00001',
-        message: 'Successfully deactivated',
-      );
-      when(
-        () => mockRepository.deactivateAirport(testId),
-      ).thenAnswer((_) async => response);
+    test(
+      'should return Right with success response when deactivation succeeds',
+      () async {
+        const testId = 'airport-456';
+        const response = AirportStatusResponseModel(
+          success: true,
+          code: 'MOD_APT_DEACTIVATE_00001',
+          message: 'Successfully deactivated',
+        );
+        when(
+          () => mockRepository.deactivateAirport(testId),
+        ).thenAnswer((_) async => const Right(response));
 
-      // Act
-      final result = await useCase.call(testId);
+        final result = await useCase.call(testId);
 
-      // Assert
-      expect(result.success, isTrue);
-      expect(result.message, equals('Successfully deactivated'));
-    });
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data.success, isTrue);
+          expect(data.message, equals('Successfully deactivated'));
+        });
+      },
+    );
 
-    test('should return error response when deactivation fails', () async {
-      // Arrange
-      const testId = 'airport-789';
-      const response = AirportStatusResponseModel(
-        success: false,
-        code: 'MOD_APT_DEACTIVATE_ERR_00001',
-        message: 'Deactivation failed',
-      );
-      when(
-        () => mockRepository.deactivateAirport(testId),
-      ).thenAnswer((_) async => response);
+    test(
+      'should return Right with error response when deactivation fails',
+      () async {
+        const testId = 'airport-789';
+        const response = AirportStatusResponseModel(
+          success: false,
+          code: 'MOD_APT_DEACTIVATE_ERR_00001',
+          message: 'Deactivation failed',
+        );
+        when(
+          () => mockRepository.deactivateAirport(testId),
+        ).thenAnswer((_) async => const Right(response));
 
-      // Act
-      final result = await useCase.call(testId);
+        final result = await useCase.call(testId);
 
-      // Assert
-      expect(result.success, isFalse);
-      expect(result.message, equals('Deactivation failed'));
-    });
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data.success, isFalse);
+          expect(data.message, equals('Deactivation failed'));
+        });
+      },
+    );
   });
 }

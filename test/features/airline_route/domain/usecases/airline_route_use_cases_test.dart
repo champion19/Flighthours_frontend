@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
@@ -22,34 +24,40 @@ void main() {
       useCase = ListAirlineRoutesUseCase(repository: mockRepository);
     });
 
-    test('should return list of airline routes from repository', () async {
-      // Arrange
+    test('should return Right with list of airline routes', () async {
       final routes = [
         const AirlineRouteEntity(id: '1', routeId: 'r1', airlineId: 'a1'),
         const AirlineRouteEntity(id: '2', routeId: 'r2', airlineId: 'a1'),
       ];
       when(
         () => mockRepository.getAirlineRoutes(),
-      ).thenAnswer((_) async => routes);
+      ).thenAnswer((_) async => Right(routes));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, equals(routes));
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, equals(routes)),
+      );
       verify(() => mockRepository.getAirlineRoutes()).called(1);
     });
 
-    test('should return empty list when no airline routes', () async {
-      // Arrange
-      when(() => mockRepository.getAirlineRoutes()).thenAnswer((_) async => []);
+    test(
+      'should return Right with empty list when no airline routes',
+      () async {
+        when(
+          () => mockRepository.getAirlineRoutes(),
+        ).thenAnswer((_) async => const Right([]));
 
-      // Act
-      final result = await useCase.call();
+        final result = await useCase.call();
 
-      // Assert
-      expect(result, isEmpty);
-    });
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isEmpty),
+        );
+      },
+    );
   });
 
   group('GetAirlineRouteByIdUseCase', () {
@@ -59,8 +67,7 @@ void main() {
       useCase = GetAirlineRouteByIdUseCase(repository: mockRepository);
     });
 
-    test('should return airline route by id from repository', () async {
-      // Arrange
+    test('should return Right with airline route by id', () async {
       const route = AirlineRouteEntity(
         id: 'ar123',
         routeId: 'r1',
@@ -69,13 +76,15 @@ void main() {
       );
       when(
         () => mockRepository.getAirlineRouteById('ar123'),
-      ).thenAnswer((_) async => route);
+      ).thenAnswer((_) async => const Right(route));
 
-      // Act
       final result = await useCase.call('ar123');
 
-      // Assert
-      expect(result, equals(route));
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, equals(route)),
+      );
       verify(() => mockRepository.getAirlineRouteById('ar123')).called(1);
     });
   });

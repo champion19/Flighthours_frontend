@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/register/data/models/register_response_model.dart';
 import 'package:flight_hours_app/features/register/domain/entities/Employee_Entity_Register.dart';
-import 'package:flutter/material.dart';
 
 /// Excepción personalizada para errores de registro
 class RegisterException implements Exception {
@@ -58,8 +57,6 @@ class RegisterDatasource {
       'role': employee.role ?? 'pilot',
     };
 
-    debugPrint('📤 Enviando registro...');
-
     try {
       final response = await _dio.post(
         '/register',
@@ -101,7 +98,6 @@ class RegisterDatasource {
       }
 
       // Connection error
-      debugPrint('❌ Error de conexión: ${e.message}');
 
       String errorMessage;
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -124,7 +120,6 @@ class RegisterDatasource {
     } on RegisterException {
       rethrow;
     } catch (e) {
-      debugPrint('❌ Error inesperado: $e');
       throw RegisterException(
         message: 'Error inesperado. Por favor intenta de nuevo.',
         code: 'UNEXPECTED_ERROR',

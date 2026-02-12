@@ -183,12 +183,13 @@ void main() {
         airlineId: 'air001',
         routeName: 'Name',
         airlineName: 'Airline',
+        airlineCode: 'AV',
         originAirportCode: 'BOG',
         destinationAirportCode: 'MDE',
         status: 'active',
       );
 
-      expect(entity.props.length, equals(9));
+      expect(entity.props.length, equals(10));
     });
   });
 }

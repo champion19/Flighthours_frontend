@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airline/data/models/airline_model.dart';
@@ -24,33 +26,31 @@ void main() {
       useCase = GetAirlineByIdUseCase(repository: mockRepository);
     });
 
-    test('should return airline from repository', () async {
-      // Arrange
+    test('should return Right with airline from repository', () async {
       const airline = AirlineModel(id: 'a1', name: 'Avianca', code: 'AV');
       when(
         () => mockRepository.getAirlineById(any()),
-      ).thenAnswer((_) async => airline);
+      ).thenAnswer((_) async => const Right(airline));
 
-      // Act
       final result = await useCase.call('a1');
 
-      // Assert
-      expect(result, isA<AirlineEntity>());
-      expect(result?.name, equals('Avianca'));
+      expect(result, isA<Right>());
+      result.fold((failure) => fail('Expected Right'), (data) {
+        expect(data, isA<AirlineEntity>());
+        expect(data.name, equals('Avianca'));
+      });
       verify(() => mockRepository.getAirlineById('a1')).called(1);
     });
 
-    test('should return null when not found', () async {
-      // Arrange
-      when(
-        () => mockRepository.getAirlineById(any()),
-      ).thenAnswer((_) async => null);
+    test('should return Left when not found', () async {
+      when(() => mockRepository.getAirlineById(any())).thenAnswer(
+        (_) async =>
+            const Left(Failure(message: 'Airline not found', statusCode: 404)),
+      );
 
-      // Act
       final result = await useCase.call('notfound');
 
-      // Assert
-      expect(result, isNull);
+      expect(result, isA<Left>());
     });
   });
 
@@ -61,8 +61,7 @@ void main() {
       useCase = ActivateAirlineUseCase(repository: mockRepository);
     });
 
-    test('should activate airline successfully', () async {
-      // Arrange
+    test('should return Right with response on success', () async {
       final response = AirlineStatusResponseModel(
         success: true,
         code: 'ACTIVATED',
@@ -70,13 +69,14 @@ void main() {
       );
       when(
         () => mockRepository.activateAirline(any()),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('a1');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.activateAirline('a1')).called(1);
     });
   });
@@ -88,8 +88,7 @@ void main() {
       useCase = DeactivateAirlineUseCase(repository: mockRepository);
     });
 
-    test('should deactivate airline successfully', () async {
-      // Arrange
+    test('should return Right with response on success', () async {
       final response = AirlineStatusResponseModel(
         success: true,
         code: 'DEACTIVATED',
@@ -97,13 +96,14 @@ void main() {
       );
       when(
         () => mockRepository.deactivateAirline(any()),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('a1');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.deactivateAirline('a1')).called(1);
     });
   });

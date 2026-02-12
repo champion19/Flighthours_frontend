@@ -5,7 +5,6 @@ import 'package:flight_hours_app/features/register/domain/entities/Employee_Enti
 import 'package:flight_hours_app/features/register/domain/usecases/register_use_case.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_event.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_state.dart';
-import 'package:flutter/foundation.dart';
 
 /// BLoC for managing registration state
 ///
@@ -43,39 +42,30 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       ),
     );
 
-    try {
-      final response = await _registerUseCase.call(event.employment);
-      emit(
+    final result = await _registerUseCase.call(event.employment);
+
+    result.fold(
+      (failure) => emit(
+        RegisterError(
+          message: failure.message,
+          employee: state.employee ?? EmployeeEntityRegister.empty(),
+        ),
+      ),
+      (response) => emit(
         RegisterSuccess(
           employee: event.employment,
           message: response.message,
           code: response.code,
         ),
-      );
-    } catch (e) {
-      emit(
-        RegisterError(
-          message: e.toString(),
-          employee: state.employee ?? EmployeeEntityRegister.empty(),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _onEnterPersonalInformation(
     EnterPersonalInformation event,
     Emitter<RegisterState> emit,
   ) async {
-    try {
-      emit(PersonalInfoCompleted(employee: event.employment));
-    } catch (e) {
-      emit(
-        RegisterError(
-          message: e.toString(),
-          employee: state.employee ?? EmployeeEntityRegister.empty(),
-        ),
-      );
-    }
+    emit(PersonalInfoCompleted(employee: event.employment));
   }
 
   Future<void> _onEnterPilotInformation(
@@ -103,58 +93,55 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   ) async {
     final employee = event.employee;
 
-    try {
-      // Step 1: Save pilot data to secure storage for later
-      debugPrint('📦 Step 1: Saving pilot data for later...');
-      emit(
-        RegistrationFlowInProgress(
-          employee: employee,
-          currentStep: '1/2',
-          stepDescription: 'Saving your pilot information...',
-        ),
-      );
+    // Step 1: Save pilot data to secure storage for later
+    emit(
+      RegistrationFlowInProgress(
+        employee: employee,
+        currentStep: '1/2',
+        stepDescription: 'Saving your pilot information...',
+      ),
+    );
 
-      await SessionService().setPendingPilotData(
-        name: employee.name,
-        identificationNumber: employee.idNumber,
-        bp: employee.bp,
-        airlineId: employee.airline,
-        startDate: employee.fechaInicio,
-        endDate: employee.fechaFin,
-        active: employee.vigente ?? false,
-        role: employee.role ?? 'pilot',
-      );
-      debugPrint('✅ Employee data saved to secure storage');
+    await SessionService().setPendingPilotData(
+      name: employee.name,
+      identificationNumber: employee.idNumber,
+      bp: employee.bp,
+      airlineId: employee.airline,
+      startDate: employee.fechaInicio,
+      endDate: employee.fechaFin,
+      active: employee.vigente ?? false,
+      role: employee.role ?? 'pilot',
+    );
 
-      // Step 2: Register with basic data only
-      debugPrint('📝 Step 2: Registering user...');
-      emit(
-        RegistrationFlowInProgress(
-          employee: employee,
-          currentStep: '2/2',
-          stepDescription: 'Creating your account...',
-        ),
-      );
+    // Step 2: Register with basic data only
+    emit(
+      RegistrationFlowInProgress(
+        employee: employee,
+        currentStep: '2/2',
+        stepDescription: 'Creating your account...',
+      ),
+    );
 
-      final response = await _registerUseCase.call(employee);
-      debugPrint('✅ Registration successful');
+    final result = await _registerUseCase.call(employee);
 
-      // Registration complete - pilot data will be sent after login
-      emit(
-        RegistrationFlowComplete(
-          employee: employee,
-          message:
-              response.message.isNotEmpty
-                  ? response.message
-                  : 'Account created! Please verify your email to continue.',
-        ),
-      );
-    } catch (e) {
-      debugPrint('❌ Registration error: $e');
-      // Clear pending data if registration fails
-      await SessionService().clearPendingPilotData();
-      emit(RegisterError(message: e.toString(), employee: employee));
-    }
+    await result.fold(
+      (failure) async {
+        // Clear pending data if registration fails
+        await SessionService().clearPendingPilotData();
+        emit(RegisterError(message: failure.message, employee: employee));
+      },
+      (response) async {
+        emit(
+          RegistrationFlowComplete(
+            employee: employee,
+            message:
+                response.message.isNotEmpty
+                    ? response.message
+                    : 'Account created! Please verify your email to continue.',
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _onForgotPasswordRequested(
@@ -167,9 +154,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       ),
     );
     try {
-      // Simulación de envío de código
       await Future.delayed(const Duration(seconds: 1));
-      debugPrint('Enviando código de recuperación a ${event.email}');
       emit(RecoveryCodeSent());
     } catch (e) {
       emit(RecoveryError(message: e.toString()));
@@ -186,7 +171,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       ),
     );
     try {
-      // Simulación de verificación de código
       await Future.delayed(const Duration(seconds: 1));
       if (event.code == '1234') {
         emit(RecoveryCodeVerified());
@@ -208,9 +192,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       ),
     );
     try {
-      // Simulación de reseteo de contraseña
       await Future.delayed(const Duration(seconds: 1));
-      debugPrint('Contraseña actualizada a: ${event.newPassword}');
       emit(PasswordResetSuccess());
     } catch (e) {
       emit(RecoveryError(message: e.toString()));

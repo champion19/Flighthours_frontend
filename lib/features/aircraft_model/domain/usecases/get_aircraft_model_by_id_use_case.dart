@@ -1,13 +1,13 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/entities/aircraft_model_entity.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/repositories/aircraft_model_repository.dart';
 
-/// Use case to get an aircraft model by its ID
 class GetAircraftModelByIdUseCase {
-  final AircraftModelRepository _repository;
+  final AircraftModelRepository repository;
+  GetAircraftModelByIdUseCase({required this.repository});
 
-  GetAircraftModelByIdUseCase(this._repository);
-
-  Future<AircraftModelEntity> call(String id) {
-    return _repository.getAircraftModelById(id);
+  Future<Either<Failure, AircraftModelEntity>> call(String id) async {
+    return await repository.getAircraftModelById(id);
   }
 }

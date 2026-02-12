@@ -5,10 +5,8 @@ import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';
-import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
 import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
 import 'package:flight_hours_app/features/login/domain/usecases/login_use_case.dart';
-import 'package:flutter/foundation.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
@@ -39,101 +37,96 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(LoginLoading());
 
-    try {
-      final loginResult = await _loginUseCase.call(event.email, event.password);
+    final result = await _loginUseCase.call(event.email, event.password);
 
-      // Save session data for use throughout the app (without role for now)
-      await SessionService().setSession(
-        employeeId: loginResult.employeeId ?? '',
-        accessToken: loginResult.accessToken,
-        refreshToken: loginResult.refreshToken,
-        email: loginResult.email,
-        name: loginResult.name,
-      );
-
-      // Fetch employee data to get the role
-      String userRole = 'pilot'; // Default role
-      try {
-        debugPrint('📋 Fetching employee data to determine role...');
-        final employeeDataSource = EmployeeRemoteDataSourceImpl();
-        final employeeResponse = await employeeDataSource.getCurrentEmployee();
-
-        if (employeeResponse.success && employeeResponse.data != null) {
-          userRole = employeeResponse.data!.role ?? 'pilot';
-          debugPrint('✅ User role determined: $userRole');
-
-          // Update session with role
-          await SessionService().setSession(
-            employeeId: loginResult.employeeId ?? '',
-            accessToken: loginResult.accessToken,
-            refreshToken: loginResult.refreshToken,
-            email: loginResult.email,
-            name: employeeResponse.data!.name,
-            role: userRole,
+    await result.fold(
+      (failure) async {
+        // Check for email not verified error
+        if (failure.code == 'MOD_KC_LOGIN_EMAIL_NOT_VERIFIED_ERR_00001') {
+          emit(
+            LoginEmailNotVerified(
+              message: failure.message,
+              code: failure.code ?? 'EMAIL_NOT_VERIFIED',
+            ),
+          );
+        } else {
+          emit(
+            LoginError(
+              message: failure.message,
+              code: failure.code ?? 'UNKNOWN_ERROR',
+            ),
           );
         }
-      } catch (roleError) {
-        debugPrint(
-          '⚠️ Could not fetch user role, defaulting to pilot: $roleError',
+      },
+      (loginResult) async {
+        // Save session data for use throughout the app (without role for now)
+        await SessionService().setSession(
+          employeeId: loginResult.employeeId ?? '',
+          accessToken: loginResult.accessToken,
+          refreshToken: loginResult.refreshToken,
+          email: loginResult.email,
+          name: loginResult.name,
         );
-      }
 
-      // Check if there's pending pilot data from registration
-      final hasPendingData = await SessionService().hasPendingPilotData();
-
-      if (hasPendingData) {
-        debugPrint('📦 Found pending pilot data, sending to backend...');
-        emit(LoginSyncingPilotData());
-
+        // Fetch employee data to get the role
+        String userRole = 'pilot'; // Default role
         try {
-          final pendingData = await SessionService().getPendingPilotData();
+          final employeeDataSource = EmployeeRemoteDataSourceImpl();
+          final employeeResponse =
+              await employeeDataSource.getCurrentEmployee();
 
-          if (pendingData != null) {
-            debugPrint('📤 Pending data: $pendingData');
+          if (employeeResponse.success && employeeResponse.data != null) {
+            userRole = employeeResponse.data!.role ?? 'pilot';
 
-            // 1. Update basic employee data (PUT /employees)
-            final updateRequest = EmployeeUpdateRequest(
-              name: pendingData['name'],
-              identificationNumber: pendingData['identificationNumber'],
+            // Update session with role
+            await SessionService().setSession(
+              employeeId: loginResult.employeeId ?? '',
+              accessToken: loginResult.accessToken,
+              refreshToken: loginResult.refreshToken,
+              email: loginResult.email,
+              name: employeeResponse.data!.name,
+              role: userRole,
             );
-
-            debugPrint('📤 Sending PUT /employees: ${updateRequest.toJson()}');
-            final updateResponse = await _updateEmployeeUseCase.call(
-              updateRequest,
-            );
-
-            if (updateResponse.success) {
-              debugPrint('✅ Basic employee data synced successfully');
-              // Clear the pending data since it's been synced
-              await SessionService().clearPendingPilotData();
-            } else {
-              debugPrint(
-                '⚠️ Failed to sync pilot data: ${updateResponse.message}',
-              );
-              // Don't clear pending data - it can be retried later from profile
-            }
-
-            // Note: Airline association (bp, airline, dates) will be updated
-            // from the profile page using PUT /employees/airline
           }
-        } catch (updateError) {
-          // Log but don't fail the login - user can update later from profile
-          debugPrint('⚠️ Failed to sync pilot data: $updateError');
-          // Don't clear pending data - it can be retried later
+        } catch (_) {
+          // Could not fetch role, proceed with default
         }
-      }
 
-      emit(LoginSuccess(loginResult, role: userRole));
-    } on LoginException catch (e) {
-      if (e.isEmailNotVerified) {
-        // Special case: email not verified
-        emit(LoginEmailNotVerified(message: e.message, code: e.code));
-      } else {
-        // Other login errors
-        emit(LoginError(message: e.message, code: e.code));
-      }
-    } catch (e) {
-      emit(LoginError(message: e.toString(), code: 'UNKNOWN_ERROR'));
-    }
+        // Check if there's pending pilot data from registration
+        final hasPendingData = await SessionService().hasPendingPilotData();
+
+        if (hasPendingData) {
+          emit(LoginSyncingPilotData());
+
+          try {
+            final pendingData = await SessionService().getPendingPilotData();
+
+            if (pendingData != null) {
+              final updateRequest = EmployeeUpdateRequest(
+                name: pendingData['name'],
+                identificationNumber: pendingData['identificationNumber'],
+              );
+
+              final updateResult = await _updateEmployeeUseCase.call(
+                updateRequest,
+              );
+
+              updateResult.fold(
+                (_) {}, // Don't fail the login on update error
+                (response) async {
+                  if (response.success) {
+                    await SessionService().clearPendingPilotData();
+                  }
+                },
+              );
+            }
+          } catch (_) {
+            // Don't fail the login — user can update later from profile
+          }
+        }
+
+        emit(LoginSuccess(loginResult, role: userRole));
+      },
+    );
   }
 }

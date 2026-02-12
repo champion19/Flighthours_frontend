@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airline/data/models/airline_model.dart';
@@ -17,46 +19,46 @@ void main() {
   });
 
   group('ListAirlineUseCase', () {
-    test('should return list of airlines from repository', () async {
-      // Arrange
+    test('should return Right with list of airlines from repository', () async {
       final airlines = <AirlineEntity>[
         const AirlineModel(id: 'a1', name: 'Avianca', code: 'AV'),
         const AirlineModel(id: 'a2', name: 'Latam', code: 'LA'),
       ];
       when(
         () => mockRepository.getAirlines(),
-      ).thenAnswer((_) async => airlines);
+      ).thenAnswer((_) async => Right(airlines));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, isA<List<AirlineEntity>>());
-      expect(result.length, equals(2));
+      expect(result, isA<Right>());
+      result.fold((failure) => fail('Expected Right'), (data) {
+        expect(data, isA<List<AirlineEntity>>());
+        expect(data.length, equals(2));
+      });
       verify(() => mockRepository.getAirlines()).called(1);
     });
 
-    test('should return empty list when no airlines', () async {
-      // Arrange
+    test('should return Right with empty list when no airlines', () async {
       when(
         () => mockRepository.getAirlines(),
-      ).thenAnswer((_) async => <AirlineEntity>[]);
+      ).thenAnswer((_) async => const Right(<AirlineEntity>[]));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, isEmpty);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isEmpty),
+      );
     });
 
-    test('should propagate exception from repository', () async {
-      // Arrange
-      when(
-        () => mockRepository.getAirlines(),
-      ).thenThrow(Exception('Failed to load airlines'));
+    test('should return Left when repository fails', () async {
+      when(() => mockRepository.getAirlines()).thenAnswer(
+        (_) async => const Left(Failure(message: 'Failed to load airlines')),
+      );
 
-      // Act & Assert
-      expect(() => useCase.call(), throwsA(isA<Exception>()));
+      final result = await useCase.call();
+
+      expect(result, isA<Left>());
     });
   });
 }

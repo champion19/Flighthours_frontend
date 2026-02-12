@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/entities/manufacturer_entity.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/repositories/manufacturer_repository.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/usecases/get_manufacturer_by_id.dart';
@@ -23,33 +25,41 @@ void main() {
       country: 'USA',
     );
 
-    test('should get manufacturer by id from repository', () async {
+    test('should get Right with manufacturer by id from repository', () async {
       when(
         () => mockRepository.getManufacturerById('test-id'),
-      ).thenAnswer((_) async => testManufacturer);
+      ).thenAnswer((_) async => const Right(testManufacturer));
 
       final result = await usecase('test-id');
 
-      expect(result, testManufacturer);
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (manufacturer) => expect(manufacturer, testManufacturer),
+      );
       verify(() => mockRepository.getManufacturerById('test-id')).called(1);
     });
 
-    test('should return null when manufacturer not found', () async {
-      when(
-        () => mockRepository.getManufacturerById('not-found'),
-      ).thenAnswer((_) async => null);
+    test('should return Left when manufacturer not found', () async {
+      when(() => mockRepository.getManufacturerById('not-found')).thenAnswer(
+        (_) async => const Left(
+          Failure(message: 'Manufacturer not found', statusCode: 404),
+        ),
+      );
 
       final result = await usecase('not-found');
 
-      expect(result, isNull);
+      expect(result, isA<Left>());
     });
 
-    test('should propagate exception from repository', () async {
+    test('should return Left when repository fails', () async {
       when(
         () => mockRepository.getManufacturerById(any()),
-      ).thenThrow(Exception('Network error'));
+      ).thenAnswer((_) async => const Left(Failure(message: 'Network error')));
 
-      expect(() => usecase('test-id'), throwsException);
+      final result = await usecase('test-id');
+
+      expect(result, isA<Left>());
     });
   });
 }

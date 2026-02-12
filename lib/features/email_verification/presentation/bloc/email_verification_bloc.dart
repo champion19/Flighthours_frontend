@@ -8,9 +8,6 @@ part 'email_verification_event.dart';
 part 'email_verification_state.dart';
 
 /// BLoC for managing email verification state
-///
-/// Supports dependency injection for testing:
-/// - [emailVerificationUseCase] for handling email verification operations
 class EmailVerificationBloc
     extends Bloc<EmailVerificationEvent, EmailVerificationState> {
   final EmailVerificationUseCase _emailVerificationUseCase;
@@ -28,17 +25,21 @@ class EmailVerificationBloc
     Emitter<EmailVerificationState> emit,
   ) async {
     emit(EmailVerificationLoading());
-    try {
-      final result = await _emailVerificationUseCase.call(event.email);
-      if (result.emailconfirmed) {
-        emit(EmailVerificationSuccess(result: result));
-      } else {
-        emit(
-          const EmailVerificationError(message: 'El correo no está verificado'),
-        );
-      }
-    } catch (e) {
-      emit(EmailVerificationError(message: e.toString()));
-    }
+
+    final result = await _emailVerificationUseCase.call(event.email);
+    result.fold(
+      (failure) => emit(EmailVerificationError(message: failure.message)),
+      (entity) {
+        if (entity.emailconfirmed) {
+          emit(EmailVerificationSuccess(result: entity));
+        } else {
+          emit(
+            const EmailVerificationError(
+              message: 'El correo no está verificado',
+            ),
+          );
+        }
+      },
+    );
   }
 }

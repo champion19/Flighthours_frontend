@@ -8,12 +8,6 @@ import 'package:flight_hours_app/features/airport/presentation/bloc/airport_even
 import 'package:flight_hours_app/features/airport/presentation/bloc/airport_state.dart';
 
 /// BLoC for managing airport-related state
-///
-/// Supports dependency injection for testing:
-/// - [listAirportUseCase] for listing airports
-/// - [getAirportByIdUseCase] for fetching airport details
-/// - [activateAirportUseCase] for activating airports
-/// - [deactivateAirportUseCase] for deactivating airports
 class AirportBloc extends Bloc<AirportEvent, AirportState> {
   final ListAirportUseCase _listAirportUseCase;
   final GetAirportByIdUseCase _getAirportByIdUseCase;
@@ -49,26 +43,22 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   ) async {
     emit(AirportLoading());
 
-    try {
-      final airports = await _listAirportUseCase.call();
-      emit(AirportSuccess(airports));
-    } catch (e) {
-      emit(AirportError(e.toString()));
-    }
+    final result = await _listAirportUseCase.call();
+    result.fold(
+      (failure) => emit(AirportError(failure.message)),
+      (airports) => emit(AirportSuccess(airports)),
+    );
   }
 
   Future<void> _onFetchAirportById(
     FetchAirportById event,
     Emitter<AirportState> emit,
   ) async {
-    try {
-      final airport = await _getAirportByIdUseCase.call(event.airportId);
-      if (airport != null) {
-        emit(AirportDetailSuccess(airport));
-      }
-    } catch (e) {
-      // Silently fail - don't emit error to avoid disrupting the UI
-    }
+    final result = await _getAirportByIdUseCase.call(event.airportId);
+    result.fold(
+      (_) {}, // Silently fail
+      (airport) => emit(AirportDetailSuccess(airport)),
+    );
   }
 
   Future<void> _onActivateAirport(
@@ -77,16 +67,14 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   ) async {
     emit(AirportLoading());
 
-    try {
-      final response = await _activateAirportUseCase.call(event.airportId);
+    final result = await _activateAirportUseCase.call(event.airportId);
+    result.fold((failure) => emit(AirportError(failure.message)), (response) {
       if (response.success) {
         emit(AirportStatusUpdateSuccess(response, isActivation: true));
       } else {
         emit(AirportError(response.message));
       }
-    } catch (e) {
-      emit(AirportError(e.toString()));
-    }
+    });
   }
 
   Future<void> _onDeactivateAirport(
@@ -95,15 +83,13 @@ class AirportBloc extends Bloc<AirportEvent, AirportState> {
   ) async {
     emit(AirportLoading());
 
-    try {
-      final response = await _deactivateAirportUseCase.call(event.airportId);
+    final result = await _deactivateAirportUseCase.call(event.airportId);
+    result.fold((failure) => emit(AirportError(failure.message)), (response) {
       if (response.success) {
         emit(AirportStatusUpdateSuccess(response, isActivation: false));
       } else {
         emit(AirportError(response.message));
       }
-    } catch (e) {
-      emit(AirportError(e.toString()));
-    }
+    });
   }
 }

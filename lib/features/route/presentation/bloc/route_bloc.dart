@@ -6,10 +6,6 @@ import 'package:flight_hours_app/features/route/presentation/bloc/route_event.da
 import 'package:flight_hours_app/features/route/presentation/bloc/route_state.dart';
 
 /// BLoC for managing route-related state
-///
-/// Supports dependency injection for testing:
-/// - [listRoutesUseCase] for listing routes
-/// - [getRouteByIdUseCase] for fetching route details
 class RouteBloc extends Bloc<RouteEvent, RouteState> {
   final ListRoutesUseCase _listRoutesUseCase;
   final GetRouteByIdUseCase _getRouteByIdUseCase;
@@ -26,33 +22,27 @@ class RouteBloc extends Bloc<RouteEvent, RouteState> {
     on<FetchRouteById>(_onFetchRouteById);
   }
 
-  /// Handle FetchRoutes event
   Future<void> _onFetchRoutes(
     FetchRoutes event,
     Emitter<RouteState> emit,
   ) async {
     emit(RouteLoading());
 
-    try {
-      final routes = await _listRoutesUseCase.call();
-      emit(RouteSuccess(routes));
-    } catch (e) {
-      emit(RouteError(e.toString()));
-    }
+    final result = await _listRoutesUseCase.call();
+    result.fold(
+      (failure) => emit(RouteError(failure.message)),
+      (routes) => emit(RouteSuccess(routes)),
+    );
   }
 
-  /// Handle FetchRouteById event
   Future<void> _onFetchRouteById(
     FetchRouteById event,
     Emitter<RouteState> emit,
   ) async {
-    try {
-      final route = await _getRouteByIdUseCase.call(event.routeId);
-      if (route != null) {
-        emit(RouteDetailSuccess(route));
-      }
-    } catch (e) {
-      // Silently fail - don't emit error to avoid disrupting the UI
-    }
+    final result = await _getRouteByIdUseCase.call(event.routeId);
+    result.fold(
+      (_) {}, // Silently fail
+      (route) => emit(RouteDetailSuccess(route)),
+    );
   }
 }

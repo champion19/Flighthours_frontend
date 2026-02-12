@@ -1,44 +1,39 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 
 /// Repository interface for Logbook operations
-/// Defines the contract between domain and data layers
 abstract class LogbookRepository {
   // ========== Daily Logbook (Header) Operations ==========
 
-  /// Fetch all daily logbooks for the authenticated employee
-  Future<List<DailyLogbookEntity>> getDailyLogbooks();
+  Future<Either<Failure, List<DailyLogbookEntity>>> getDailyLogbooks();
 
-  /// Fetch a specific daily logbook by ID
-  Future<DailyLogbookEntity?> getDailyLogbookById(String id);
+  Future<Either<Failure, DailyLogbookEntity>> getDailyLogbookById(String id);
 
-  /// Create a new daily logbook
-  Future<DailyLogbookEntity?> createDailyLogbook({
+  Future<Either<Failure, DailyLogbookEntity>> createDailyLogbook({
     required DateTime logDate,
     required int bookPage,
   });
 
-  /// Update an existing daily logbook
-  Future<DailyLogbookEntity?> updateDailyLogbook({
+  Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
     required String id,
     required DateTime logDate,
     required int bookPage,
     required bool status,
   });
 
-  /// Delete a daily logbook
-  Future<bool> deleteDailyLogbook(String id);
+  Future<Either<Failure, bool>> deleteDailyLogbook(String id);
 
   // ========== Logbook Detail (Flight Segment) Operations ==========
 
-  /// Fetch all details for a specific daily logbook
-  Future<List<LogbookDetailEntity>> getLogbookDetails(String dailyLogbookId);
+  Future<Either<Failure, List<LogbookDetailEntity>>> getLogbookDetails(
+    String dailyLogbookId,
+  );
 
-  /// Fetch a specific logbook detail by ID
-  Future<LogbookDetailEntity?> getLogbookDetailById(String id);
+  Future<Either<Failure, LogbookDetailEntity>> getLogbookDetailById(String id);
 
-  /// Create a new logbook detail (flight segment)
-  Future<LogbookDetailEntity?> createLogbookDetail({
+  Future<Either<Failure, LogbookDetailEntity>> createLogbookDetail({
     required String dailyLogbookId,
     required String flightRealDate,
     required String flightNumber,
@@ -58,8 +53,7 @@ abstract class LogbookRepository {
     required String flightType,
   });
 
-  /// Update an existing logbook detail
-  Future<LogbookDetailEntity?> updateLogbookDetail({
+  Future<Either<Failure, LogbookDetailEntity>> updateLogbookDetail({
     required String id,
     required String flightRealDate,
     required String flightNumber,
@@ -79,6 +73,5 @@ abstract class LogbookRepository {
     required String flightType,
   });
 
-  /// Delete a logbook detail
-  Future<bool> deleteLogbookDetail(String id);
+  Future<Either<Failure, bool>> deleteLogbookDetail(String id);
 }
