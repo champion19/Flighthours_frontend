@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/reset_password/domain/entities/reset_password_entity.dart';
 import 'package:flight_hours_app/features/reset_password/domain/repositories/reset_password_repository.dart';
 
@@ -6,7 +8,7 @@ class ResetPasswordUseCase {
 
   ResetPasswordUseCase(this.resetPasswordRepository);
 
-  Future<ResetPasswordEntity> call(String email) async {
+  Future<Either<Failure, ResetPasswordEntity>> call(String email) async {
     return await resetPasswordRepository.requestPasswordReset(email);
   }
 }

@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';
 
@@ -8,8 +10,7 @@ class ListDailyLogbooksUseCase {
   ListDailyLogbooksUseCase({required LogbookRepository repository})
     : _repository = repository;
 
-  /// Execute the use case
-  Future<List<DailyLogbookEntity>> call() async {
+  Future<Either<Failure, List<DailyLogbookEntity>>> call() async {
     return await _repository.getDailyLogbooks();
   }
 }
