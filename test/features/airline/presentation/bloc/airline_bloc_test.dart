@@ -321,5 +321,117 @@ void main() {
       expect:
           () => [isA<AirlineStatusUpdating>(), isA<AirlineStatusUpdateError>()],
     );
+
+    blocTest<AirlineBloc, AirlineState>(
+      'emits [Updating, UpdateError] when ActivateAirline fails with success=false',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            AirlineStatusResponseModel(
+              success: false,
+              code: 'ALREADY_ACTIVE',
+              message: 'Already active',
+            ),
+          ),
+        );
+      },
+      build:
+          () => AirlineBloc(
+            listAirlineUseCase: mockListUseCase,
+            getAirlineByIdUseCase: mockGetByIdUseCase,
+            activateAirlineUseCase: mockActivateUseCase,
+            deactivateAirlineUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const ActivateAirline(airlineId: 'a1')),
+      expect:
+          () => [isA<AirlineStatusUpdating>(), isA<AirlineStatusUpdateError>()],
+    );
+
+    blocTest<AirlineBloc, AirlineState>(
+      'emits [Updating, UpdateError] when ActivateAirline returns Left',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Server error', statusCode: 500)),
+        );
+      },
+      build:
+          () => AirlineBloc(
+            listAirlineUseCase: mockListUseCase,
+            getAirlineByIdUseCase: mockGetByIdUseCase,
+            activateAirlineUseCase: mockActivateUseCase,
+            deactivateAirlineUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const ActivateAirline(airlineId: 'a1')),
+      expect:
+          () => [isA<AirlineStatusUpdating>(), isA<AirlineStatusUpdateError>()],
+    );
+
+    blocTest<AirlineBloc, AirlineState>(
+      'emits [Updating, UpdateSuccess] when DeactivateAirline succeeds',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            AirlineStatusResponseModel(
+              success: true,
+              code: 'DEACTIVATED',
+              message: 'Airline deactivated',
+            ),
+          ),
+        );
+      },
+      build:
+          () => AirlineBloc(
+            listAirlineUseCase: mockListUseCase,
+            getAirlineByIdUseCase: mockGetByIdUseCase,
+            activateAirlineUseCase: mockActivateUseCase,
+            deactivateAirlineUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const DeactivateAirline(airlineId: 'a1')),
+      expect:
+          () => [
+            isA<AirlineStatusUpdating>(),
+            isA<AirlineStatusUpdateSuccess>(),
+          ],
+    );
+
+    blocTest<AirlineBloc, AirlineState>(
+      'emits [Updating, UpdateError] when DeactivateAirline returns Left',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Server error', statusCode: 500)),
+        );
+      },
+      build:
+          () => AirlineBloc(
+            listAirlineUseCase: mockListUseCase,
+            getAirlineByIdUseCase: mockGetByIdUseCase,
+            activateAirlineUseCase: mockActivateUseCase,
+            deactivateAirlineUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const DeactivateAirline(airlineId: 'a1')),
+      expect:
+          () => [isA<AirlineStatusUpdating>(), isA<AirlineStatusUpdateError>()],
+    );
+
+    blocTest<AirlineBloc, AirlineState>(
+      'emits nothing when FetchAirlineById returns Left (silently fails)',
+      setUp: () {
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Not found', statusCode: 404)),
+        );
+      },
+      build:
+          () => AirlineBloc(
+            listAirlineUseCase: mockListUseCase,
+            getAirlineByIdUseCase: mockGetByIdUseCase,
+            activateAirlineUseCase: mockActivateUseCase,
+            deactivateAirlineUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const FetchAirlineById(airlineId: 'notfound')),
+      expect: () => [],
+    );
   });
 }

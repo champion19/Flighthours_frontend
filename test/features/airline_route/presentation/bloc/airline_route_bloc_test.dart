@@ -264,5 +264,154 @@ void main() {
               bloc.add(const FetchAirlineRouteById(airlineRouteId: 'notfound')),
       expect: () => [],
     );
+
+    // --- ActivateAirlineRoute ---
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateSuccess] when ActivateAirlineRoute succeeds',
+      setUp: () {
+        when(() => mockDataSource.activateAirlineRoute(any())).thenAnswer(
+          (_) async => AirlineRouteStatusResponse(
+            success: true,
+            message: 'Route activated',
+          ),
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) => bloc.add(const ActivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateSuccess>(),
+          ],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateError] when ActivateAirlineRoute fails',
+      setUp: () {
+        when(() => mockDataSource.activateAirlineRoute(any())).thenAnswer(
+          (_) async => AirlineRouteStatusResponse(
+            success: false,
+            message: 'Already active',
+          ),
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) => bloc.add(const ActivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateError>(),
+          ],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateError] when ActivateAirlineRoute throws',
+      setUp: () {
+        when(
+          () => mockDataSource.activateAirlineRoute(any()),
+        ).thenThrow(Exception('Network error'));
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) => bloc.add(const ActivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateError>(),
+          ],
+    );
+
+    // --- DeactivateAirlineRoute ---
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateSuccess] when DeactivateAirlineRoute succeeds',
+      setUp: () {
+        when(() => mockDataSource.deactivateAirlineRoute(any())).thenAnswer(
+          (_) async => AirlineRouteStatusResponse(
+            success: true,
+            message: 'Route deactivated',
+          ),
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) =>
+              bloc.add(const DeactivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateSuccess>(),
+          ],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateError] when DeactivateAirlineRoute fails',
+      setUp: () {
+        when(() => mockDataSource.deactivateAirlineRoute(any())).thenAnswer(
+          (_) async => AirlineRouteStatusResponse(
+            success: false,
+            message: 'Already inactive',
+          ),
+        );
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) =>
+              bloc.add(const DeactivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateError>(),
+          ],
+    );
+
+    blocTest<AirlineRouteBloc, AirlineRouteState>(
+      'emits [StatusUpdating, StatusUpdateError] when DeactivateAirlineRoute throws',
+      setUp: () {
+        when(
+          () => mockDataSource.deactivateAirlineRoute(any()),
+        ).thenThrow(Exception('Network error'));
+      },
+      build:
+          () => AirlineRouteBloc(
+            listAirlineRoutesUseCase: mockListUseCase,
+            getAirlineRouteByIdUseCase: mockGetByIdUseCase,
+            dataSource: mockDataSource,
+          ),
+      act:
+          (bloc) =>
+              bloc.add(const DeactivateAirlineRoute(airlineRouteId: 'ar1')),
+      expect:
+          () => [
+            isA<AirlineRouteStatusUpdating>(),
+            isA<AirlineRouteStatusUpdateError>(),
+          ],
+    );
   });
 }
