@@ -25,6 +25,7 @@ import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircr
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_model_list_page.dart';
 import 'package:flight_hours_app/features/license_plate/presentation/bloc/license_plate_bloc.dart';
 import 'package:flight_hours_app/features/license_plate/presentation/pages/license_plate_lookup_page.dart';
+import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,6 +57,7 @@ void main() async {
         BlocProvider(create: (_) => ManufacturerBloc()),
         BlocProvider(create: (_) => AircraftModelBloc()),
         BlocProvider(create: (_) => LicensePlateBloc()),
+        BlocProvider(create: (_) => FlightBloc()),
       ],
       child: MaterialApp(
         initialRoute: '/',

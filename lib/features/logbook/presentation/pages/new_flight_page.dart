@@ -2,6 +2,9 @@ import 'package:flight_hours_app/features/airline_route/domain/entities/airline_
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
+import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
+import 'package:flight_hours_app/features/flight/presentation/bloc/flight_event.dart';
+import 'package:flight_hours_app/features/flight/presentation/bloc/flight_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,11 +28,16 @@ class _NewFlightPageState extends State<NewFlightPage> {
   bool _isLoadingRoutes = true;
   String? _errorMessage;
 
+  // Logbook ID (fetched automatically)
+  String? _logbookId;
+
   @override
   void initState() {
     super.initState();
     // Load airline routes for search
     context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+    // Fetch logbook ID for the employee
+    context.read<FlightBloc>().add(const FetchLogbookId());
   }
 
   @override
@@ -41,26 +49,39 @@ class _NewFlightPageState extends State<NewFlightPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<EmployeeBloc, EmployeeState>(
-      listener: (context, state) {
-        if (state is EmployeeAirlineRoutesSuccess) {
-          setState(() {
-            _airlineRoutes = state.response.data;
-            _isLoadingRoutes = false;
-            _errorMessage = null;
-          });
-        } else if (state is EmployeeAirlineRoutesLoading) {
-          setState(() {
-            _isLoadingRoutes = true;
-            _errorMessage = null;
-          });
-        } else if (state is EmployeeError) {
-          setState(() {
-            _isLoadingRoutes = false;
-            _errorMessage = state.message;
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EmployeeBloc, EmployeeState>(
+          listener: (context, state) {
+            if (state is EmployeeAirlineRoutesSuccess) {
+              setState(() {
+                _airlineRoutes = state.response.data;
+                _isLoadingRoutes = false;
+                _errorMessage = null;
+              });
+            } else if (state is EmployeeAirlineRoutesLoading) {
+              setState(() {
+                _isLoadingRoutes = true;
+                _errorMessage = null;
+              });
+            } else if (state is EmployeeError) {
+              setState(() {
+                _isLoadingRoutes = false;
+                _errorMessage = state.message;
+              });
+            }
+          },
+        ),
+        BlocListener<FlightBloc, FlightState>(
+          listener: (context, state) {
+            if (state is LogbookIdLoaded) {
+              setState(() {
+                _logbookId = state.logbookId;
+              });
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _buildAppBar(),
@@ -461,9 +482,21 @@ class _NewFlightPageState extends State<NewFlightPage> {
                 ],
               ),
             ),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.add_circle_outline,
-              color: const Color(0xFF4facfe),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color:
+                    isSelected
+                        ? const Color(0xFF4facfe)
+                        : const Color(0xFF4facfe).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isSelected ? Icons.check : Icons.add,
+                color: isSelected ? Colors.white : const Color(0xFF4facfe),
+                size: 20,
+              ),
             ),
           ],
         ),
@@ -637,17 +670,18 @@ class _NewFlightPageState extends State<NewFlightPage> {
         return;
       }
 
-      // TODO: Navigate to next step or save flight data
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Flight data saved! (Next step coming soon)'),
-          backgroundColor: const Color(0xFF00b894),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      // Navigate to License Plate lookup (Step 2)
+      // POST /daily-logbooks/:id/details needs: flight_real_date, flight_number, airline_route_id
+      // The backend resolves route_code, origin/destination iata, airline_code from airline_route_id
+      final flightData = <String, dynamic>{
+        'daily_logbook_id': _logbookId ?? '',
+        'flight_real_date':
+            '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+        'flight_number': _flightController.text.trim(),
+        'airline_route_id': _selectedRoute!.id,
+      };
+
+      Navigator.pushNamed(context, '/license-plate', arguments: flightData);
     }
   }
 
