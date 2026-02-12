@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/register/data/datasources/register_datasource.dart';

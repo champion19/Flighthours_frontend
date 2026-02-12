@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/manufacturer/data/datasources/manufacturer_remote_data_source.dart';
 import 'package:flight_hours_app/features/manufacturer/data/models/manufacturer_model.dart';
 import 'package:flight_hours_app/features/manufacturer/data/repositories/manufacturer_repository_impl.dart';
