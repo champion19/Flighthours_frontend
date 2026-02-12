@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
@@ -13,44 +16,93 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   final EmployeeRemoteDataSource _dataSource =
       InjectorApp.resolve<EmployeeRemoteDataSource>();
 
-  @override
-  Future<EmployeeResponseModel> getCurrentEmployee() {
-    return _dataSource.getCurrentEmployee();
+  Failure _handleError(dynamic e) {
+    if (e is DioException && e.response != null) {
+      final data = e.response!.data;
+      if (data is Map<String, dynamic>) {
+        return Failure(
+          message: data['message']?.toString() ?? 'Server error',
+          code: data['code']?.toString(),
+          statusCode: e.response!.statusCode,
+        );
+      }
+      return Failure(
+        message: 'Server error',
+        statusCode: e.response!.statusCode,
+      );
+    }
+    return Failure(message: 'Unexpected error occurred');
   }
 
   @override
-  Future<EmployeeUpdateResponseModel> updateCurrentEmployee(
+  Future<Either<Failure, EmployeeResponseModel>> getCurrentEmployee() async {
+    try {
+      return Right(await _dataSource.getCurrentEmployee());
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, EmployeeUpdateResponseModel>> updateCurrentEmployee(
     EmployeeUpdateRequest request,
-  ) {
-    return _dataSource.updateCurrentEmployee(request);
+  ) async {
+    try {
+      return Right(await _dataSource.updateCurrentEmployee(request));
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 
   @override
-  Future<ChangePasswordResponseModel> changePassword(
+  Future<Either<Failure, ChangePasswordResponseModel>> changePassword(
     ChangePasswordRequest request,
-  ) {
-    return _dataSource.changePassword(request);
+  ) async {
+    try {
+      return Right(await _dataSource.changePassword(request));
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 
   @override
-  Future<DeleteEmployeeResponseModel> deleteCurrentEmployee() {
-    return _dataSource.deleteCurrentEmployee();
+  Future<Either<Failure, DeleteEmployeeResponseModel>>
+  deleteCurrentEmployee() async {
+    try {
+      return Right(await _dataSource.deleteCurrentEmployee());
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 
   @override
-  Future<EmployeeAirlineResponseModel> getEmployeeAirline() {
-    return _dataSource.getEmployeeAirline();
+  Future<Either<Failure, EmployeeAirlineResponseModel>>
+  getEmployeeAirline() async {
+    try {
+      return Right(await _dataSource.getEmployeeAirline());
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 
   @override
-  Future<EmployeeAirlineResponseModel> updateEmployeeAirline(
+  Future<Either<Failure, EmployeeAirlineResponseModel>> updateEmployeeAirline(
     EmployeeAirlineUpdateRequest request,
-  ) {
-    return _dataSource.updateEmployeeAirline(request);
+  ) async {
+    try {
+      return Right(await _dataSource.updateEmployeeAirline(request));
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 
   @override
-  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes() {
-    return _dataSource.getEmployeeAirlineRoutes();
+  Future<Either<Failure, EmployeeAirlineRoutesResponseModel>>
+  getEmployeeAirlineRoutes() async {
+    try {
+      return Right(await _dataSource.getEmployeeAirlineRoutes());
+    } catch (e) {
+      return Left(_handleError(e));
+    }
   }
 }

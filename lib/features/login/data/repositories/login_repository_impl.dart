@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
 import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
 import 'package:flight_hours_app/features/login/domain/repositories/login_repository.dart';
@@ -7,13 +9,27 @@ class LoginRepositoryImpl extends LoginRepository {
   LoginRepositoryImpl(this.loginDatasource);
 
   @override
-  Future<LoginEntity> loginEmployee(String email, String password) async {
-    return await loginDatasource.loginEmployee(email, password);
+  Future<Either<Failure, LoginEntity>> loginEmployee(
+    String email,
+    String password,
+  ) async {
+    try {
+      final result = await loginDatasource.loginEmployee(email, password);
+      return Right(result);
+    } on LoginException catch (e) {
+      return Left(
+        Failure(message: e.message, code: e.code, statusCode: e.statusCode),
+      );
+    } catch (e) {
+      return Left(
+        Failure(message: 'Unexpected error occurred', code: 'UNEXPECTED_ERROR'),
+      );
+    }
   }
 
   @override
-  Future<void> logoutEmployee() {
+  Future<Either<Failure, void>> logoutEmployee() async {
     // TODO: implement logoutEmployee
-    throw UnimplementedError();
+    return const Right(null);
   }
 }

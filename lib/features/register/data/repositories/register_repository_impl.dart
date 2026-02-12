@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/register/data/datasources/register_datasource.dart';
 import 'package:flight_hours_app/features/register/data/models/register_response_model.dart';
 import 'package:flight_hours_app/features/register/domain/entities/Employee_Entity_Register.dart';
@@ -9,9 +11,20 @@ class RegisterRepositoryImpl extends RegisterRepository {
   RegisterRepositoryImpl(this.registerDatasource);
 
   @override
-  Future<RegisterResponseModel> registerEmployee(
+  Future<Either<Failure, RegisterResponseModel>> registerEmployee(
     EmployeeEntityRegister employee,
   ) async {
-    return await registerDatasource.registerEmployee(employee);
+    try {
+      final result = await registerDatasource.registerEmployee(employee);
+      return Right(result);
+    } on RegisterException catch (e) {
+      return Left(
+        Failure(message: e.message, code: e.code, statusCode: e.statusCode),
+      );
+    } catch (e) {
+      return Left(
+        Failure(message: 'Unexpected error occurred', code: 'UNEXPECTED_ERROR'),
+      );
+    }
   }
 }
