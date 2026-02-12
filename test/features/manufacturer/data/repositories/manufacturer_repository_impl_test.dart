@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/manufacturer/data/datasources/manufacturer_remote_data_source.dart';
 import 'package:flight_hours_app/features/manufacturer/data/models/manufacturer_model.dart';
 import 'package:flight_hours_app/features/manufacturer/data/repositories/manufacturer_repository_impl.dart';
@@ -29,66 +31,96 @@ void main() {
 
   group('ManufacturerRepositoryImpl', () {
     group('getManufacturers', () {
-      test('should return list of manufacturers from data source', () async {
-        when(
-          () => mockDataSource.getManufacturers(),
-        ).thenAnswer((_) async => testManufacturers);
+      test(
+        'should return Right with list of manufacturers from data source',
+        () async {
+          when(
+            () => mockDataSource.getManufacturers(),
+          ).thenAnswer((_) async => testManufacturers);
 
-        final result = await repository.getManufacturers();
+          final result = await repository.getManufacturers();
 
-        expect(result, testManufacturers);
-        verify(() => mockDataSource.getManufacturers()).called(1);
-      });
+          expect(result, isA<Right>());
+          result.fold(
+            (failure) => fail('Expected Right but got Left'),
+            (manufacturers) => expect(manufacturers, testManufacturers),
+          );
+          verify(() => mockDataSource.getManufacturers()).called(1);
+        },
+      );
 
-      test('should return empty list when no manufacturers', () async {
-        when(
-          () => mockDataSource.getManufacturers(),
-        ).thenAnswer((_) async => []);
+      test(
+        'should return Right with empty list when no manufacturers',
+        () async {
+          when(
+            () => mockDataSource.getManufacturers(),
+          ).thenAnswer((_) async => []);
 
-        final result = await repository.getManufacturers();
+          final result = await repository.getManufacturers();
 
-        expect(result, isEmpty);
-      });
+          result.fold(
+            (failure) => fail('Expected Right but got Left'),
+            (manufacturers) => expect(manufacturers, isEmpty),
+          );
+        },
+      );
 
-      test('should propagate exception from data source', () async {
+      test('should return Left with Failure on exception', () async {
         when(
           () => mockDataSource.getManufacturers(),
         ).thenThrow(Exception('Network error'));
 
-        expect(() => repository.getManufacturers(), throwsException);
+        final result = await repository.getManufacturers();
+
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.message, isNotEmpty),
+          (data) => fail('Expected Left but got Right'),
+        );
       });
     });
 
     group('getManufacturerById', () {
-      test('should return manufacturer from data source', () async {
+      test('should return Right with manufacturer from data source', () async {
         when(
           () => mockDataSource.getManufacturerById('test-id'),
         ).thenAnswer((_) async => testManufacturer);
 
         final result = await repository.getManufacturerById('test-id');
 
-        expect(result, testManufacturer);
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right but got Left'),
+          (manufacturer) => expect(manufacturer, testManufacturer),
+        );
         verify(() => mockDataSource.getManufacturerById('test-id')).called(1);
       });
 
-      test('should return null when manufacturer not found', () async {
+      test('should return Left when manufacturer not found', () async {
         when(
           () => mockDataSource.getManufacturerById('not-found'),
         ).thenAnswer((_) async => null);
 
         final result = await repository.getManufacturerById('not-found');
 
-        expect(result, isNull);
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.statusCode, 404),
+          (data) => fail('Expected Left but got Right'),
+        );
       });
 
-      test('should propagate exception from data source', () async {
+      test('should return Left with Failure on exception', () async {
         when(
           () => mockDataSource.getManufacturerById(any()),
         ).thenThrow(Exception('Network error'));
 
-        expect(
-          () => repository.getManufacturerById('test-id'),
-          throwsException,
+        final result = await repository.getManufacturerById('test-id');
+
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.message, isNotEmpty),
+          (data) => fail('Expected Left but got Right'),
         );
       });
     });

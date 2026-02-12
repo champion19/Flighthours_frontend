@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
@@ -29,13 +31,11 @@ void main() {
     group('FetchAirlineRouteById', () {
       test('should create with required airlineRouteId', () {
         const event = FetchAirlineRouteById(airlineRouteId: 'ar123');
-
         expect(event.airlineRouteId, equals('ar123'));
       });
 
       test('props should contain airlineRouteId', () {
         const event = FetchAirlineRouteById(airlineRouteId: 'ar123');
-
         expect(event.props.length, equals(1));
         expect(event.props, contains('ar123'));
       });
@@ -44,13 +44,11 @@ void main() {
     group('SearchAirlineRoutes', () {
       test('should create with required query', () {
         const event = SearchAirlineRoutes(query: 'JFK-LHR');
-
         expect(event.query, equals('JFK-LHR'));
       });
 
       test('props should contain query', () {
         const event = SearchAirlineRoutes(query: 'search');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -58,13 +56,11 @@ void main() {
     group('ActivateAirlineRoute', () {
       test('should create with required airlineRouteId', () {
         const event = ActivateAirlineRoute(airlineRouteId: 'ar456');
-
         expect(event.airlineRouteId, equals('ar456'));
       });
 
       test('props should contain airlineRouteId', () {
         const event = ActivateAirlineRoute(airlineRouteId: 'id1');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -72,13 +68,11 @@ void main() {
     group('DeactivateAirlineRoute', () {
       test('should create with required airlineRouteId', () {
         const event = DeactivateAirlineRoute(airlineRouteId: 'ar789');
-
         expect(event.airlineRouteId, equals('ar789'));
       });
 
       test('props should contain airlineRouteId', () {
         const event = DeactivateAirlineRoute(airlineRouteId: 'id2');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -102,15 +96,12 @@ void main() {
           AirlineRouteEntity(id: '1', routeId: 'r1', airlineId: 'a1'),
           AirlineRouteEntity(id: '2', routeId: 'r2', airlineId: 'a1'),
         ];
-
         const state = AirlineRouteSuccess(routes);
-
         expect(state.airlineRoutes.length, equals(2));
       });
 
       test('props should contain airlineRoutes', () {
         const state = AirlineRouteSuccess([]);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -124,16 +115,13 @@ void main() {
           originAirportCode: 'JFK',
           destinationAirportCode: 'LHR',
         );
-
         const state = AirlineRouteDetailSuccess(route);
-
         expect(state.airlineRoute.id, equals('ar1'));
       });
 
       test('props should contain airlineRoute', () {
         const route = AirlineRouteEntity(id: '1', routeId: 'r', airlineId: 'a');
         const state = AirlineRouteDetailSuccess(route);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -141,13 +129,11 @@ void main() {
     group('AirlineRouteError', () {
       test('should create with message', () {
         const state = AirlineRouteError('Network error');
-
         expect(state.message, equals('Network error'));
       });
 
       test('props should contain message', () {
         const state = AirlineRouteError('Error');
-
         expect(state.props.length, equals(1));
       });
     });
@@ -160,13 +146,11 @@ void main() {
     group('AirlineRouteStatusUpdateSuccess', () {
       test('should create with message', () {
         const state = AirlineRouteStatusUpdateSuccess('Route activated');
-
         expect(state.message, equals('Route activated'));
       });
 
       test('props should contain message', () {
         const state = AirlineRouteStatusUpdateSuccess('msg');
-
         expect(state.props.length, equals(1));
       });
     });
@@ -174,19 +158,16 @@ void main() {
     group('AirlineRouteStatusUpdateError', () {
       test('should create with message', () {
         const state = AirlineRouteStatusUpdateError('Activation failed');
-
         expect(state.message, equals('Activation failed'));
       });
 
       test('props should contain message', () {
         const state = AirlineRouteStatusUpdateError('error');
-
         expect(state.props.length, equals(1));
       });
     });
   });
 
-  // Tests for Bloc logic using bloc_test
   group('AirlineRouteBloc', () {
     late MockListAirlineRoutesUseCase mockListUseCase;
     late MockGetAirlineRouteByIdUseCase mockGetByIdUseCase;
@@ -211,9 +192,9 @@ void main() {
       'emits [Loading, Success] when FetchAirlineRoutes succeeds',
       setUp: () {
         when(() => mockListUseCase.call()).thenAnswer(
-          (_) async => [
-            const AirlineRouteEntity(id: 'ar1', routeId: 'r1', airlineId: 'a1'),
-          ],
+          (_) async => const Right([
+            AirlineRouteEntity(id: 'ar1', routeId: 'r1', airlineId: 'a1'),
+          ]),
         );
       },
       build:
@@ -229,9 +210,9 @@ void main() {
     blocTest<AirlineRouteBloc, AirlineRouteState>(
       'emits [Loading, Error] when FetchAirlineRoutes fails',
       setUp: () {
-        when(
-          () => mockListUseCase.call(),
-        ).thenThrow(Exception('Failed to load routes'));
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Failed to load routes')),
+        );
       },
       build:
           () => AirlineRouteBloc(
@@ -247,10 +228,8 @@ void main() {
       'emits [DetailSuccess] when FetchAirlineRouteById succeeds',
       setUp: () {
         when(() => mockGetByIdUseCase.call(any())).thenAnswer(
-          (_) async => const AirlineRouteEntity(
-            id: 'ar1',
-            routeId: 'r1',
-            airlineId: 'a1',
+          (_) async => const Right(
+            AirlineRouteEntity(id: 'ar1', routeId: 'r1', airlineId: 'a1'),
           ),
         );
       },
@@ -267,11 +246,12 @@ void main() {
     );
 
     blocTest<AirlineRouteBloc, AirlineRouteState>(
-      'emits nothing when FetchAirlineRouteById returns null',
+      'emits nothing when FetchAirlineRouteById returns Left',
       setUp: () {
-        when(
-          () => mockGetByIdUseCase.call(any()),
-        ).thenAnswer((_) async => null);
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Route not found', statusCode: 404)),
+        );
       },
       build:
           () => AirlineRouteBloc(

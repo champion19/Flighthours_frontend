@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/data/models/airport_model.dart';
@@ -33,13 +35,11 @@ void main() {
     group('FetchAirportById', () {
       test('should create with required airportId', () {
         const event = FetchAirportById(airportId: 'airport123');
-
         expect(event.airportId, equals('airport123'));
       });
 
       test('props should contain airportId', () {
         const event = FetchAirportById(airportId: 'airport123');
-
         expect(event.props.length, equals(1));
         expect(event.props, contains('airport123'));
       });
@@ -47,7 +47,6 @@ void main() {
       test('two events with same id should be equal', () {
         const event1 = FetchAirportById(airportId: 'abc');
         const event2 = FetchAirportById(airportId: 'abc');
-
         expect(event1, equals(event2));
       });
     });
@@ -55,13 +54,11 @@ void main() {
     group('ActivateAirport', () {
       test('should create with required airportId', () {
         const event = ActivateAirport(airportId: 'airport456');
-
         expect(event.airportId, equals('airport456'));
       });
 
       test('props should contain airportId', () {
         const event = ActivateAirport(airportId: 'id123');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -69,13 +66,11 @@ void main() {
     group('DeactivateAirport', () {
       test('should create with required airportId', () {
         const event = DeactivateAirport(airportId: 'airport789');
-
         expect(event.airportId, equals('airport789'));
       });
 
       test('props should contain airportId', () {
         const event = DeactivateAirport(airportId: 'id456');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -99,16 +94,13 @@ void main() {
           AirportEntity(id: '1', name: 'JFK Airport', status: 'active'),
           AirportEntity(id: '2', name: 'LAX Airport', status: 'inactive'),
         ];
-
         const state = AirportSuccess(airports);
-
         expect(state.airports.length, equals(2));
         expect(state.airports.first.name, equals('JFK Airport'));
       });
 
       test('props should contain airports', () {
         const state = AirportSuccess([]);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -120,9 +112,7 @@ void main() {
           name: 'Bogotá El Dorado',
           status: 'active',
         );
-
         const state = AirportDetailSuccess(airport);
-
         expect(state.airport.id, equals('1'));
         expect(state.airport.name, equals('Bogotá El Dorado'));
       });
@@ -130,7 +120,6 @@ void main() {
       test('props should contain airport', () {
         const airport = AirportEntity(id: '1', name: 'Test', status: 'active');
         const state = AirportDetailSuccess(airport);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -142,9 +131,7 @@ void main() {
           code: 'OK',
           message: 'Airport activated',
         );
-
         final state = AirportStatusUpdateSuccess(response, isActivation: true);
-
         expect(state.response.success, isTrue);
         expect(state.isActivation, isTrue);
       });
@@ -156,7 +143,6 @@ void main() {
           message: 'msg',
         );
         final state = AirportStatusUpdateSuccess(response, isActivation: false);
-
         expect(state.props.length, equals(2));
       });
     });
@@ -164,19 +150,16 @@ void main() {
     group('AirportError', () {
       test('should create with message', () {
         const state = AirportError('Network error');
-
         expect(state.message, equals('Network error'));
       });
 
       test('props should contain message', () {
         const state = AirportError('Error');
-
         expect(state.props.length, equals(1));
       });
     });
   });
 
-  // Tests for AirportBloc logic using bloc_test
   group('AirportBloc', () {
     late MockListAirportUseCase mockListUseCase;
     late MockGetAirportByIdUseCase mockGetByIdUseCase;
@@ -204,9 +187,9 @@ void main() {
       'emits [Loading, Success] when FetchAirports succeeds',
       setUp: () {
         when(() => mockListUseCase.call()).thenAnswer(
-          (_) async => [
-            const AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
-          ],
+          (_) async => const Right([
+            AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
+          ]),
         );
       },
       build:
@@ -223,9 +206,9 @@ void main() {
     blocTest<AirportBloc, AirportState>(
       'emits [Loading, Error] when FetchAirports fails',
       setUp: () {
-        when(
-          () => mockListUseCase.call(),
-        ).thenThrow(Exception('Failed to load airports'));
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Failed to load airports')),
+        );
       },
       build:
           () => AirportBloc(
@@ -242,8 +225,9 @@ void main() {
       'emits [DetailSuccess] when FetchAirportById succeeds',
       setUp: () {
         when(() => mockGetByIdUseCase.call(any())).thenAnswer(
-          (_) async =>
-              const AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
+          (_) async => const Right(
+            AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
+          ),
         );
       },
       build:
@@ -261,10 +245,12 @@ void main() {
       'emits [Loading, StatusUpdateSuccess] when ActivateAirport succeeds',
       setUp: () {
         when(() => mockActivateUseCase.call(any())).thenAnswer(
-          (_) async => AirportStatusResponseModel(
-            success: true,
-            code: 'ACTIVATED',
-            message: 'Airport activated',
+          (_) async => Right(
+            AirportStatusResponseModel(
+              success: true,
+              code: 'ACTIVATED',
+              message: 'Airport activated',
+            ),
           ),
         );
       },
@@ -280,13 +266,15 @@ void main() {
     );
 
     blocTest<AirportBloc, AirportState>(
-      'emits [Loading, Error] when DeactivateAirport fails',
+      'emits [Loading, Error] when DeactivateAirport returns non-success response',
       setUp: () {
         when(() => mockDeactivateUseCase.call(any())).thenAnswer(
-          (_) async => AirportStatusResponseModel(
-            success: false,
-            code: 'ALREADY_INACTIVE',
-            message: 'Already inactive',
+          (_) async => Right(
+            AirportStatusResponseModel(
+              success: false,
+              code: 'ALREADY_INACTIVE',
+              message: 'Already inactive',
+            ),
           ),
         );
       },

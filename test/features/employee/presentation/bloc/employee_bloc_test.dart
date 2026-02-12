@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
@@ -230,10 +232,12 @@ void main() {
       'emits [Loading, DetailSuccess] when LoadCurrentEmployee succeeds',
       setUp: () {
         when(() => mockGetUseCase.call()).thenAnswer(
-          (_) async => EmployeeResponseModel(
-            success: true,
-            code: 'OK',
-            message: 'Employee fetched',
+          (_) async => Right(
+            EmployeeResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Employee fetched',
+            ),
           ),
         );
       },
@@ -246,10 +250,12 @@ void main() {
       'emits [Loading, Error] when LoadCurrentEmployee fails',
       setUp: () {
         when(() => mockGetUseCase.call()).thenAnswer(
-          (_) async => EmployeeResponseModel(
-            success: false,
-            code: 'NOT_FOUND',
-            message: 'Employee not found',
+          (_) async => Right(
+            EmployeeResponseModel(
+              success: false,
+              code: 'NOT_FOUND',
+              message: 'Employee not found',
+            ),
           ),
         );
       },

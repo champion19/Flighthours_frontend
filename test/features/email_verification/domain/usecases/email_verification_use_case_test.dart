@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/email_verification/domain/entities/EmailEntity.dart';
@@ -21,60 +23,62 @@ void main() {
     const testEmail = 'user@example.com';
 
     test('should call verifyEmail on repository with correct email', () async {
-      // Arrange
       final verifiedEntity = EmailEntity(emailconfirmed: true);
       when(
         () => mockRepository.verifyEmail(testEmail),
-      ).thenAnswer((_) async => verifiedEntity);
+      ).thenAnswer((_) async => Right(verifiedEntity));
 
-      // Act
       final result = await useCase.call(testEmail);
 
-      // Assert
       verify(() => mockRepository.verifyEmail(testEmail)).called(1);
-      expect(result.emailconfirmed, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.emailconfirmed, isTrue),
+      );
     });
 
     test(
-      'should return email confirmed true on successful verification',
+      'should return Right with email confirmed true on successful verification',
       () async {
-        // Arrange
         final verifiedEntity = EmailEntity(emailconfirmed: true);
         when(
           () => mockRepository.verifyEmail(testEmail),
-        ).thenAnswer((_) async => verifiedEntity);
+        ).thenAnswer((_) async => Right(verifiedEntity));
 
-        // Act
         final result = await useCase.call(testEmail);
 
-        // Assert
-        expect(result.emailconfirmed, isTrue);
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data.emailconfirmed, isTrue),
+        );
       },
     );
 
-    test('should return email confirmed false when not verified', () async {
-      // Arrange
-      final unverifiedEntity = EmailEntity(emailconfirmed: false);
-      when(
-        () => mockRepository.verifyEmail(testEmail),
-      ).thenAnswer((_) async => unverifiedEntity);
+    test(
+      'should return Right with email confirmed false when not verified',
+      () async {
+        final unverifiedEntity = EmailEntity(emailconfirmed: false);
+        when(
+          () => mockRepository.verifyEmail(testEmail),
+        ).thenAnswer((_) async => Right(unverifiedEntity));
 
-      // Act
+        final result = await useCase.call(testEmail);
+
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data.emailconfirmed, isFalse),
+        );
+      },
+    );
+
+    test('should return Left when repository fails', () async {
+      when(() => mockRepository.verifyEmail(testEmail)).thenAnswer(
+        (_) async => const Left(Failure(message: 'Verification failed')),
+      );
+
       final result = await useCase.call(testEmail);
 
-      // Assert
-      expect(result.emailconfirmed, isFalse);
-    });
-
-    test('should propagate exception when repository throws', () async {
-      // Arrange
-      when(
-        () => mockRepository.verifyEmail(testEmail),
-      ).thenThrow(Exception('Verification failed'));
-
-      // Act & Assert
-      expect(() => useCase.call(testEmail), throwsA(isA<Exception>()));
-      verify(() => mockRepository.verifyEmail(testEmail)).called(1);
+      expect(result, isA<Left>());
     });
   });
 }
