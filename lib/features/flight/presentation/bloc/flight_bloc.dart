@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/features/flight/data/datasources/flight_remote_data_source.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_event.dart';
@@ -17,6 +18,18 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
     on<UpdateFlight>(_onUpdateFlight);
   }
 
+  /// Extracts the backend error message from a DioException,
+  /// falling back to a generic message if unavailable.
+  String _extractErrorMessage(dynamic e, String fallback) {
+    if (e is DioException && e.response != null) {
+      final data = e.response!.data;
+      if (data is Map<String, dynamic> && data.containsKey('message')) {
+        return data['message'].toString();
+      }
+    }
+    return fallback;
+  }
+
   Future<void> _onFetchEmployeeFlights(
     FetchEmployeeFlights event,
     Emitter<FlightState> emit,
@@ -26,7 +39,7 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
       final flights = await _dataSource.getEmployeeFlights();
       emit(FlightListLoaded(flights));
     } catch (e) {
-      emit(FlightError('Error loading flights: $e'));
+      emit(FlightError(_extractErrorMessage(e, 'Error loading flights')));
     }
   }
 
@@ -43,7 +56,7 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
         emit(const FlightError('Flight not found'));
       }
     } catch (e) {
-      emit(FlightError('Error loading flight detail: $e'));
+      emit(FlightError(_extractErrorMessage(e, 'Error loading flight detail')));
     }
   }
 
@@ -60,7 +73,7 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
         emit(const FlightError('No logbook found for this employee'));
       }
     } catch (e) {
-      emit(FlightError('Error fetching logbook: $e'));
+      emit(FlightError(_extractErrorMessage(e, 'Error fetching logbook')));
     }
   }
 
@@ -76,7 +89,7 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
       );
       emit(FlightCreated(flight));
     } catch (e) {
-      emit(FlightError('Error creating flight: $e'));
+      emit(FlightError(_extractErrorMessage(e, 'Error creating flight')));
     }
   }
 
@@ -92,7 +105,7 @@ class FlightBloc extends Bloc<FlightEvent, FlightState> {
       );
       emit(FlightUpdated(flight));
     } catch (e) {
-      emit(FlightError('Error updating flight: $e'));
+      emit(FlightError(_extractErrorMessage(e, 'Error updating flight')));
     }
   }
 }
