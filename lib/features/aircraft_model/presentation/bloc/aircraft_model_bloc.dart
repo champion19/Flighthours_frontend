@@ -8,12 +8,6 @@ import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircr
 import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircraft_model_state.dart';
 
 /// BLoC for managing aircraft model-related state
-///
-/// Supports dependency injection for testing:
-/// - [listAircraftModelUseCase] for listing aircraft models
-/// - [getAircraftModelsByFamilyUseCase] for fetching models by family
-/// - [activateAircraftModelUseCase] for activating aircraft models
-/// - [deactivateAircraftModelUseCase] for deactivating aircraft models
 class AircraftModelBloc extends Bloc<AircraftModelEvent, AircraftModelState> {
   final ListAircraftModelUseCase _listAircraftModelUseCase;
   final GetAircraftModelsByFamilyUseCase _getAircraftModelsByFamilyUseCase;
@@ -50,12 +44,11 @@ class AircraftModelBloc extends Bloc<AircraftModelEvent, AircraftModelState> {
   ) async {
     emit(AircraftModelLoading());
 
-    try {
-      final aircraftModels = await _listAircraftModelUseCase.call();
-      emit(AircraftModelSuccess(aircraftModels));
-    } catch (e) {
-      emit(AircraftModelError(e.toString()));
-    }
+    final result = await _listAircraftModelUseCase.call();
+    result.fold(
+      (failure) => emit(AircraftModelError(failure.message)),
+      (aircraftModels) => emit(AircraftModelSuccess(aircraftModels)),
+    );
   }
 
   Future<void> _onFetchAircraftModelsByFamily(
@@ -64,14 +57,13 @@ class AircraftModelBloc extends Bloc<AircraftModelEvent, AircraftModelState> {
   ) async {
     emit(AircraftModelLoading());
 
-    try {
-      final aircraftModels = await _getAircraftModelsByFamilyUseCase.call(
-        event.family,
-      );
-      emit(AircraftModelsByFamilySuccess(aircraftModels, family: event.family));
-    } catch (e) {
-      emit(AircraftModelError(e.toString()));
-    }
+    final result = await _getAircraftModelsByFamilyUseCase.call(event.family);
+    result.fold(
+      (failure) => emit(AircraftModelError(failure.message)),
+      (aircraftModels) => emit(
+        AircraftModelsByFamilySuccess(aircraftModels, family: event.family),
+      ),
+    );
   }
 
   Future<void> _onActivateAircraftModel(
@@ -80,18 +72,18 @@ class AircraftModelBloc extends Bloc<AircraftModelEvent, AircraftModelState> {
   ) async {
     emit(AircraftModelLoading());
 
-    try {
-      final response = await _activateAircraftModelUseCase.call(
-        event.aircraftModelId,
-      );
+    final result = await _activateAircraftModelUseCase.call(
+      event.aircraftModelId,
+    );
+    result.fold((failure) => emit(AircraftModelError(failure.message)), (
+      response,
+    ) {
       if (response.success) {
         emit(AircraftModelStatusUpdateSuccess(response, isActivation: true));
       } else {
         emit(AircraftModelError(response.message));
       }
-    } catch (e) {
-      emit(AircraftModelError(e.toString()));
-    }
+    });
   }
 
   Future<void> _onDeactivateAircraftModel(
@@ -100,17 +92,17 @@ class AircraftModelBloc extends Bloc<AircraftModelEvent, AircraftModelState> {
   ) async {
     emit(AircraftModelLoading());
 
-    try {
-      final response = await _deactivateAircraftModelUseCase.call(
-        event.aircraftModelId,
-      );
+    final result = await _deactivateAircraftModelUseCase.call(
+      event.aircraftModelId,
+    );
+    result.fold((failure) => emit(AircraftModelError(failure.message)), (
+      response,
+    ) {
       if (response.success) {
         emit(AircraftModelStatusUpdateSuccess(response, isActivation: false));
       } else {
         emit(AircraftModelError(response.message));
       }
-    } catch (e) {
-      emit(AircraftModelError(e.toString()));
-    }
+    });
   }
 }

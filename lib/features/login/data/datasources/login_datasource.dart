@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/login/data/models/login_response_model.dart';
 import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
-import 'package:flutter/material.dart';
 
 /// Custom exception for login errors with backend error codes
 class LoginException implements Exception {
@@ -41,8 +40,6 @@ class LoginDatasource {
   /// Returns [LoginEntity] on successful login (200)
   /// Throws [LoginException] on error (401 email not verified, or other errors)
   Future<LoginEntity> loginEmployee(String email, String password) async {
-    debugPrint('📤 Sending login request...');
-
     try {
       final response = await _dio.post(
         '/login',
@@ -99,7 +96,6 @@ class LoginDatasource {
       }
 
       // Connection error (timeout, no internet, etc.)
-      debugPrint('❌ Connection error: ${e.message}');
 
       String errorMessage;
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -122,7 +118,7 @@ class LoginDatasource {
       rethrow;
     } catch (e) {
       // Unexpected error
-      debugPrint('❌ Unexpected error: $e');
+
       throw LoginException(
         message: 'Unexpected error occurred. Please try again.',
         code: 'UNEXPECTED_ERROR',

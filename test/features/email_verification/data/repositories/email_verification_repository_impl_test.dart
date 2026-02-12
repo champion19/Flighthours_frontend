@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/email_verification/data/datasource/email_verifcation_datasource.dart';
@@ -19,7 +20,7 @@ void main() {
 
   group('EmailVerificationRepositoryImpl', () {
     group('verifyEmail', () {
-      test('should return EmailEntity from datasource', () async {
+      test('should return Right with EmailEntity from datasource', () async {
         // Arrange
         const email = 'test@example.com';
         final model = EmailVerificationModel(emailconfirmed: true);
@@ -31,19 +32,26 @@ void main() {
         final result = await repository.verifyEmail(email);
 
         // Assert
-        expect(result, isA<EmailEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<EmailEntity>()),
+        );
         verify(() => mockDatasource.verifyEmail(email)).called(1);
       });
 
-      test('should propagate exception from datasource', () async {
+      test('should return Left when datasource throws exception', () async {
         // Arrange
         const email = 'test@example.com';
         when(
           () => mockDatasource.verifyEmail(any()),
         ).thenThrow(Exception('Verification failed'));
 
-        // Act & Assert
-        expect(() => repository.verifyEmail(email), throwsA(isA<Exception>()));
+        // Act
+        final result = await repository.verifyEmail(email);
+
+        // Assert
+        expect(result, isA<Left>());
       });
     });
   });

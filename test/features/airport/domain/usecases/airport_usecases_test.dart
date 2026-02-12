@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/data/models/airport_model.dart';
@@ -25,21 +27,21 @@ void main() {
       useCase = ListAirportUseCase(repository: mockRepository);
     });
 
-    test('should return list from repository', () async {
-      // Arrange
+    test('should return Right with list from repository', () async {
       final airports = <AirportEntity>[
         const AirportModel(id: 'ap1', name: 'El Dorado', iataCode: 'BOG'),
         const AirportModel(id: 'ap2', name: 'JMC', iataCode: 'MDE'),
       ];
       when(
         () => mockRepository.getAirports(),
-      ).thenAnswer((_) async => airports);
+      ).thenAnswer((_) async => Right(airports));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result.length, equals(2));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.length, equals(2)),
+      );
       verify(() => mockRepository.getAirports()).called(1);
     });
   });
@@ -51,8 +53,7 @@ void main() {
       useCase = GetAirportByIdUseCase(repository: mockRepository);
     });
 
-    test('should return airport from repository', () async {
-      // Arrange
+    test('should return Right with airport from repository', () async {
       const airport = AirportModel(
         id: 'ap1',
         name: 'El Dorado',
@@ -60,27 +61,26 @@ void main() {
       );
       when(
         () => mockRepository.getAirportById(any()),
-      ).thenAnswer((_) async => airport);
+      ).thenAnswer((_) async => const Right(airport));
 
-      // Act
       final result = await useCase.call('ap1');
 
-      // Assert
-      expect(result?.name, equals('El Dorado'));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.name, equals('El Dorado')),
+      );
       verify(() => mockRepository.getAirportById('ap1')).called(1);
     });
 
-    test('should return null when not found', () async {
-      // Arrange
-      when(
-        () => mockRepository.getAirportById(any()),
-      ).thenAnswer((_) async => null);
+    test('should return Left when not found', () async {
+      when(() => mockRepository.getAirportById(any())).thenAnswer(
+        (_) async =>
+            const Left(Failure(message: 'Airport not found', statusCode: 404)),
+      );
 
-      // Act
       final result = await useCase.call('notfound');
 
-      // Assert
-      expect(result, isNull);
+      expect(result, isA<Left>());
     });
   });
 
@@ -91,8 +91,7 @@ void main() {
       useCase = ActivateAirportUseCase(repository: mockRepository);
     });
 
-    test('should activate airport successfully', () async {
-      // Arrange
+    test('should return Right with response on success', () async {
       final response = AirportStatusResponseModel(
         success: true,
         code: 'ACTIVATED',
@@ -100,13 +99,14 @@ void main() {
       );
       when(
         () => mockRepository.activateAirport(any()),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('ap1');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.activateAirport('ap1')).called(1);
     });
   });
@@ -118,8 +118,7 @@ void main() {
       useCase = DeactivateAirportUseCase(repository: mockRepository);
     });
 
-    test('should deactivate airport successfully', () async {
-      // Arrange
+    test('should return Right with response on success', () async {
       final response = AirportStatusResponseModel(
         success: true,
         code: 'DEACTIVATED',
@@ -127,13 +126,14 @@ void main() {
       );
       when(
         () => mockRepository.deactivateAirport(any()),
-      ).thenAnswer((_) async => response);
+      ).thenAnswer((_) async => Right(response));
 
-      // Act
       final result = await useCase.call('ap1');
 
-      // Assert
-      expect(result.success, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.success, isTrue),
+      );
       verify(() => mockRepository.deactivateAirport('ap1')).called(1);
     });
   });

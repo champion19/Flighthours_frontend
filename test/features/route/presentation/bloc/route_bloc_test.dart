@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/route/data/models/route_model.dart';
@@ -24,13 +26,11 @@ void main() {
     group('FetchRouteById', () {
       test('should create with required routeId', () {
         const event = FetchRouteById(routeId: 'route123');
-
         expect(event.routeId, equals('route123'));
       });
 
       test('props should contain routeId', () {
         const event = FetchRouteById(routeId: 'route123');
-
         expect(event.props.length, equals(1));
         expect(event.props, contains('route123'));
       });
@@ -38,7 +38,6 @@ void main() {
       test('two events with same id should be equal', () {
         const event1 = FetchRouteById(routeId: 'abc');
         const event2 = FetchRouteById(routeId: 'abc');
-
         expect(event1, equals(event2));
       });
     });
@@ -46,13 +45,11 @@ void main() {
     group('SearchRoutes', () {
       test('should create with required query', () {
         const event = SearchRoutes(query: 'JFK');
-
         expect(event.query, equals('JFK'));
       });
 
       test('props should contain query', () {
         const event = SearchRoutes(query: 'search term');
-
         expect(event.props.length, equals(1));
       });
     });
@@ -86,14 +83,12 @@ void main() {
         ];
 
         const state = RouteSuccess(routes);
-
         expect(state.routes.length, equals(2));
         expect(state.routes.first.id, equals('1'));
       });
 
       test('props should contain routes', () {
         const state = RouteSuccess([]);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -109,7 +104,6 @@ void main() {
         );
 
         const state = RouteDetailSuccess(route);
-
         expect(state.route.id, equals('route1'));
         expect(state.route.originAirportCode, equals('JFK'));
       });
@@ -121,7 +115,6 @@ void main() {
           destinationAirportId: 'd1',
         );
         const state = RouteDetailSuccess(route);
-
         expect(state.props.length, equals(1));
       });
     });
@@ -129,19 +122,16 @@ void main() {
     group('RouteError', () {
       test('should create with message', () {
         const state = RouteError('Network error');
-
         expect(state.message, equals('Network error'));
       });
 
       test('props should contain message', () {
         const state = RouteError('Error');
-
         expect(state.props.length, equals(1));
       });
     });
   });
 
-  // Tests for RouteBloc logic using bloc_test
   group('RouteBloc', () {
     late MockListRoutesUseCase mockListUseCase;
     late MockGetRouteByIdUseCase mockGetByIdUseCase;
@@ -163,13 +153,13 @@ void main() {
       'emits [Loading, Success] when FetchRoutes succeeds',
       setUp: () {
         when(() => mockListUseCase.call()).thenAnswer(
-          (_) async => [
-            const RouteModel(
+          (_) async => const Right([
+            RouteModel(
               id: 'r1',
               originAirportId: 'o1',
               destinationAirportId: 'd1',
             ),
-          ],
+          ]),
         );
       },
       build:
@@ -184,9 +174,9 @@ void main() {
     blocTest<RouteBloc, RouteState>(
       'emits [Loading, Error] when FetchRoutes fails',
       setUp: () {
-        when(
-          () => mockListUseCase.call(),
-        ).thenThrow(Exception('Failed to load routes'));
+        when(() => mockListUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Failed to load routes')),
+        );
       },
       build:
           () => RouteBloc(
@@ -201,10 +191,12 @@ void main() {
       'emits [DetailSuccess] when FetchRouteById succeeds',
       setUp: () {
         when(() => mockGetByIdUseCase.call(any())).thenAnswer(
-          (_) async => const RouteModel(
-            id: 'r1',
-            originAirportId: 'o1',
-            destinationAirportId: 'd1',
+          (_) async => const Right(
+            RouteModel(
+              id: 'r1',
+              originAirportId: 'o1',
+              destinationAirportId: 'd1',
+            ),
           ),
         );
       },
@@ -218,11 +210,12 @@ void main() {
     );
 
     blocTest<RouteBloc, RouteState>(
-      'emits nothing when FetchRouteById returns null',
+      'emits nothing when FetchRouteById returns Left',
       setUp: () {
-        when(
-          () => mockGetByIdUseCase.call(any()),
-        ).thenAnswer((_) async => null);
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Route not found', statusCode: 404)),
+        );
       },
       build:
           () => RouteBloc(

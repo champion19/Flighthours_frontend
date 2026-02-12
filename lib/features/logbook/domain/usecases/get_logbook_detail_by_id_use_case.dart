@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';
 
@@ -8,9 +10,7 @@ class GetLogbookDetailByIdUseCase {
   GetLogbookDetailByIdUseCase({required LogbookRepository repository})
     : _repository = repository;
 
-  /// Execute the use case
-  /// [id] - The ID of the logbook detail to fetch
-  Future<LogbookDetailEntity?> call(String id) async {
+  Future<Either<Failure, LogbookDetailEntity>> call(String id) async {
     return await _repository.getLogbookDetailById(id);
   }
 }

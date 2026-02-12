@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/register/data/models/register_response_model.dart';
@@ -17,7 +19,6 @@ void main() {
   late MockRegisterRepository mockRepository;
 
   setUpAll(() {
-    // Register fallback values for mocktail
     registerFallbackValue(FakeEmployeeEntityRegister());
   });
 
@@ -50,60 +51,62 @@ void main() {
         // Arrange
         when(
           () => mockRepository.registerEmployee(any()),
-        ).thenAnswer((_) async => successResponse);
+        ).thenAnswer((_) async => Right(successResponse));
 
         // Act
         final result = await useCase.call(testEmployee);
 
         // Assert
         verify(() => mockRepository.registerEmployee(testEmployee)).called(1);
-        expect(result.success, isTrue);
+        expect(result, isA<Right>());
       },
     );
 
-    test('should return success response on successful registration', () async {
+    test('should return Right with success response on registration', () async {
       // Arrange
       when(
         () => mockRepository.registerEmployee(any()),
-      ).thenAnswer((_) async => successResponse);
+      ).thenAnswer((_) async => Right(successResponse));
 
       // Act
       final result = await useCase.call(testEmployee);
 
       // Assert
-      expect(result.success, isTrue);
-      expect(result.code, equals('REG_SUCCESS'));
-      expect(result.message, equals('Registration completed successfully'));
+      result.fold((failure) => fail('Expected Right'), (response) {
+        expect(response.success, isTrue);
+        expect(response.code, equals('REG_SUCCESS'));
+        expect(response.message, equals('Registration completed successfully'));
+      });
     });
 
-    test('should return error response on failed registration', () async {
+    test('should return Left on failed registration', () async {
       // Arrange
-      final errorResponse = RegisterResponseModel(
-        success: false,
-        code: 'EMAIL_EXISTS',
-        message: 'Email already registered',
+      when(() => mockRepository.registerEmployee(any())).thenAnswer(
+        (_) async => const Left(
+          Failure(message: 'Email already registered', code: 'EMAIL_EXISTS'),
+        ),
       );
 
+      // Act
+      final result = await useCase.call(testEmployee);
+
+      // Assert
+      result.fold((failure) {
+        expect(failure.code, equals('EMAIL_EXISTS'));
+      }, (data) => fail('Expected Left'));
+    });
+
+    test('should return Left when repository fails', () async {
+      // Arrange
       when(
         () => mockRepository.registerEmployee(any()),
-      ).thenAnswer((_) async => errorResponse);
+      ).thenAnswer((_) async => const Left(Failure(message: 'Network error')));
 
       // Act
       final result = await useCase.call(testEmployee);
 
       // Assert
-      expect(result.success, isFalse);
-      expect(result.code, equals('EMAIL_EXISTS'));
-    });
-
-    test('should propagate exception when repository throws', () async {
-      // Arrange
-      when(
-        () => mockRepository.registerEmployee(any()),
-      ).thenThrow(Exception('Network error'));
-
-      // Act & Assert
-      expect(() => useCase.call(testEmployee), throwsA(isA<Exception>()));
+      expect(result, isA<Left>());
     });
   });
 }

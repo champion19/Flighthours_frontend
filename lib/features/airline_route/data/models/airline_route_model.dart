@@ -9,6 +9,7 @@ class AirlineRouteModel extends AirlineRouteEntity {
     required super.airlineId,
     super.routeName,
     super.airlineName,
+    super.airlineCode,
     super.originAirportCode,
     super.destinationAirportCode,
     super.status,
@@ -36,6 +37,7 @@ class AirlineRouteModel extends AirlineRouteEntity {
       airlineId: json['airline_id']?.toString() ?? '',
       routeName: json['route_name']?.toString(),
       airlineName: json['airline_name']?.toString(),
+      airlineCode: json['airline_code']?.toString(),
       originAirportCode:
           (json['origin_airport_code'] ?? json['origin_iata_code'])?.toString(),
       destinationAirportCode:
@@ -63,6 +65,7 @@ class AirlineRouteModel extends AirlineRouteEntity {
       'airline_id': airlineId,
       'route_name': routeName,
       'airline_name': airlineName,
+      'airline_code': airlineCode,
       'origin_airport_code': originAirportCode,
       'destination_airport_code': destinationAirportCode,
       'status': status,

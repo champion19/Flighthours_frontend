@@ -1,7 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
 import 'package:flight_hours_app/features/reset_password/domain/entities/reset_password_entity.dart';
 import 'package:flight_hours_app/features/reset_password/domain/usecases/reset_password_use_case.dart';
 import 'package:flight_hours_app/features/reset_password/presentation/bloc/reset_password_bloc.dart';
@@ -13,27 +14,23 @@ void main() {
     group('ResetPasswordSubmitted', () {
       test('should create with required email', () {
         const event = ResetPasswordSubmitted(email: 'test@example.com');
-
         expect(event.email, equals('test@example.com'));
       });
 
       test('props should contain email', () {
         const event = ResetPasswordSubmitted(email: 'test@example.com');
-
         expect(event.props, contains('test@example.com'));
       });
 
       test('two events with same email should be equal', () {
         const event1 = ResetPasswordSubmitted(email: 'test@example.com');
         const event2 = ResetPasswordSubmitted(email: 'test@example.com');
-
         expect(event1, equals(event2));
       });
 
       test('two events with different emails should not be equal', () {
         const event1 = ResetPasswordSubmitted(email: 'test1@example.com');
         const event2 = ResetPasswordSubmitted(email: 'test2@example.com');
-
         expect(event1, isNot(equals(event2)));
       });
     });
@@ -60,7 +57,6 @@ void main() {
           message: 'Email sent',
         );
         final state = ResetPasswordSuccess(entity);
-
         expect(state.result, equals(entity));
       });
 
@@ -71,7 +67,6 @@ void main() {
           message: 'Email sent',
         );
         final state = ResetPasswordSuccess(entity);
-
         expect(state.props, contains(entity));
       });
     });
@@ -82,7 +77,6 @@ void main() {
           message: 'User not found',
           code: 'USER_NOT_FOUND',
         );
-
         expect(state.message, equals('User not found'));
         expect(state.code, equals('USER_NOT_FOUND'));
       });
@@ -92,7 +86,6 @@ void main() {
           message: 'User not found',
           code: 'USER_NOT_FOUND',
         );
-
         expect(state.props, contains('User not found'));
         expect(state.props, contains('USER_NOT_FOUND'));
       });
@@ -100,13 +93,11 @@ void main() {
       test('two states with same values should be equal', () {
         const state1 = ResetPasswordError(message: 'error', code: 'CODE');
         const state2 = ResetPasswordError(message: 'error', code: 'CODE');
-
         expect(state1, equals(state2));
       });
     });
   });
 
-  // Tests for ResetPasswordBloc logic using bloc_test
   group('ResetPasswordBloc', () {
     late MockResetPasswordUseCase mockUseCase;
 
@@ -127,10 +118,12 @@ void main() {
       'emits [Loading, Success] when ResetPasswordSubmitted succeeds',
       setUp: () {
         when(() => mockUseCase.call(any())).thenAnswer(
-          (_) async => ResetPasswordEntity(
-            success: true,
-            code: 'PASSWORD_RESET_SENT',
-            message: 'Email sent',
+          (_) async => Right(
+            ResetPasswordEntity(
+              success: true,
+              code: 'PASSWORD_RESET_SENT',
+              message: 'Email sent',
+            ),
           ),
         );
       },
@@ -144,11 +137,13 @@ void main() {
     blocTest<ResetPasswordBloc, ResetPasswordState>(
       'emits [Loading, Error] when ResetPasswordSubmitted fails',
       setUp: () {
-        when(() => mockUseCase.call(any())).thenThrow(
-          ResetPasswordException(
-            message: 'User not found',
-            code: 'USER_NOT_FOUND',
-            statusCode: 404,
+        when(() => mockUseCase.call(any())).thenAnswer(
+          (_) async => const Left(
+            Failure(
+              message: 'User not found',
+              code: 'USER_NOT_FOUND',
+              statusCode: 404,
+            ),
           ),
         );
       },

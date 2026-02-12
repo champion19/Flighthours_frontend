@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/reset_password/domain/entities/reset_password_entity.dart';
@@ -32,66 +34,71 @@ void main() {
         // Arrange
         when(
           () => mockRepository.requestPasswordReset(testEmail),
-        ).thenAnswer((_) async => successEntity);
+        ).thenAnswer((_) async => Right(successEntity));
 
         // Act
         final result = await useCase.call(testEmail);
 
         // Assert
         verify(() => mockRepository.requestPasswordReset(testEmail)).called(1);
-        expect(result.success, isTrue);
+        expect(result, isA<Right>());
       },
     );
 
     test(
-      'should return success entity on successful password reset request',
+      'should return Right with success entity on successful password reset',
       () async {
         // Arrange
         when(
           () => mockRepository.requestPasswordReset(testEmail),
-        ).thenAnswer((_) async => successEntity);
+        ).thenAnswer((_) async => Right(successEntity));
 
         // Act
         final result = await useCase.call(testEmail);
 
         // Assert
-        expect(result.success, isTrue);
-        expect(result.code, equals('RESET_EMAIL_SENT'));
-        expect(
-          result.message,
-          equals('Password reset email sent successfully'),
-        );
+        result.fold((failure) => fail('Expected Right'), (entity) {
+          expect(entity.success, isTrue);
+          expect(entity.code, equals('RESET_EMAIL_SENT'));
+          expect(
+            entity.message,
+            equals('Password reset email sent successfully'),
+          );
+        });
       },
     );
 
-    test('should return error entity when email is not registered', () async {
+    test('should return Left when email is not registered', () async {
       // Arrange
-      final errorEntity = ResetPasswordEntity(
-        success: false,
-        code: 'USER_NOT_FOUND',
-        message: 'No account found with this email',
+      when(() => mockRepository.requestPasswordReset(testEmail)).thenAnswer(
+        (_) async => const Left(
+          Failure(
+            message: 'No account found with this email',
+            code: 'USER_NOT_FOUND',
+          ),
+        ),
       );
-
-      when(
-        () => mockRepository.requestPasswordReset(testEmail),
-      ).thenAnswer((_) async => errorEntity);
 
       // Act
       final result = await useCase.call(testEmail);
 
       // Assert
-      expect(result.success, isFalse);
-      expect(result.code, equals('USER_NOT_FOUND'));
+      result.fold((failure) {
+        expect(failure.code, equals('USER_NOT_FOUND'));
+      }, (data) => fail('Expected Left'));
     });
 
-    test('should propagate exception when repository throws', () async {
+    test('should return Left when repository returns failure', () async {
       // Arrange
       when(
         () => mockRepository.requestPasswordReset(testEmail),
-      ).thenThrow(Exception('Network error'));
+      ).thenAnswer((_) async => const Left(Failure(message: 'Network error')));
 
-      // Act & Assert
-      expect(() => useCase.call(testEmail), throwsA(isA<Exception>()));
+      // Act
+      final result = await useCase.call(testEmail);
+
+      // Assert
+      expect(result, isA<Left>());
       verify(() => mockRepository.requestPasswordReset(testEmail)).called(1);
     });
   });

@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/route/data/datasources/route_remote_data_source.dart';
@@ -18,8 +20,7 @@ void main() {
 
   group('RouteRepositoryImpl', () {
     group('getRoutes', () {
-      test('should return list from datasource', () async {
-        // Arrange
+      test('should return Right with list from datasource', () async {
         final routes = <RouteModel>[
           const RouteModel(
             id: 'r1',
@@ -34,32 +35,42 @@ void main() {
         ];
         when(() => mockDataSource.getRoutes()).thenAnswer((_) async => routes);
 
-        // Act
         final result = await repository.getRoutes();
 
-        // Assert
-        expect(result, isA<List<RouteEntity>>());
-        expect(result.length, equals(2));
+        expect(result, isA<Right>());
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data, isA<List<RouteEntity>>());
+          expect(data.length, equals(2));
+        });
         verify(() => mockDataSource.getRoutes()).called(1);
       });
 
-      test('should return empty list when no routes', () async {
-        // Arrange
+      test('should return Right with empty list when no routes', () async {
         when(
           () => mockDataSource.getRoutes(),
         ).thenAnswer((_) async => <RouteModel>[]);
 
-        // Act
         final result = await repository.getRoutes();
 
-        // Assert
-        expect(result, isEmpty);
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isEmpty),
+        );
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getRoutes(),
+        ).thenThrow(Exception('Network error'));
+
+        final result = await repository.getRoutes();
+
+        expect(result, isA<Left>());
       });
     });
 
     group('getRouteById', () {
-      test('should return entity from datasource', () async {
-        // Arrange
+      test('should return Right with entity from datasource', () async {
         const route = RouteModel(
           id: 'r1',
           originAirportId: 'ap1',
@@ -69,26 +80,38 @@ void main() {
           () => mockDataSource.getRouteById(any()),
         ).thenAnswer((_) async => route);
 
-        // Act
         final result = await repository.getRouteById('r1');
 
-        // Assert
-        expect(result, isA<RouteEntity>());
-        expect(result?.originAirportId, equals('ap1'));
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (entity) => expect(entity.originAirportId, equals('ap1')),
+        );
         verify(() => mockDataSource.getRouteById('r1')).called(1);
       });
 
-      test('should return null when not found', () async {
-        // Arrange
+      test('should return Left when not found', () async {
         when(
           () => mockDataSource.getRouteById(any()),
         ).thenAnswer((_) async => null);
 
-        // Act
         final result = await repository.getRouteById('notfound');
 
-        // Assert
-        expect(result, isNull);
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.statusCode, 404),
+          (data) => fail('Expected Left'),
+        );
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getRouteById(any()),
+        ).thenThrow(Exception('Error'));
+
+        final result = await repository.getRouteById('r1');
+
+        expect(result, isA<Left>());
       });
     });
   });

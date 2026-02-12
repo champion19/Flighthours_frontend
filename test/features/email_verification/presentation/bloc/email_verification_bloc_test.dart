@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/email_verification/domain/entities/EmailEntity.dart';
@@ -127,7 +129,7 @@ void main() {
       setUp: () {
         when(
           () => mockUseCase.call(any()),
-        ).thenAnswer((_) async => EmailEntity(emailconfirmed: true));
+        ).thenAnswer((_) async => Right(EmailEntity(emailconfirmed: true)));
       },
       build: () => buildBloc(),
       act:
@@ -144,7 +146,7 @@ void main() {
       setUp: () {
         when(
           () => mockUseCase.call(any()),
-        ).thenAnswer((_) async => EmailEntity(emailconfirmed: false));
+        ).thenAnswer((_) async => Right(EmailEntity(emailconfirmed: false)));
       },
       build: () => buildBloc(),
       act:
@@ -160,9 +162,9 @@ void main() {
     blocTest<EmailVerificationBloc, EmailVerificationState>(
       'emits [Loading, Error] when use case throws',
       setUp: () {
-        when(
-          () => mockUseCase.call(any()),
-        ).thenThrow(Exception('Network error'));
+        when(() => mockUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Network error')),
+        );
       },
       build: () => buildBloc(),
       act:

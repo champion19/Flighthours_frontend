@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
@@ -24,21 +26,21 @@ void main() {
       useCase = ListDailyLogbooksUseCase(repository: mockRepository);
     });
 
-    test('should return list from repository', () async {
-      // Arrange
+    test('should return Right with list from repository', () async {
       final logbooks = <DailyLogbookEntity>[
         DailyLogbookEntity(id: 'lb1', logDate: DateTime(2024, 1, 1)),
         DailyLogbookEntity(id: 'lb2', logDate: DateTime(2024, 1, 2)),
       ];
       when(
         () => mockRepository.getDailyLogbooks(),
-      ).thenAnswer((_) async => logbooks);
+      ).thenAnswer((_) async => Right(logbooks));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result.length, equals(2));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.length, equals(2)),
+      );
       verify(() => mockRepository.getDailyLogbooks()).called(1);
     });
   });
@@ -50,21 +52,21 @@ void main() {
       useCase = ListLogbookDetailsUseCase(repository: mockRepository);
     });
 
-    test('should return list from repository', () async {
-      // Arrange
+    test('should return Right with list from repository', () async {
       final details = <LogbookDetailEntity>[
         const LogbookDetailEntity(id: 'd1'),
         const LogbookDetailEntity(id: 'd2'),
       ];
       when(
         () => mockRepository.getLogbookDetails(any()),
-      ).thenAnswer((_) async => details);
+      ).thenAnswer((_) async => Right(details));
 
-      // Act
       final result = await useCase.call('lb1');
 
-      // Assert
-      expect(result.length, equals(2));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.length, equals(2)),
+      );
       verify(() => mockRepository.getLogbookDetails('lb1')).called(1);
     });
   });
@@ -76,32 +78,29 @@ void main() {
       useCase = GetLogbookDetailByIdUseCase(repository: mockRepository);
     });
 
-    test('should return detail from repository', () async {
-      // Arrange
+    test('should return Right with detail from repository', () async {
       const detail = LogbookDetailEntity(id: 'd1');
       when(
         () => mockRepository.getLogbookDetailById(any()),
-      ).thenAnswer((_) async => detail);
+      ).thenAnswer((_) async => const Right(detail));
 
-      // Act
       final result = await useCase.call('d1');
 
-      // Assert
-      expect(result?.id, equals('d1'));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.id, equals('d1')),
+      );
       verify(() => mockRepository.getLogbookDetailById('d1')).called(1);
     });
 
-    test('should return null when not found', () async {
-      // Arrange
-      when(
-        () => mockRepository.getLogbookDetailById(any()),
-      ).thenAnswer((_) async => null);
+    test('should return Left when not found', () async {
+      when(() => mockRepository.getLogbookDetailById(any())).thenAnswer(
+        (_) async => const Left(Failure(message: 'Not found', statusCode: 404)),
+      );
 
-      // Act
       final result = await useCase.call('notfound');
 
-      // Assert
-      expect(result, isNull);
+      expect(result, isA<Left>());
     });
   });
 
@@ -112,31 +111,28 @@ void main() {
       useCase = DeleteLogbookDetailUseCase(repository: mockRepository);
     });
 
-    test('should delete detail successfully', () async {
-      // Arrange
+    test('should return Right with true on success', () async {
       when(
         () => mockRepository.deleteLogbookDetail(any()),
-      ).thenAnswer((_) async => true);
+      ).thenAnswer((_) async => const Right(true));
 
-      // Act
       final result = await useCase.call('d1');
 
-      // Assert
-      expect(result, isTrue);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isTrue),
+      );
       verify(() => mockRepository.deleteLogbookDetail('d1')).called(1);
     });
 
-    test('should return false on failure', () async {
-      // Arrange
+    test('should return Left on failure', () async {
       when(
         () => mockRepository.deleteLogbookDetail(any()),
-      ).thenAnswer((_) async => false);
+      ).thenAnswer((_) async => const Left(Failure(message: 'Failed')));
 
-      // Act
       final result = await useCase.call('notfound');
 
-      // Assert
-      expect(result, isFalse);
+      expect(result, isA<Left>());
     });
   });
 }

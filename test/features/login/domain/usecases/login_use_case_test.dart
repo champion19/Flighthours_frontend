@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/login/domain/entities/login_entity.dart';
@@ -37,7 +39,7 @@ void main() {
         // Arrange
         when(
           () => mockRepository.loginEmployee(testEmail, testPassword),
-        ).thenAnswer((_) async => testLoginEntity);
+        ).thenAnswer((_) async => const Right(testLoginEntity));
 
         // Act
         final result = await useCase.call(testEmail, testPassword);
@@ -46,43 +48,48 @@ void main() {
         verify(
           () => mockRepository.loginEmployee(testEmail, testPassword),
         ).called(1);
-        expect(result, equals(testLoginEntity));
+        expect(result, isA<Right>());
       },
     );
 
-    test('should return LoginEntity with valid tokens on success', () async {
+    test(
+      'should return Right with LoginEntity with valid tokens on success',
+      () async {
+        // Arrange
+        when(
+          () => mockRepository.loginEmployee(testEmail, testPassword),
+        ).thenAnswer((_) async => const Right(testLoginEntity));
+
+        // Act
+        final result = await useCase.call(testEmail, testPassword);
+
+        // Assert
+        result.fold((failure) => fail('Expected Right'), (entity) {
+          expect(entity.isValid, isTrue);
+          expect(entity.accessToken, equals('access_token_123'));
+          expect(entity.refreshToken, equals('refresh_token_456'));
+          expect(entity.employeeId, equals('emp123'));
+        });
+      },
+    );
+
+    test('should return Left when repository returns Left', () async {
       // Arrange
       when(
         () => mockRepository.loginEmployee(testEmail, testPassword),
-      ).thenAnswer((_) async => testLoginEntity);
+      ).thenAnswer((_) async => const Left(Failure(message: 'Network error')));
 
       // Act
       final result = await useCase.call(testEmail, testPassword);
 
       // Assert
-      expect(result.isValid, isTrue);
-      expect(result.accessToken, equals('access_token_123'));
-      expect(result.refreshToken, equals('refresh_token_456'));
-      expect(result.employeeId, equals('emp123'));
-    });
-
-    test('should propagate exception when repository throws', () async {
-      // Arrange
-      when(
-        () => mockRepository.loginEmployee(testEmail, testPassword),
-      ).thenThrow(Exception('Network error'));
-
-      // Act & Assert
-      expect(
-        () => useCase.call(testEmail, testPassword),
-        throwsA(isA<Exception>()),
-      );
+      expect(result, isA<Left>());
       verify(
         () => mockRepository.loginEmployee(testEmail, testPassword),
       ).called(1);
     });
 
-    test('should return LoginEntity with roles', () async {
+    test('should return Right with LoginEntity with roles', () async {
       // Arrange
       const entityWithRoles = LoginEntity(
         accessToken: 'token',
@@ -94,14 +101,16 @@ void main() {
 
       when(
         () => mockRepository.loginEmployee(testEmail, testPassword),
-      ).thenAnswer((_) async => entityWithRoles);
+      ).thenAnswer((_) async => const Right(entityWithRoles));
 
       // Act
       final result = await useCase.call(testEmail, testPassword);
 
       // Assert
-      expect(result.roles, contains('admin'));
-      expect(result.roles, contains('pilot'));
+      result.fold((failure) => fail('Expected Right'), (entity) {
+        expect(entity.roles, contains('admin'));
+        expect(entity.roles, contains('pilot'));
+      });
     });
   });
 }

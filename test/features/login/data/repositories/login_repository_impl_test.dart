@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/login/data/datasources/login_datasource.dart';
@@ -17,7 +19,7 @@ void main() {
 
   group('LoginRepositoryImpl', () {
     group('loginEmployee', () {
-      test('should return LoginEntity from datasource', () async {
+      test('should return Right with LoginEntity from datasource', () async {
         // Arrange
         const email = 'test@example.com';
         const password = 'password123';
@@ -36,34 +38,59 @@ void main() {
         final result = await repository.loginEmployee(email, password);
 
         // Assert
-        expect(result, isA<LoginEntity>());
-        expect(result.accessToken, equals('access_token_123'));
+        expect(result, isA<Right>());
+        result.fold((failure) => fail('Expected Right'), (entity) {
+          expect(entity, isA<LoginEntity>());
+          expect(entity.accessToken, equals('access_token_123'));
+        });
         verify(() => mockDatasource.loginEmployee(email, password)).called(1);
       });
 
-      test('should propagate exception from datasource', () async {
+      test('should return Left with Failure on LoginException', () async {
         // Arrange
         const email = 'test@example.com';
         const password = 'wrong_password';
+        when(() => mockDatasource.loginEmployee(any(), any())).thenThrow(
+          LoginException(
+            message: 'Invalid credentials',
+            code: 'INVALID',
+            statusCode: 401,
+          ),
+        );
+
+        // Act
+        final result = await repository.loginEmployee(email, password);
+
+        // Assert
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.message, 'Invalid credentials'),
+          (data) => fail('Expected Left'),
+        );
+      });
+
+      test('should return Left with Failure on unexpected exception', () async {
+        // Arrange
         when(
           () => mockDatasource.loginEmployee(any(), any()),
-        ).thenThrow(Exception('Invalid credentials'));
+        ).thenThrow(Exception('Unexpected'));
 
-        // Act & Assert
-        expect(
-          () => repository.loginEmployee(email, password),
-          throwsA(isA<Exception>()),
+        // Act
+        final result = await repository.loginEmployee('a', 'b');
+
+        // Assert
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.message, isNotEmpty),
+          (data) => fail('Expected Left'),
         );
       });
     });
 
     group('logoutEmployee', () {
-      test('should throw UnimplementedError', () {
-        // Act & Assert
-        expect(
-          () => repository.logoutEmployee(),
-          throwsA(isA<UnimplementedError>()),
-        );
+      test('should return Right with void', () async {
+        final result = await repository.logoutEmployee();
+        expect(result, isA<Right>());
       });
     });
   });

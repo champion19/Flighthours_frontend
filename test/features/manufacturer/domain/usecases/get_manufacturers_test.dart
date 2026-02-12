@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/entities/manufacturer_entity.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/repositories/manufacturer_repository.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/usecases/get_manufacturers.dart';
@@ -22,31 +24,49 @@ void main() {
       const ManufacturerEntity(id: '2', name: 'Airbus'),
     ];
 
-    test('should get list of manufacturers from repository', () async {
+    test(
+      'should get Right with list of manufacturers from repository',
+      () async {
+        when(
+          () => mockRepository.getManufacturers(),
+        ).thenAnswer((_) async => Right(testManufacturers));
+
+        final result = await usecase();
+
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, testManufacturers),
+        );
+        verify(() => mockRepository.getManufacturers()).called(1);
+      },
+    );
+
+    test('should return Right with empty list when no manufacturers', () async {
       when(
         () => mockRepository.getManufacturers(),
-      ).thenAnswer((_) async => testManufacturers);
+      ).thenAnswer((_) async => const Right([]));
 
       final result = await usecase();
 
-      expect(result, testManufacturers);
-      verify(() => mockRepository.getManufacturers()).called(1);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isEmpty),
+      );
     });
 
-    test('should return empty list when no manufacturers', () async {
-      when(() => mockRepository.getManufacturers()).thenAnswer((_) async => []);
+    test('should return Left when repository fails', () async {
+      when(
+        () => mockRepository.getManufacturers(),
+      ).thenAnswer((_) async => const Left(Failure(message: 'Network error')));
 
       final result = await usecase();
 
-      expect(result, isEmpty);
-    });
-
-    test('should propagate exception from repository', () async {
-      when(
-        () => mockRepository.getManufacturers(),
-      ).thenThrow(Exception('Network error'));
-
-      expect(() => usecase(), throwsException);
+      expect(result, isA<Left>());
+      result.fold(
+        (failure) => expect(failure.message, 'Network error'),
+        (data) => fail('Expected Left'),
+      );
     });
   });
 }

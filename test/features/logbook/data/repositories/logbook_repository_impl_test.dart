@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';
@@ -23,8 +25,7 @@ void main() {
     // ========== Daily Logbook Operations ==========
 
     group('getDailyLogbooks', () {
-      test('should return list from datasource', () async {
-        // Arrange
+      test('should return Right with list from datasource', () async {
         final logbooks = [
           const DailyLogbookModel(id: 'lb1', bookPage: 1),
           const DailyLogbookModel(id: 'lb2', bookPage: 2),
@@ -33,49 +34,61 @@ void main() {
           () => mockDataSource.getDailyLogbooks(),
         ).thenAnswer((_) async => logbooks);
 
-        // Act
         final result = await repository.getDailyLogbooks();
 
-        // Assert
-        expect(result, isA<List<DailyLogbookEntity>>());
-        expect(result.length, equals(2));
+        expect(result, isA<Right>());
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data, isA<List<DailyLogbookEntity>>());
+          expect(data.length, equals(2));
+        });
         verify(() => mockDataSource.getDailyLogbooks()).called(1);
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getDailyLogbooks(),
+        ).thenThrow(Exception('Error'));
+
+        final result = await repository.getDailyLogbooks();
+
+        expect(result, isA<Left>());
       });
     });
 
     group('getDailyLogbookById', () {
-      test('should return entity from datasource', () async {
-        // Arrange
+      test('should return Right with entity from datasource', () async {
         const logbook = DailyLogbookModel(id: 'lb1', bookPage: 1);
         when(
           () => mockDataSource.getDailyLogbookById(any()),
         ).thenAnswer((_) async => logbook);
 
-        // Act
         final result = await repository.getDailyLogbookById('lb1');
 
-        // Assert
-        expect(result, isA<DailyLogbookEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<DailyLogbookEntity>()),
+        );
         verify(() => mockDataSource.getDailyLogbookById('lb1')).called(1);
       });
 
-      test('should return null when not found', () async {
-        // Arrange
+      test('should return Left when not found', () async {
         when(
           () => mockDataSource.getDailyLogbookById(any()),
         ).thenAnswer((_) async => null);
 
-        // Act
         final result = await repository.getDailyLogbookById('notfound');
 
-        // Assert
-        expect(result, isNull);
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.statusCode, 404),
+          (data) => fail('Expected Left'),
+        );
       });
     });
 
     group('createDailyLogbook', () {
-      test('should call datasource and return entity', () async {
-        // Arrange
+      test('should return Right with entity', () async {
         const logbook = DailyLogbookModel(id: 'lb1', bookPage: 1);
         when(
           () => mockDataSource.createDailyLogbook(
@@ -84,14 +97,16 @@ void main() {
           ),
         ).thenAnswer((_) async => logbook);
 
-        // Act
         final result = await repository.createDailyLogbook(
           logDate: DateTime(2024, 1, 15),
           bookPage: 1,
         );
 
-        // Assert
-        expect(result, isA<DailyLogbookEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<DailyLogbookEntity>()),
+        );
         verify(
           () => mockDataSource.createDailyLogbook(
             logDate: any(named: 'logDate'),
@@ -102,8 +117,7 @@ void main() {
     });
 
     group('updateDailyLogbook', () {
-      test('should call datasource and return entity', () async {
-        // Arrange
+      test('should return Right with entity', () async {
         const logbook = DailyLogbookModel(id: 'lb1', bookPage: 2);
         when(
           () => mockDataSource.updateDailyLogbook(
@@ -114,7 +128,6 @@ void main() {
           ),
         ).thenAnswer((_) async => logbook);
 
-        // Act
         final result = await repository.updateDailyLogbook(
           id: 'lb1',
           logDate: DateTime(2024, 1, 15),
@@ -122,8 +135,11 @@ void main() {
           status: true,
         );
 
-        // Assert
-        expect(result, isA<DailyLogbookEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<DailyLogbookEntity>()),
+        );
         verify(
           () => mockDataSource.updateDailyLogbook(
             id: 'lb1',
@@ -136,39 +152,39 @@ void main() {
     });
 
     group('deleteDailyLogbook', () {
-      test('should return true on success', () async {
-        // Arrange
+      test('should return Right with true on success', () async {
         when(
           () => mockDataSource.deleteDailyLogbook(any()),
         ).thenAnswer((_) async => true);
 
-        // Act
         final result = await repository.deleteDailyLogbook('lb1');
 
-        // Assert
-        expect(result, isTrue);
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isTrue),
+        );
         verify(() => mockDataSource.deleteDailyLogbook('lb1')).called(1);
       });
 
-      test('should return false on failure', () async {
-        // Arrange
+      test('should return Right with false on failure', () async {
         when(
           () => mockDataSource.deleteDailyLogbook(any()),
         ).thenAnswer((_) async => false);
 
-        // Act
         final result = await repository.deleteDailyLogbook('lb1');
 
-        // Assert
-        expect(result, isFalse);
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isFalse),
+        );
       });
     });
 
     // ========== Logbook Detail Operations ==========
 
     group('getLogbookDetails', () {
-      test('should return list from datasource', () async {
-        // Arrange
+      test('should return Right with list from datasource', () async {
         final details = [
           const LogbookDetailModel(id: 'det1', flightNumber: 'AV001'),
         ];
@@ -176,35 +192,47 @@ void main() {
           () => mockDataSource.getLogbookDetails(any()),
         ).thenAnswer((_) async => details);
 
-        // Act
         final result = await repository.getLogbookDetails('lb1');
 
-        // Assert
-        expect(result, isA<List<LogbookDetailEntity>>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<List<LogbookDetailEntity>>()),
+        );
         verify(() => mockDataSource.getLogbookDetails('lb1')).called(1);
       });
     });
 
     group('getLogbookDetailById', () {
-      test('should return entity from datasource', () async {
-        // Arrange
+      test('should return Right with entity from datasource', () async {
         const detail = LogbookDetailModel(id: 'det1', flightNumber: 'AV001');
         when(
           () => mockDataSource.getLogbookDetailById(any()),
         ).thenAnswer((_) async => detail);
 
-        // Act
         final result = await repository.getLogbookDetailById('det1');
 
-        // Assert
-        expect(result, isA<LogbookDetailEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<LogbookDetailEntity>()),
+        );
         verify(() => mockDataSource.getLogbookDetailById('det1')).called(1);
+      });
+
+      test('should return Left when not found', () async {
+        when(
+          () => mockDataSource.getLogbookDetailById(any()),
+        ).thenAnswer((_) async => null);
+
+        final result = await repository.getLogbookDetailById('notfound');
+
+        expect(result, isA<Left>());
       });
     });
 
     group('createLogbookDetail', () {
-      test('should call datasource with correct request data', () async {
-        // Arrange
+      test('should return Right with entity', () async {
         const detail = LogbookDetailModel(id: 'det1', flightNumber: 'AV001');
         when(
           () => mockDataSource.createLogbookDetail(
@@ -213,7 +241,6 @@ void main() {
           ),
         ).thenAnswer((_) async => detail);
 
-        // Act
         final result = await repository.createLogbookDetail(
           dailyLogbookId: 'lb1',
           flightRealDate: '2024-01-15',
@@ -234,8 +261,11 @@ void main() {
           flightType: 'Commercial',
         );
 
-        // Assert
-        expect(result, isA<LogbookDetailEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<LogbookDetailEntity>()),
+        );
         verify(
           () => mockDataSource.createLogbookDetail(
             dailyLogbookId: 'lb1',
@@ -246,8 +276,7 @@ void main() {
     });
 
     group('updateLogbookDetail', () {
-      test('should call datasource with correct request data', () async {
-        // Arrange
+      test('should return Right with entity', () async {
         const detail = LogbookDetailModel(id: 'det1', flightNumber: 'AV002');
         when(
           () => mockDataSource.updateLogbookDetail(
@@ -256,7 +285,6 @@ void main() {
           ),
         ).thenAnswer((_) async => detail);
 
-        // Act
         final result = await repository.updateLogbookDetail(
           id: 'det1',
           flightRealDate: '2024-01-15',
@@ -277,8 +305,11 @@ void main() {
           flightType: 'Commercial',
         );
 
-        // Assert
-        expect(result, isA<LogbookDetailEntity>());
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isA<LogbookDetailEntity>()),
+        );
         verify(
           () => mockDataSource.updateLogbookDetail(
             id: 'det1',
@@ -289,17 +320,18 @@ void main() {
     });
 
     group('deleteLogbookDetail', () {
-      test('should return true on success', () async {
-        // Arrange
+      test('should return Right with true on success', () async {
         when(
           () => mockDataSource.deleteLogbookDetail(any()),
         ).thenAnswer((_) async => true);
 
-        // Act
         final result = await repository.deleteLogbookDetail('det1');
 
-        // Assert
-        expect(result, isTrue);
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isTrue),
+        );
         verify(() => mockDataSource.deleteLogbookDetail('det1')).called(1);
       });
     });

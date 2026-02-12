@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
@@ -19,8 +21,7 @@ void main() {
 
   group('AirlineRouteRepositoryImpl', () {
     group('getAirlineRoutes', () {
-      test('should return list from datasource', () async {
-        // Arrange
+      test('should return Right with list from datasource', () async {
         final routes = <AirlineRouteModel>[
           const AirlineRouteModel(id: 'ar1', airlineId: 'a1', routeId: 'r1'),
           const AirlineRouteModel(id: 'ar2', airlineId: 'a1', routeId: 'r2'),
@@ -29,32 +30,42 @@ void main() {
           () => mockDataSource.getAirlineRoutes(),
         ).thenAnswer((_) async => routes);
 
-        // Act
         final result = await repository.getAirlineRoutes();
 
-        // Assert
-        expect(result, isA<List<AirlineRouteEntity>>());
-        expect(result.length, equals(2));
+        expect(result, isA<Right>());
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data, isA<List<AirlineRouteEntity>>());
+          expect(data.length, equals(2));
+        });
         verify(() => mockDataSource.getAirlineRoutes()).called(1);
       });
 
-      test('should return empty list when no routes', () async {
-        // Arrange
+      test('should return Right with empty list when no routes', () async {
         when(
           () => mockDataSource.getAirlineRoutes(),
         ).thenAnswer((_) async => <AirlineRouteModel>[]);
 
-        // Act
         final result = await repository.getAirlineRoutes();
 
-        // Assert
-        expect(result, isEmpty);
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isEmpty),
+        );
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getAirlineRoutes(),
+        ).thenThrow(Exception('Network error'));
+
+        final result = await repository.getAirlineRoutes();
+
+        expect(result, isA<Left>());
       });
     });
 
     group('getAirlineRouteById', () {
-      test('should return entity from datasource', () async {
-        // Arrange
+      test('should return Right with entity from datasource', () async {
         const route = AirlineRouteModel(
           id: 'ar1',
           airlineId: 'a1',
@@ -64,26 +75,28 @@ void main() {
           () => mockDataSource.getAirlineRouteById(any()),
         ).thenAnswer((_) async => route);
 
-        // Act
         final result = await repository.getAirlineRouteById('ar1');
 
-        // Assert
-        expect(result, isA<AirlineRouteEntity>());
-        expect(result?.id, equals('ar1'));
+        expect(result, isA<Right>());
+        result.fold((failure) => fail('Expected Right'), (data) {
+          expect(data, isA<AirlineRouteEntity>());
+          expect(data.id, equals('ar1'));
+        });
         verify(() => mockDataSource.getAirlineRouteById('ar1')).called(1);
       });
 
-      test('should return null when not found', () async {
-        // Arrange
+      test('should return Left when not found', () async {
         when(
           () => mockDataSource.getAirlineRouteById(any()),
         ).thenAnswer((_) async => null);
 
-        // Act
         final result = await repository.getAirlineRouteById('notfound');
 
-        // Assert
-        expect(result, isNull);
+        expect(result, isA<Left>());
+        result.fold(
+          (failure) => expect(failure.statusCode, 404),
+          (data) => fail('Expected Left'),
+        );
       });
     });
   });

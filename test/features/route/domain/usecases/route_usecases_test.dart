@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/route/data/models/route_model.dart';
@@ -22,8 +24,7 @@ void main() {
       useCase = ListRoutesUseCase(repository: mockRepository);
     });
 
-    test('should return list from repository', () async {
-      // Arrange
+    test('should return Right with list from repository', () async {
       final routes = <RouteEntity>[
         const RouteModel(
           id: 'r1',
@@ -36,27 +37,30 @@ void main() {
           destinationAirportId: 'ap1',
         ),
       ];
-      when(() => mockRepository.getRoutes()).thenAnswer((_) async => routes);
+      when(
+        () => mockRepository.getRoutes(),
+      ).thenAnswer((_) async => Right(routes));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result.length, equals(2));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data.length, equals(2)),
+      );
       verify(() => mockRepository.getRoutes()).called(1);
     });
 
-    test('should return empty list when no routes', () async {
-      // Arrange
+    test('should return Right with empty list when no routes', () async {
       when(
         () => mockRepository.getRoutes(),
-      ).thenAnswer((_) async => <RouteEntity>[]);
+      ).thenAnswer((_) async => const Right(<RouteEntity>[]));
 
-      // Act
       final result = await useCase.call();
 
-      // Assert
-      expect(result, isEmpty);
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isEmpty),
+      );
     });
   });
 
@@ -67,8 +71,7 @@ void main() {
       useCase = GetRouteByIdUseCase(repository: mockRepository);
     });
 
-    test('should return route from repository', () async {
-      // Arrange
+    test('should return Right with route from repository', () async {
       const route = RouteModel(
         id: 'r1',
         originAirportId: 'ap1',
@@ -76,27 +79,26 @@ void main() {
       );
       when(
         () => mockRepository.getRouteById(any()),
-      ).thenAnswer((_) async => route);
+      ).thenAnswer((_) async => const Right(route));
 
-      // Act
       final result = await useCase.call('r1');
 
-      // Assert
-      expect(result?.originAirportId, equals('ap1'));
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (entity) => expect(entity.originAirportId, equals('ap1')),
+      );
       verify(() => mockRepository.getRouteById('r1')).called(1);
     });
 
-    test('should return null when not found', () async {
-      // Arrange
-      when(
-        () => mockRepository.getRouteById(any()),
-      ).thenAnswer((_) async => null);
+    test('should return Left when not found', () async {
+      when(() => mockRepository.getRouteById(any())).thenAnswer(
+        (_) async =>
+            const Left(Failure(message: 'Route not found', statusCode: 404)),
+      );
 
-      // Act
       final result = await useCase.call('notfound');
 
-      // Assert
-      expect(result, isNull);
+      expect(result, isA<Left>());
     });
   });
 }

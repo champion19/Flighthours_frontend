@@ -1,8 +1,12 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
+import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
@@ -199,6 +203,28 @@ void main() {
     late MockUpdateEmployeeAirlineUseCase mockUpdateAirlineUseCase;
     late MockGetEmployeeAirlineRoutesUseCase mockGetRoutesUseCase;
 
+    setUpAll(() {
+      registerFallbackValue(
+        EmployeeUpdateRequest(name: '', identificationNumber: ''),
+      );
+      registerFallbackValue(
+        EmployeeAirlineUpdateRequest(
+          airlineId: '',
+          bp: '',
+          startDate: '',
+          endDate: '',
+        ),
+      );
+      registerFallbackValue(
+        ChangePasswordRequest(
+          email: '',
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        ),
+      );
+    });
+
     setUp(() {
       mockGetUseCase = MockGetEmployeeUseCase();
       mockUpdateUseCase = MockUpdateEmployeeUseCase();
@@ -230,10 +256,12 @@ void main() {
       'emits [Loading, DetailSuccess] when LoadCurrentEmployee succeeds',
       setUp: () {
         when(() => mockGetUseCase.call()).thenAnswer(
-          (_) async => EmployeeResponseModel(
-            success: true,
-            code: 'OK',
-            message: 'Employee fetched',
+          (_) async => Right(
+            EmployeeResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Employee fetched',
+            ),
           ),
         );
       },
@@ -246,10 +274,12 @@ void main() {
       'emits [Loading, Error] when LoadCurrentEmployee fails',
       setUp: () {
         when(() => mockGetUseCase.call()).thenAnswer(
-          (_) async => EmployeeResponseModel(
-            success: false,
-            code: 'NOT_FOUND',
-            message: 'Employee not found',
+          (_) async => Right(
+            EmployeeResponseModel(
+              success: false,
+              code: 'NOT_FOUND',
+              message: 'Employee not found',
+            ),
           ),
         );
       },
@@ -263,6 +293,386 @@ void main() {
       build: () => buildBloc(),
       act: (bloc) => bloc.add(ResetEmployeeState()),
       expect: () => [isA<EmployeeInitial>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Loading, Error] when LoadCurrentEmployee returns Left',
+      setUp: () {
+        when(
+          () => mockGetUseCase.call(),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Server error')));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadCurrentEmployee()),
+      expect: () => [isA<EmployeeLoading>(), isA<EmployeeError>()],
+    );
+
+    // --- LoadEmployeeAirline ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [AirlineLoading, AirlineSuccess] when LoadEmployeeAirline succeeds',
+      setUp: () {
+        when(() => mockGetAirlineUseCase.call()).thenAnswer(
+          (_) async => Right(
+            EmployeeAirlineResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Airline loaded',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadEmployeeAirline()),
+      expect:
+          () => [isA<EmployeeAirlineLoading>(), isA<EmployeeAirlineSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [AirlineLoading, Error] when LoadEmployeeAirline returns Left',
+      setUp: () {
+        when(() => mockGetAirlineUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Airline not found')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadEmployeeAirline()),
+      expect: () => [isA<EmployeeAirlineLoading>(), isA<EmployeeError>()],
+    );
+
+    // --- LoadEmployeeAirlineRoutes ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [RoutesLoading, RoutesSuccess] when LoadEmployeeAirlineRoutes succeeds',
+      setUp: () {
+        when(() => mockGetRoutesUseCase.call()).thenAnswer(
+          (_) async => Right(
+            EmployeeAirlineRoutesResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Routes loaded',
+              data: const [],
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
+      expect:
+          () => [
+            isA<EmployeeAirlineRoutesLoading>(),
+            isA<EmployeeAirlineRoutesSuccess>(),
+          ],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [RoutesLoading, Error] when LoadEmployeeAirlineRoutes fails with success=false',
+      setUp: () {
+        when(() => mockGetRoutesUseCase.call()).thenAnswer(
+          (_) async => Right(
+            EmployeeAirlineRoutesResponseModel(
+              success: false,
+              code: 'ERROR',
+              message: 'Routes error',
+              data: const [],
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
+      expect: () => [isA<EmployeeAirlineRoutesLoading>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [RoutesLoading, Error] when LoadEmployeeAirlineRoutes returns Left',
+      setUp: () {
+        when(() => mockGetRoutesUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Network error')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
+      expect: () => [isA<EmployeeAirlineRoutesLoading>(), isA<EmployeeError>()],
+    );
+
+    // --- UpdateEmployee ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, UpdateSuccess] when UpdateEmployee succeeds',
+      setUp: () {
+        when(() => mockUpdateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            EmployeeUpdateResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Employee updated',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployee(
+              request: EmployeeUpdateRequest(
+                name: 'Test',
+                identificationNumber: '123',
+              ),
+            ),
+          ),
+      expect: () => [isA<EmployeeUpdating>(), isA<EmployeeUpdateSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, Error] when UpdateEmployee fails with success=false',
+      setUp: () {
+        when(() => mockUpdateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            EmployeeUpdateResponseModel(
+              success: false,
+              code: 'FAIL',
+              message: 'Update failed',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployee(
+              request: EmployeeUpdateRequest(
+                name: 'Test',
+                identificationNumber: '123',
+              ),
+            ),
+          ),
+      expect: () => [isA<EmployeeUpdating>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, Error] when UpdateEmployee returns Left',
+      setUp: () {
+        when(
+          () => mockUpdateUseCase.call(any()),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Server error')));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployee(
+              request: EmployeeUpdateRequest(
+                name: 'Test',
+                identificationNumber: '123',
+              ),
+            ),
+          ),
+      expect: () => [isA<EmployeeUpdating>(), isA<EmployeeError>()],
+    );
+
+    // --- UpdateEmployeeAirline ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, AirlineUpdateSuccess] when UpdateEmployeeAirline succeeds',
+      setUp: () {
+        when(() => mockUpdateAirlineUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            EmployeeAirlineResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Airline updated',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployeeAirline(
+              request: EmployeeAirlineUpdateRequest(
+                airlineId: 'a1',
+                bp: 'BP1',
+                startDate: '2024-01-01',
+                endDate: '2025-01-01',
+              ),
+            ),
+          ),
+      expect:
+          () => [isA<EmployeeUpdating>(), isA<EmployeeAirlineUpdateSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, Error] when UpdateEmployeeAirline fails with success=false',
+      setUp: () {
+        when(() => mockUpdateAirlineUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            EmployeeAirlineResponseModel(
+              success: false,
+              code: 'FAIL',
+              message: 'Airline update failed',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployeeAirline(
+              request: EmployeeAirlineUpdateRequest(
+                airlineId: 'a1',
+                bp: 'BP1',
+                startDate: '2024-01-01',
+                endDate: '2025-01-01',
+              ),
+            ),
+          ),
+      expect: () => [isA<EmployeeUpdating>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Updating, Error] when UpdateEmployeeAirline returns Left',
+      setUp: () {
+        when(
+          () => mockUpdateAirlineUseCase.call(any()),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Server error')));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateEmployeeAirline(
+              request: EmployeeAirlineUpdateRequest(
+                airlineId: 'a1',
+                bp: 'BP1',
+                startDate: '2024-01-01',
+                endDate: '2025-01-01',
+              ),
+            ),
+          ),
+      expect: () => [isA<EmployeeUpdating>(), isA<EmployeeError>()],
+    );
+
+    // --- ChangePassword ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [PasswordChanging, PasswordChangeSuccess] when ChangePassword succeeds',
+      setUp: () {
+        when(() => mockChangePasswordUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            ChangePasswordResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Password changed',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            ChangePassword(
+              request: ChangePasswordRequest(
+                email: 'test@test.com',
+                currentPassword: 'old',
+                newPassword: 'new',
+                confirmPassword: 'new',
+              ),
+            ),
+          ),
+      expect: () => [isA<PasswordChanging>(), isA<PasswordChangeSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [PasswordChanging, Error] when ChangePassword fails with success=false',
+      setUp: () {
+        when(() => mockChangePasswordUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            ChangePasswordResponseModel(
+              success: false,
+              code: 'WRONG_PASSWORD',
+              message: 'Wrong password',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            ChangePassword(
+              request: ChangePasswordRequest(
+                email: 'test@test.com',
+                currentPassword: 'wrong',
+                newPassword: 'new',
+                confirmPassword: 'new',
+              ),
+            ),
+          ),
+      expect: () => [isA<PasswordChanging>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [PasswordChanging, Error] when ChangePassword returns Left',
+      setUp: () {
+        when(
+          () => mockChangePasswordUseCase.call(any()),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Auth error')));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            ChangePassword(
+              request: ChangePasswordRequest(
+                email: 'test@test.com',
+                currentPassword: 'old',
+                newPassword: 'new',
+                confirmPassword: 'new',
+              ),
+            ),
+          ),
+      expect: () => [isA<PasswordChanging>(), isA<EmployeeError>()],
+    );
+
+    // --- DeleteEmployee ---
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Deleting, DeleteSuccess] when DeleteEmployee succeeds',
+      setUp: () {
+        when(() => mockDeleteUseCase.call()).thenAnswer(
+          (_) async => Right(
+            DeleteEmployeeResponseModel(
+              success: true,
+              code: 'OK',
+              message: 'Employee deleted',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(DeleteEmployee()),
+      expect: () => [isA<EmployeeDeleting>(), isA<EmployeeDeleteSuccess>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Deleting, Error] when DeleteEmployee fails with success=false',
+      setUp: () {
+        when(() => mockDeleteUseCase.call()).thenAnswer(
+          (_) async => Right(
+            DeleteEmployeeResponseModel(
+              success: false,
+              code: 'FAIL',
+              message: 'Cannot delete',
+            ),
+          ),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(DeleteEmployee()),
+      expect: () => [isA<EmployeeDeleting>(), isA<EmployeeError>()],
+    );
+
+    blocTest<EmployeeBloc, EmployeeState>(
+      'emits [Deleting, Error] when DeleteEmployee returns Left',
+      setUp: () {
+        when(
+          () => mockDeleteUseCase.call(),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Server error')));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(DeleteEmployee()),
+      expect: () => [isA<EmployeeDeleting>(), isA<EmployeeError>()],
     );
   });
 }

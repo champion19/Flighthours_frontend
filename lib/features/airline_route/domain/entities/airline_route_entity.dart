@@ -9,6 +9,7 @@ class AirlineRouteEntity extends Equatable {
   final String airlineId; // ID of the associated airline
   final String? routeName; // Route display name (e.g., "JFK → LAX")
   final String? airlineName; // Airline name (e.g., "Global Air")
+  final String? airlineCode; // Airline code (e.g., "AV")
   final String? originAirportCode; // Origin IATA code (e.g., "JFK")
   final String? destinationAirportCode; // Destination IATA code (e.g., "LAX")
   final String? status; // "active", "inactive", "pending"
@@ -20,6 +21,7 @@ class AirlineRouteEntity extends Equatable {
     required this.airlineId,
     this.routeName,
     this.airlineName,
+    this.airlineCode,
     this.originAirportCode,
     this.destinationAirportCode,
     this.status,
@@ -76,6 +78,7 @@ class AirlineRouteEntity extends Equatable {
     airlineId,
     routeName,
     airlineName,
+    airlineCode,
     originAirportCode,
     destinationAirportCode,
     status,

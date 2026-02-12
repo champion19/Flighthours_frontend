@@ -8,12 +8,6 @@ import 'package:flight_hours_app/features/airline/presentation/bloc/airline_even
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_state.dart';
 
 /// BLoC for managing airline-related state
-///
-/// Supports dependency injection for testing:
-/// - [listAirlineUseCase] for listing airlines
-/// - [getAirlineByIdUseCase] for fetching airline details
-/// - [activateAirlineUseCase] for activating airlines
-/// - [deactivateAirlineUseCase] for deactivating airlines
 class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   final ListAirlineUseCase _listAirlineUseCase;
   final GetAirlineByIdUseCase _getAirlineByIdUseCase;
@@ -49,26 +43,22 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   ) async {
     emit(AirlineLoading());
 
-    try {
-      final airlines = await _listAirlineUseCase.call();
-      emit(AirlineSuccess(airlines));
-    } catch (e) {
-      emit(AirlineError(e.toString()));
-    }
+    final result = await _listAirlineUseCase.call();
+    result.fold(
+      (failure) => emit(AirlineError(failure.message)),
+      (airlines) => emit(AirlineSuccess(airlines)),
+    );
   }
 
   Future<void> _onFetchAirlineById(
     FetchAirlineById event,
     Emitter<AirlineState> emit,
   ) async {
-    try {
-      final airline = await _getAirlineByIdUseCase.call(event.airlineId);
-      if (airline != null) {
-        emit(AirlineDetailSuccess(airline));
-      }
-    } catch (e) {
-      // Silently fail - don't emit error to avoid disrupting the UI
-    }
+    final result = await _getAirlineByIdUseCase.call(event.airlineId);
+    result.fold(
+      (_) {}, // Silently fail
+      (airline) => emit(AirlineDetailSuccess(airline)),
+    );
   }
 
   Future<void> _onActivateAirline(
@@ -77,30 +67,33 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   ) async {
     emit(AirlineStatusUpdating(airlineId: event.airlineId));
 
-    try {
-      final response = await _activateAirlineUseCase.call(event.airlineId);
-
-      if (response.success) {
-        emit(
-          AirlineStatusUpdateSuccess(
-            message: response.message,
-            code: response.code,
-            newStatus: response.status,
-          ),
-        );
-      } else {
-        emit(
-          AirlineStatusUpdateError(
-            message: response.message,
-            code: response.code,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(
-        AirlineStatusUpdateError(message: e.toString(), code: 'UNKNOWN_ERROR'),
-      );
-    }
+    final result = await _activateAirlineUseCase.call(event.airlineId);
+    result.fold(
+      (failure) => emit(
+        AirlineStatusUpdateError(
+          message: failure.message,
+          code: failure.code ?? 'UNKNOWN_ERROR',
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(
+            AirlineStatusUpdateSuccess(
+              message: response.message,
+              code: response.code,
+              newStatus: response.status,
+            ),
+          );
+        } else {
+          emit(
+            AirlineStatusUpdateError(
+              message: response.message,
+              code: response.code,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onDeactivateAirline(
@@ -109,29 +102,32 @@ class AirlineBloc extends Bloc<AirlineEvent, AirlineState> {
   ) async {
     emit(AirlineStatusUpdating(airlineId: event.airlineId));
 
-    try {
-      final response = await _deactivateAirlineUseCase.call(event.airlineId);
-
-      if (response.success) {
-        emit(
-          AirlineStatusUpdateSuccess(
-            message: response.message,
-            code: response.code,
-            newStatus: response.status,
-          ),
-        );
-      } else {
-        emit(
-          AirlineStatusUpdateError(
-            message: response.message,
-            code: response.code,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(
-        AirlineStatusUpdateError(message: e.toString(), code: 'UNKNOWN_ERROR'),
-      );
-    }
+    final result = await _deactivateAirlineUseCase.call(event.airlineId);
+    result.fold(
+      (failure) => emit(
+        AirlineStatusUpdateError(
+          message: failure.message,
+          code: failure.code ?? 'UNKNOWN_ERROR',
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(
+            AirlineStatusUpdateSuccess(
+              message: response.message,
+              code: response.code,
+              newStatus: response.status,
+            ),
+          );
+        } else {
+          emit(
+            AirlineStatusUpdateError(
+              message: response.message,
+              code: response.code,
+            ),
+          );
+        }
+      },
+    );
   }
 }

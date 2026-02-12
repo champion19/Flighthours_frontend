@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/entities/manufacturer_entity.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/usecases/get_manufacturers.dart';
 import 'package:flight_hours_app/features/manufacturer/domain/usecases/get_manufacturer_by_id.dart';
@@ -52,7 +54,7 @@ void main() {
         build: () {
           when(
             () => mockGetManufacturers(),
-          ).thenAnswer((_) async => testManufacturers);
+          ).thenAnswer((_) async => Right(testManufacturers));
           return bloc;
         },
         act: (bloc) => bloc.add(FetchManufacturers()),
@@ -70,7 +72,9 @@ void main() {
       blocTest<ManufacturerBloc, ManufacturerState>(
         'emits [Loading, Success] with empty list when no manufacturers',
         build: () {
-          when(() => mockGetManufacturers()).thenAnswer((_) async => []);
+          when(
+            () => mockGetManufacturers(),
+          ).thenAnswer((_) async => const Right([]));
           return bloc;
         },
         act: (bloc) => bloc.add(FetchManufacturers()),
@@ -88,9 +92,10 @@ void main() {
       blocTest<ManufacturerBloc, ManufacturerState>(
         'emits [Loading, Error] when fetch fails',
         build: () {
-          when(
-            () => mockGetManufacturers(),
-          ).thenThrow(Exception('Network error'));
+          when(() => mockGetManufacturers()).thenAnswer(
+            (_) async =>
+                const Left(Failure(message: 'Failed to load manufacturers')),
+          );
           return bloc;
         },
         act: (bloc) => bloc.add(FetchManufacturers()),
@@ -112,7 +117,7 @@ void main() {
         build: () {
           when(
             () => mockGetManufacturerById('test-id'),
-          ).thenAnswer((_) async => testManufacturer);
+          ).thenAnswer((_) async => const Right(testManufacturer));
           return bloc;
         },
         act:
@@ -133,9 +138,11 @@ void main() {
       blocTest<ManufacturerBloc, ManufacturerState>(
         'emits [Loading, Error] when manufacturer not found',
         build: () {
-          when(
-            () => mockGetManufacturerById('not-found'),
-          ).thenAnswer((_) async => null);
+          when(() => mockGetManufacturerById('not-found')).thenAnswer(
+            (_) async => const Left(
+              Failure(message: 'Manufacturer not found', statusCode: 404),
+            ),
+          );
           return bloc;
         },
         act:
@@ -156,9 +163,10 @@ void main() {
       blocTest<ManufacturerBloc, ManufacturerState>(
         'emits [Loading, Error] when get by id fails',
         build: () {
-          when(
-            () => mockGetManufacturerById(any()),
-          ).thenThrow(Exception('Network error'));
+          when(() => mockGetManufacturerById(any())).thenAnswer(
+            (_) async =>
+                const Left(Failure(message: 'Failed to load manufacturer')),
+          );
           return bloc;
         },
         act:
