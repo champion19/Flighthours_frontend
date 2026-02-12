@@ -11,15 +11,6 @@ import 'package:flight_hours_app/features/employee/presentation/bloc/employee_ev
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
 
 /// BLoC for managing employee-related state
-///
-/// Supports dependency injection for testing:
-/// - [getEmployeeUseCase] for fetching employee info
-/// - [updateEmployeeUseCase] for updating employee info
-/// - [changePasswordUseCase] for changing password
-/// - [deleteEmployeeUseCase] for deleting account
-/// - [getEmployeeAirlineUseCase] for fetching airline association
-/// - [updateEmployeeAirlineUseCase] for updating airline association
-/// - [getEmployeeAirlineRoutesUseCase] for fetching airline routes
 class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   final GetEmployeeUseCase _getEmployeeUseCase;
   final UpdateEmployeeUseCase _updateEmployeeUseCase;
@@ -68,81 +59,79 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
     on<ResetEmployeeState>((event, emit) => emit(EmployeeInitial()));
   }
 
-  /// Loads the current employee's information
-  /// Uses /employees endpoint - no employeeId needed, extracted from JWT
   Future<void> _onLoadCurrentEmployee(
     LoadCurrentEmployee event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(EmployeeLoading());
 
-    try {
-      final response = await _getEmployeeUseCase.call();
-
-      if (response.success) {
-        emit(EmployeeDetailSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _getEmployeeUseCase.call();
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(EmployeeDetailSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 
-  /// Loads the employee's airline association
-  /// Uses GET /employees/airline endpoint
   Future<void> _onLoadEmployeeAirline(
     LoadEmployeeAirline event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(EmployeeAirlineLoading());
 
-    try {
-      final response = await _getEmployeeAirlineUseCase.call();
-
-      if (response.success) {
-        emit(EmployeeAirlineSuccess(response));
-      } else {
-        // Don't emit error - the employee might not have an airline yet
-        // Just emit success with null data
-        emit(EmployeeAirlineSuccess(response));
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _getEmployeeAirlineUseCase.call();
+    result.fold(
+      (failure) => emit(EmployeeError(message: failure.message)),
+      (response) => emit(EmployeeAirlineSuccess(response)),
+    );
   }
 
-  /// Loads the airline routes for the employee's airline
-  /// Uses GET /employees/airline-routes endpoint
   Future<void> _onLoadEmployeeAirlineRoutes(
     LoadEmployeeAirlineRoutes event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(EmployeeAirlineRoutesLoading());
 
-    try {
-      final response = await _getEmployeeAirlineRoutesUseCase.call();
-
-      if (response.success) {
-        emit(EmployeeAirlineRoutesSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _getEmployeeAirlineRoutesUseCase.call();
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(EmployeeAirlineRoutesSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onUpdateEmployee(
@@ -151,100 +140,121 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   ) async {
     emit(EmployeeUpdating());
 
-    try {
-      final response = await _updateEmployeeUseCase.call(event.request);
-
-      if (response.success) {
-        emit(EmployeeUpdateSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _updateEmployeeUseCase.call(event.request);
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(EmployeeUpdateSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 
-  /// Updates the employee's airline association
   Future<void> _onUpdateEmployeeAirline(
     UpdateEmployeeAirline event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(EmployeeUpdating());
 
-    try {
-      final response = await _updateEmployeeAirlineUseCase.call(event.request);
-
-      if (response.success) {
-        emit(EmployeeAirlineUpdateSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _updateEmployeeAirlineUseCase.call(event.request);
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(EmployeeAirlineUpdateSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 
-  /// Handles password change request
   Future<void> _onChangePassword(
     ChangePassword event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(PasswordChanging());
 
-    try {
-      final response = await _changePasswordUseCase.call(event.request);
-
-      if (response.success) {
-        emit(PasswordChangeSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _changePasswordUseCase.call(event.request);
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(PasswordChangeSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 
-  /// Handles account deletion request
   Future<void> _onDeleteEmployee(
     DeleteEmployee event,
     Emitter<EmployeeState> emit,
   ) async {
     emit(EmployeeDeleting());
 
-    try {
-      final response = await _deleteEmployeeUseCase.call();
-
-      if (response.success) {
-        emit(EmployeeDeleteSuccess(response));
-      } else {
-        emit(
-          EmployeeError(
-            message: response.message,
-            code: response.code,
-            success: response.success,
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EmployeeError(message: e.toString()));
-    }
+    final result = await _deleteEmployeeUseCase.call();
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+        ),
+      ),
+      (response) {
+        if (response.success) {
+          emit(EmployeeDeleteSuccess(response));
+        } else {
+          emit(
+            EmployeeError(
+              message: response.message,
+              code: response.code,
+              success: response.success,
+            ),
+          );
+        }
+      },
+    );
   }
 }

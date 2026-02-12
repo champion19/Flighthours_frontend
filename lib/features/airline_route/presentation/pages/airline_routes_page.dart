@@ -628,42 +628,27 @@ class _AirlineRoutesPageState extends State<AirlineRoutesPage> {
           ),
     );
 
-    try {
-      // Call the route feature to get route details using the routeId
-      final getRouteByIdUseCase = InjectorApp.resolve<GetRouteByIdUseCase>();
-      final route = await getRouteByIdUseCase.call(airlineRoute.routeId);
+    final getRouteByIdUseCase = InjectorApp.resolve<GetRouteByIdUseCase>();
+    final result = await getRouteByIdUseCase.call(airlineRoute.routeId);
 
-      // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
+    // Close loading dialog
+    if (mounted) Navigator.of(context).pop();
 
-      if (route != null) {
-        // Show route details in a bottom sheet
-        if (mounted) _showRouteDetailsBottomSheet(route, airlineRoute);
-      } else {
-        // Show error message
+    result.fold(
+      (failure) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Route details not found'),
+            SnackBar(
+              content: Text('Error loading route: ${failure.message}'),
               backgroundColor: Colors.red,
             ),
           );
         }
-      }
-    } catch (e) {
-      // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
-
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading route: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+      },
+      (route) {
+        if (mounted) _showRouteDetailsBottomSheet(route, airlineRoute);
+      },
+    );
   }
 
   /// Show route details in a bottom sheet

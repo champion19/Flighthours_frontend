@@ -8,11 +8,6 @@ import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_even
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
 
 /// BLoC for managing logbook state
-///
-/// Supports dependency injection for testing:
-/// - [listDailyLogbooksUseCase] for fetching daily logbooks
-/// - [listLogbookDetailsUseCase] for fetching logbook details
-/// - [deleteLogbookDetailUseCase] for deleting logbook details
 class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   final ListDailyLogbooksUseCase _listDailyLogbooksUseCase;
   final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
@@ -43,22 +38,20 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     on<RefreshLogbook>(_onRefreshLogbook);
   }
 
-  /// Handle fetching all daily logbooks
   Future<void> _onFetchDailyLogbooks(
     FetchDailyLogbooks event,
     Emitter<LogbookState> emit,
   ) async {
     emit(const LogbookLoading());
 
-    try {
-      final logbooks = await _listDailyLogbooksUseCase.call();
-      emit(DailyLogbooksLoaded(logbooks));
-    } catch (e) {
-      emit(LogbookError('Failed to load logbooks: ${e.toString()}'));
-    }
+    final result = await _listDailyLogbooksUseCase.call();
+    result.fold(
+      (failure) =>
+          emit(LogbookError('Failed to load logbooks: ${failure.message}')),
+      (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+    );
   }
 
-  /// Handle selecting a daily logbook and loading its details
   Future<void> _onSelectDailyLogbook(
     SelectDailyLogbook event,
     Emitter<LogbookState> emit,
@@ -66,20 +59,18 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     emit(const LogbookLoading());
     _currentSelectedLogbook = event.logbook;
 
-    try {
-      // Use uuid if available, otherwise use id
-      final logbookId = event.logbook.uuid ?? event.logbook.id;
-      final details = await _listLogbookDetailsUseCase.call(logbookId);
-
-      emit(
+    final logbookId = event.logbook.uuid ?? event.logbook.id;
+    final result = await _listLogbookDetailsUseCase.call(logbookId);
+    result.fold(
+      (failure) => emit(
+        LogbookError('Failed to load flight details: ${failure.message}'),
+      ),
+      (details) => emit(
         LogbookDetailsLoaded(selectedLogbook: event.logbook, details: details),
-      );
-    } catch (e) {
-      emit(LogbookError('Failed to load flight details: ${e.toString()}'));
-    }
+      ),
+    );
   }
 
-  /// Handle fetching details for a specific logbook by ID
   Future<void> _onFetchLogbookDetails(
     FetchLogbookDetails event,
     Emitter<LogbookState> emit,
@@ -91,23 +82,20 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
 
     emit(const LogbookLoading());
 
-    try {
-      final details = await _listLogbookDetailsUseCase.call(
-        event.dailyLogbookId,
-      );
-
-      emit(
+    final result = await _listLogbookDetailsUseCase.call(event.dailyLogbookId);
+    result.fold(
+      (failure) => emit(
+        LogbookError('Failed to load flight details: ${failure.message}'),
+      ),
+      (details) => emit(
         LogbookDetailsLoaded(
           selectedLogbook: _currentSelectedLogbook!,
           details: details,
         ),
-      );
-    } catch (e) {
-      emit(LogbookError('Failed to load flight details: ${e.toString()}'));
-    }
+      ),
+    );
   }
 
-  /// Handle deleting a logbook detail
   Future<void> _onDeleteLogbookDetail(
     DeleteLogbookDetail event,
     Emitter<LogbookState> emit,
@@ -119,31 +107,35 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
 
     emit(const LogbookLoading());
 
-    try {
-      final success = await _deleteLogbookDetailUseCase.call(event.detailId);
-
-      if (success) {
-        // Refresh the details list after successful deletion
-        final details = await _listLogbookDetailsUseCase.call(
-          event.dailyLogbookId,
-        );
-
-        emit(
-          LogbookDetailDeleted(
-            message: 'Flight record deleted successfully',
-            selectedLogbook: _currentSelectedLogbook!,
-            details: details,
-          ),
-        );
-      } else {
-        emit(const LogbookError('Failed to delete flight record'));
-      }
-    } catch (e) {
-      emit(LogbookError('Error deleting flight record: ${e.toString()}'));
-    }
+    final deleteResult = await _deleteLogbookDetailUseCase.call(event.detailId);
+    await deleteResult.fold(
+      (failure) async => emit(
+        LogbookError('Error deleting flight record: ${failure.message}'),
+      ),
+      (success) async {
+        if (success) {
+          // Refresh the details list after successful deletion
+          final detailsResult = await _listLogbookDetailsUseCase.call(
+            event.dailyLogbookId,
+          );
+          detailsResult.fold(
+            (failure) =>
+                emit(LogbookError('Failed to refresh: ${failure.message}')),
+            (details) => emit(
+              LogbookDetailDeleted(
+                message: 'Flight record deleted successfully',
+                selectedLogbook: _currentSelectedLogbook!,
+                details: details,
+              ),
+            ),
+          );
+        } else {
+          emit(const LogbookError('Failed to delete flight record'));
+        }
+      },
+    );
   }
 
-  /// Handle clearing the selected logbook (go back to list)
   Future<void> _onClearSelectedLogbook(
     ClearSelectedLogbook event,
     Emitter<LogbookState> emit,
@@ -151,40 +143,41 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     _currentSelectedLogbook = null;
     emit(const LogbookLoading());
 
-    try {
-      final logbooks = await _listDailyLogbooksUseCase.call();
-      emit(DailyLogbooksLoaded(logbooks));
-    } catch (e) {
-      emit(LogbookError('Failed to load logbooks: ${e.toString()}'));
-    }
+    final result = await _listDailyLogbooksUseCase.call();
+    result.fold(
+      (failure) =>
+          emit(LogbookError('Failed to load logbooks: ${failure.message}')),
+      (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+    );
   }
 
-  /// Handle refresh based on current state
   Future<void> _onRefreshLogbook(
     RefreshLogbook event,
     Emitter<LogbookState> emit,
   ) async {
     emit(const LogbookLoading());
 
-    try {
-      if (_currentSelectedLogbook != null) {
-        // Refresh details
-        final logbookId =
-            _currentSelectedLogbook!.uuid ?? _currentSelectedLogbook!.id;
-        final details = await _listLogbookDetailsUseCase.call(logbookId);
-        emit(
+    if (_currentSelectedLogbook != null) {
+      final logbookId =
+          _currentSelectedLogbook!.uuid ?? _currentSelectedLogbook!.id;
+      final result = await _listLogbookDetailsUseCase.call(logbookId);
+      result.fold(
+        (failure) =>
+            emit(LogbookError('Failed to refresh: ${failure.message}')),
+        (details) => emit(
           LogbookDetailsLoaded(
             selectedLogbook: _currentSelectedLogbook!,
             details: details,
           ),
-        );
-      } else {
-        // Refresh logbooks list
-        final logbooks = await _listDailyLogbooksUseCase.call();
-        emit(DailyLogbooksLoaded(logbooks));
-      }
-    } catch (e) {
-      emit(LogbookError('Failed to refresh: ${e.toString()}'));
+        ),
+      );
+    } else {
+      final result = await _listDailyLogbooksUseCase.call();
+      result.fold(
+        (failure) =>
+            emit(LogbookError('Failed to refresh: ${failure.message}')),
+        (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+      );
     }
   }
 }

@@ -38,16 +38,13 @@ class ManufacturerBloc extends Bloc<ManufacturerEvent, ManufacturerState> {
     Emitter<ManufacturerState> emit,
   ) async {
     emit(ManufacturerLoading());
-    try {
-      final manufacturers = await _getManufacturers();
-      emit(ManufacturerSuccess(manufacturers: manufacturers));
-    } catch (e) {
-      emit(
-        ManufacturerError(
-          message: 'Failed to load manufacturers: ${e.toString()}',
-        ),
-      );
-    }
+
+    final result = await _getManufacturers();
+    result.fold(
+      (failure) => emit(ManufacturerError(message: failure.message)),
+      (manufacturers) =>
+          emit(ManufacturerSuccess(manufacturers: manufacturers)),
+    );
   }
 
   Future<void> _onGetManufacturerDetail(
@@ -55,19 +52,12 @@ class ManufacturerBloc extends Bloc<ManufacturerEvent, ManufacturerState> {
     Emitter<ManufacturerState> emit,
   ) async {
     emit(ManufacturerLoading());
-    try {
-      final manufacturer = await _getManufacturerById(event.manufacturerId);
-      if (manufacturer != null) {
-        emit(ManufacturerDetailSuccess(manufacturer: manufacturer));
-      } else {
-        emit(const ManufacturerError(message: 'Manufacturer not found'));
-      }
-    } catch (e) {
-      emit(
-        ManufacturerError(
-          message: 'Failed to load manufacturer: ${e.toString()}',
-        ),
-      );
-    }
+
+    final result = await _getManufacturerById(event.manufacturerId);
+    result.fold(
+      (failure) => emit(ManufacturerError(message: failure.message)),
+      (manufacturer) =>
+          emit(ManufacturerDetailSuccess(manufacturer: manufacturer)),
+    );
   }
 }

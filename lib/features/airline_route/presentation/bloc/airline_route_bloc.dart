@@ -7,11 +7,6 @@ import 'package:flight_hours_app/features/airline_route/presentation/bloc/airlin
 import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_state.dart';
 
 /// BLoC for managing airline route-related state
-///
-/// Supports dependency injection for testing:
-/// - [dataSource] for activate/deactivate operations
-/// - [listAirlineRoutesUseCase] for listing routes
-/// - [getAirlineRouteByIdUseCase] for fetching route details
 class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
   final AirlineRouteRemoteDataSource _dataSource;
   final ListAirlineRoutesUseCase _listAirlineRoutesUseCase;
@@ -35,36 +30,28 @@ class AirlineRouteBloc extends Bloc<AirlineRouteEvent, AirlineRouteState> {
     on<DeactivateAirlineRoute>(_onDeactivateAirlineRoute);
   }
 
-  /// Handle FetchAirlineRoutes event
   Future<void> _onFetchAirlineRoutes(
     FetchAirlineRoutes event,
     Emitter<AirlineRouteState> emit,
   ) async {
     emit(AirlineRouteLoading());
 
-    try {
-      final airlineRoutes = await _listAirlineRoutesUseCase.call();
-      emit(AirlineRouteSuccess(airlineRoutes));
-    } catch (e) {
-      emit(AirlineRouteError(e.toString()));
-    }
+    final result = await _listAirlineRoutesUseCase.call();
+    result.fold(
+      (failure) => emit(AirlineRouteError(failure.message)),
+      (airlineRoutes) => emit(AirlineRouteSuccess(airlineRoutes)),
+    );
   }
 
-  /// Handle FetchAirlineRouteById event
   Future<void> _onFetchAirlineRouteById(
     FetchAirlineRouteById event,
     Emitter<AirlineRouteState> emit,
   ) async {
-    try {
-      final airlineRoute = await _getAirlineRouteByIdUseCase.call(
-        event.airlineRouteId,
-      );
-      if (airlineRoute != null) {
-        emit(AirlineRouteDetailSuccess(airlineRoute));
-      }
-    } catch (e) {
-      // Silently fail - don't emit error to avoid disrupting the UI
-    }
+    final result = await _getAirlineRouteByIdUseCase.call(event.airlineRouteId);
+    result.fold(
+      (_) {}, // Silently fail - don't emit error to avoid disrupting the UI
+      (airlineRoute) => emit(AirlineRouteDetailSuccess(airlineRoute)),
+    );
   }
 
   /// Handle ActivateAirlineRoute event
