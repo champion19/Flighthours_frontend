@@ -288,5 +288,110 @@ void main() {
       act: (bloc) => bloc.add(const DeactivateAirport(airportId: 'ap1')),
       expect: () => [isA<AirportLoading>(), isA<AirportError>()],
     );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Error] when ActivateAirport fails with success=false',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            AirportStatusResponseModel(
+              success: false,
+              code: 'ALREADY_ACTIVE',
+              message: 'Already active',
+            ),
+          ),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const ActivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportError>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Error] when ActivateAirport returns Left',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Server error', statusCode: 500)),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const ActivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportError>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, StatusUpdateSuccess] when DeactivateAirport succeeds',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async => Right(
+            AirportStatusResponseModel(
+              success: true,
+              code: 'DEACTIVATED',
+              message: 'Airport deactivated',
+            ),
+          ),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const DeactivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportStatusUpdateSuccess>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits [Loading, Error] when DeactivateAirport returns Left',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Server error', statusCode: 500)),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const DeactivateAirport(airportId: 'ap1')),
+      expect: () => [isA<AirportLoading>(), isA<AirportError>()],
+    );
+
+    blocTest<AirportBloc, AirportState>(
+      'emits nothing when FetchAirportById returns Left (silently fails)',
+      setUp: () {
+        when(() => mockGetByIdUseCase.call(any())).thenAnswer(
+          (_) async =>
+              const Left(Failure(message: 'Not found', statusCode: 404)),
+        );
+      },
+      build:
+          () => AirportBloc(
+            listAirportUseCase: mockListUseCase,
+            getAirportByIdUseCase: mockGetByIdUseCase,
+            activateAirportUseCase: mockActivateUseCase,
+            deactivateAirportUseCase: mockDeactivateUseCase,
+          ),
+      act: (bloc) => bloc.add(const FetchAirportById(airportId: 'notfound')),
+      expect: () => [],
+    );
   });
 }

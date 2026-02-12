@@ -253,5 +253,248 @@ void main() {
       act: (bloc) => bloc.add(const ClearSelectedLogbook()),
       expect: () => [isA<LogbookLoading>(), isA<DailyLogbooksLoaded>()],
     );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when SelectDailyLogbook fails',
+      setUp: () {
+        when(() => mockListDetailsUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Failed to load details')),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')),
+          ),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Error] when FetchLogbookDetails called without selected logbook',
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const FetchLogbookDetails('some-id')),
+      expect: () => [isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DetailsLoaded] when FetchLogbookDetails succeeds',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => const Right([LogbookDetailEntity(id: 'd1')]));
+      },
+      build: () => buildBloc(),
+      seed:
+          () => const LogbookDetailsLoaded(
+            selectedLogbook: DailyLogbookEntity(id: 'log1'),
+            details: [],
+          ),
+      act: (bloc) {
+        // First select a logbook so _currentSelectedLogbook is set
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+      },
+      expect: () => [isA<LogbookLoading>(), isA<LogbookDetailsLoaded>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when FetchLogbookDetails fails after select',
+      setUp: () {
+        // First call succeeds (SelectDailyLogbook), second call fails (FetchLogbookDetails)
+        int callCount = 0;
+        when(() => mockListDetailsUseCase.call(any())).thenAnswer((_) async {
+          callCount++;
+          if (callCount == 1) {
+            return const Right([LogbookDetailEntity(id: 'd1')]);
+          }
+          return const Left(Failure(message: 'Failed'));
+        });
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        bloc.add(const FetchLogbookDetails('log1'));
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Error] when DeleteLogbookDetail called without selected logbook',
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const DeleteLogbookDetail(detailId: 'det1', dailyLogbookId: 'log1'),
+          ),
+      expect: () => [isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DetailDeleted] when DeleteLogbookDetail succeeds',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => const Right([LogbookDetailEntity(id: 'd1')]));
+        when(
+          () => mockDeleteUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        // First select so _currentSelectedLogbook is set
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        bloc.add(
+          const DeleteLogbookDetail(detailId: 'det1', dailyLogbookId: 'log1'),
+        );
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookDetailDeleted>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when DeleteLogbookDetail returns Left',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => const Right([LogbookDetailEntity(id: 'd1')]));
+        when(() => mockDeleteUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Delete failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        bloc.add(
+          const DeleteLogbookDetail(detailId: 'det1', dailyLogbookId: 'log1'),
+        );
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when DeleteLogbookDetail returns false',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => const Right([LogbookDetailEntity(id: 'd1')]));
+        when(
+          () => mockDeleteUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(false));
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        bloc.add(
+          const DeleteLogbookDetail(detailId: 'det1', dailyLogbookId: 'log1'),
+        );
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when ClearSelectedLogbook fails to reload',
+      setUp: () {
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Reload failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const ClearSelectedLogbook()),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbooksLoaded] when RefreshLogbook without selected logbook',
+      setUp: () {
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Right([DailyLogbookEntity(id: 'log1')]),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const RefreshLogbook()),
+      expect: () => [isA<LogbookLoading>(), isA<DailyLogbooksLoaded>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when RefreshLogbook without selected logbook fails',
+      setUp: () {
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const RefreshLogbook()),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DetailsLoaded] when RefreshLogbook with selected logbook',
+      setUp: () {
+        when(
+          () => mockListDetailsUseCase.call(any()),
+        ).thenAnswer((_) async => const Right([LogbookDetailEntity(id: 'd1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        // First select a logbook
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        // Then refresh
+        bloc.add(const RefreshLogbook());
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when RefreshLogbook with selected logbook fails',
+      setUp: () {
+        int callCount = 0;
+        when(() => mockListDetailsUseCase.call(any())).thenAnswer((_) async {
+          callCount++;
+          if (callCount == 1) {
+            return const Right([LogbookDetailEntity(id: 'd1')]);
+          }
+          return const Left(Failure(message: 'Refresh failed'));
+        });
+      },
+      build: () => buildBloc(),
+      act: (bloc) {
+        bloc.add(const SelectDailyLogbook(DailyLogbookEntity(id: 'log1')));
+        bloc.add(const RefreshLogbook());
+      },
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookDetailsLoaded>(),
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+          ],
+    );
   });
 }
