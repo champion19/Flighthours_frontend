@@ -69,3 +69,23 @@ class LogbookDetailDeleted extends LogbookState {
   @override
   List<Object?> get props => [message, selectedLogbook, details];
 }
+
+/// State when a daily logbook was successfully created
+class DailyLogbookCreated extends LogbookState {
+  final String message;
+
+  const DailyLogbookCreated({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+/// State when a daily logbook status was changed (activated/deactivated)
+class DailyLogbookStatusChanged extends LogbookState {
+  final String message;
+
+  const DailyLogbookStatusChanged({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

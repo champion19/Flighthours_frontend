@@ -19,13 +19,11 @@ abstract class LogbookRemoteDataSource {
     required int bookPage,
   });
 
-  /// Update an existing daily logbook
-  Future<DailyLogbookModel?> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    required int bookPage,
-    required bool status,
-  });
+  /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate
+  Future<bool> activateDailyLogbook(String id);
+
+  /// Deactivate a daily logbook → PATCH /daily-logbooks/:id/deactivate
+  Future<bool> deactivateDailyLogbook(String id);
 
   /// Delete a daily logbook
   Future<bool> deleteDailyLogbook(String id);
@@ -116,36 +114,28 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
         ),
       );
       return _parseLogbookFromMap(response.data);
-    } on DioException catch (e) {
-      if (e.response != null) {
-        return null;
-      }
+    } on DioException {
       rethrow;
     }
   }
 
   @override
-  Future<DailyLogbookModel?> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    required int bookPage,
-    required bool status,
-  }) async {
+  Future<bool> activateDailyLogbook(String id) async {
     try {
-      final response = await _dio.put(
-        '/daily-logbooks/$id',
-        data: DailyLogbookModel.updateRequest(
-          logDate: logDate,
-          bookPage: bookPage,
-          status: status,
-        ),
-      );
-      return _parseLogbookFromMap(response.data);
-    } on DioException catch (e) {
-      if (e.response != null) {
-        return null;
-      }
-      rethrow;
+      await _dio.patch('/daily-logbooks/$id/activate');
+      return true;
+    } on DioException {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> deactivateDailyLogbook(String id) async {
+    try {
+      await _dio.patch('/daily-logbooks/$id/deactivate');
+      return true;
+    } on DioException {
+      return false;
     }
   }
 
