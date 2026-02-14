@@ -92,17 +92,4 @@ class DailyLogbookModel extends DailyLogbookEntity {
   }) {
     return {'log_date': _formatDate(logDate), 'book_page': bookPage};
   }
-
-  /// Create request body for updating a logbook
-  static Map<String, dynamic> updateRequest({
-    required DateTime logDate,
-    required int bookPage,
-    required bool status,
-  }) {
-    return {
-      'log_date': _formatDate(logDate),
-      'book_page': bookPage,
-      'status': status,
-    };
-  }
 }

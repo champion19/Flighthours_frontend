@@ -70,33 +70,7 @@ class LogbookRepositoryImpl implements LogbookRepository {
         logDate: logDate,
         bookPage: bookPage,
       );
-      if (result == null) {
-        return Left(Failure(message: 'Failed to create daily logbook'));
-      }
-      return Right(result);
-    } catch (e) {
-      return Left(_handleError(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    required int bookPage,
-    required bool status,
-  }) async {
-    try {
-      final result = await _remoteDataSource.updateDailyLogbook(
-        id: id,
-        logDate: logDate,
-        bookPage: bookPage,
-        status: status,
-      );
-      if (result == null) {
-        return Left(Failure(message: 'Failed to update daily logbook'));
-      }
-      return Right(result);
+      return Right(result!);
     } catch (e) {
       return Left(_handleError(e));
     }
@@ -106,6 +80,32 @@ class LogbookRepositoryImpl implements LogbookRepository {
   Future<Either<Failure, bool>> deleteDailyLogbook(String id) async {
     try {
       return Right(await _remoteDataSource.deleteDailyLogbook(id));
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> activateDailyLogbook(String id) async {
+    try {
+      final result = await _remoteDataSource.activateDailyLogbook(id);
+      if (!result) {
+        return Left(Failure(message: 'Failed to activate daily logbook'));
+      }
+      return Right(result);
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deactivateDailyLogbook(String id) async {
+    try {
+      final result = await _remoteDataSource.deactivateDailyLogbook(id);
+      if (!result) {
+        return Left(Failure(message: 'Failed to deactivate daily logbook'));
+      }
+      return Right(result);
     } catch (e) {
       return Left(_handleError(e));
     }

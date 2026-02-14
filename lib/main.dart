@@ -27,6 +27,7 @@ import 'package:flight_hours_app/features/license_plate/presentation/bloc/licens
 import 'package:flight_hours_app/features/license_plate/presentation/pages/license_plate_lookup_page.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
+import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
@@ -35,12 +36,23 @@ import 'package:flight_hours_app/features/login/presentation/bloc/login_bloc.dar
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 
+/// Global navigator key — enables navigation from anywhere (e.g. Dio interceptor on 401)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   InjectorApp.setyp();
 
   // Initialize session service to restore any persisted tokens
   await SessionService().init();
+
+  // Wire DioClient to redirect to login when token expires and refresh fails
+  DioClient().onForceLogout = () {
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/',
+      (route) => false, // Clear the entire navigation stack
+    );
+  };
 
   runApp(
     MultiBlocProvider(
@@ -60,6 +72,7 @@ void main() async {
         BlocProvider(create: (_) => FlightBloc()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         initialRoute: '/',
         title: 'Flight Hours',
         routes: {

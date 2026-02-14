@@ -108,8 +108,6 @@ class _NewFlightPageState extends State<NewFlightPage> {
                   _buildRouteResultsArea(),
                   const SizedBox(height: 32),
                   _buildContinueButton(),
-                  const SizedBox(height: 16),
-                  _buildLicensePlateButton(),
                 ],
               ),
             ),
@@ -683,41 +681,5 @@ class _NewFlightPageState extends State<NewFlightPage> {
 
       Navigator.pushNamed(context, '/license-plate', arguments: flightData);
     }
-  }
-
-  Widget _buildLicensePlateButton() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF4facfe), width: 2),
-      ),
-      child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(context, '/license-plate'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.airplane_ticket_outlined, color: Color(0xFF4facfe)),
-            SizedBox(width: 8),
-            Text(
-              'LICENSE PLATE',
-              style: TextStyle(
-                color: Color(0xFF4facfe),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

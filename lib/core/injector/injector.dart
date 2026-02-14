@@ -64,6 +64,10 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_log
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+
+import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/license_plate/data/datasources/license_plate_remote_data_source.dart';
 import 'package:flight_hours_app/features/license_plate/data/repositories/license_plate_repository_impl.dart';
 import 'package:flight_hours_app/features/license_plate/domain/repositories/license_plate_repository.dart';
@@ -169,6 +173,9 @@ abstract class InjectorApp {
   @Register.factory(ListLogbookDetailsUseCase)
   @Register.factory(GetLogbookDetailByIdUseCase)
   @Register.factory(DeleteLogbookDetailUseCase)
+  @Register.factory(CreateDailyLogbookUseCase)
+  @Register.factory(ActivateDailyLogbookUseCase)
+  @Register.factory(DeactivateDailyLogbookUseCase)
   @Register.factory(LogbookRepository, from: LogbookRepositoryImpl)
   @Register.factory(LogbookRemoteDataSource, from: LogbookRemoteDataSourceImpl)
   // License Plate

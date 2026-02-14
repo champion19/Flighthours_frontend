@@ -166,7 +166,7 @@ void main() {
         expect(result, isA<DailyLogbookModel>());
       });
 
-      test('should return null on DioException with response', () async {
+      test('should rethrow DioException', () async {
         // Arrange
         when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
           DioException(
@@ -180,71 +180,92 @@ void main() {
           ),
         );
 
-        // Act
-        final result = await datasource.createDailyLogbook(
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 1,
+        // Act & Assert
+        expect(
+          () => datasource.createDailyLogbook(
+            logDate: DateTime(2024, 1, 15),
+            bookPage: 1,
+          ),
+          throwsA(isA<DioException>()),
         );
-
-        // Assert
-        expect(result, isNull);
       });
     });
 
-    group('updateDailyLogbook', () {
-      test('should return DailyLogbookModel on success', () async {
+    group('activateDailyLogbook', () {
+      test('should return true on success', () async {
         // Arrange
-        when(() => mockDio.put(any(), data: any(named: 'data'))).thenAnswer(
+        when(() => mockDio.patch(any())).thenAnswer(
           (_) async => Response(
-            data: {
-              'data': {
-                'id': 'lb1',
-                'log_date': '2024-01-15',
-                'book_page': 2,
-                'status': true,
-              },
-            },
+            data: {'id': 'lb1', 'status': 'active', 'updated': true},
             statusCode: 200,
-            requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/activate',
+            ),
           ),
         );
 
         // Act
-        final result = await datasource.updateDailyLogbook(
-          id: 'lb1',
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 2,
-          status: true,
-        );
+        final result = await datasource.activateDailyLogbook('lb1');
 
         // Assert
-        expect(result, isA<DailyLogbookModel>());
+        expect(result, isTrue);
       });
 
-      test('should return null on DioException with response', () async {
+      test('should return false on DioException', () async {
         // Arrange
-        when(() => mockDio.put(any(), data: any(named: 'data'))).thenThrow(
+        when(() => mockDio.patch(any())).thenThrow(
           DioException(
             type: DioExceptionType.badResponse,
-            response: Response(
-              data: {'error': 'Not found'},
-              statusCode: 404,
-              requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/activate',
             ),
-            requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
           ),
         );
 
         // Act
-        final result = await datasource.updateDailyLogbook(
-          id: 'lb1',
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 2,
-          status: true,
-        );
+        final result = await datasource.activateDailyLogbook('lb1');
 
         // Assert
-        expect(result, isNull);
+        expect(result, isFalse);
+      });
+    });
+
+    group('deactivateDailyLogbook', () {
+      test('should return true on success', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenAnswer(
+          (_) async => Response(
+            data: {'id': 'lb1', 'status': 'inactive', 'updated': true},
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/deactivate',
+            ),
+          ),
+        );
+
+        // Act
+        final result = await datasource.deactivateDailyLogbook('lb1');
+
+        // Assert
+        expect(result, isTrue);
+      });
+
+      test('should return false on DioException', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenThrow(
+          DioException(
+            type: DioExceptionType.badResponse,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/deactivate',
+            ),
+          ),
+        );
+
+        // Act
+        final result = await datasource.deactivateDailyLogbook('lb1');
+
+        // Assert
+        expect(result, isFalse);
       });
     });
 
