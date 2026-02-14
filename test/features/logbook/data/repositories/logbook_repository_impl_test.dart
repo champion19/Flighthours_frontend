@@ -123,7 +123,6 @@ void main() {
             id: any(named: 'id'),
             logDate: any(named: 'logDate'),
             bookPage: any(named: 'bookPage'),
-            status: any(named: 'status'),
           ),
         ).thenAnswer((_) async => logbook);
 
@@ -131,7 +130,6 @@ void main() {
           id: 'lb1',
           logDate: DateTime(2024, 1, 15),
           bookPage: 2,
-          status: true,
         );
 
         expect(result, isA<Right>());
@@ -144,7 +142,6 @@ void main() {
             id: 'lb1',
             logDate: any(named: 'logDate'),
             bookPage: 2,
-            status: true,
           ),
         ).called(1);
       });
@@ -177,6 +174,80 @@ void main() {
           (failure) => fail('Expected Right'),
           (data) => expect(data, isFalse),
         );
+      });
+    });
+
+    group('activateDailyLogbook', () {
+      test('should return Right with true on success', () async {
+        when(
+          () => mockDataSource.activateDailyLogbook(any()),
+        ).thenAnswer((_) async => true);
+
+        final result = await repository.activateDailyLogbook('lb1');
+
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isTrue),
+        );
+        verify(() => mockDataSource.activateDailyLogbook('lb1')).called(1);
+      });
+
+      test('should return Left when datasource returns false', () async {
+        when(
+          () => mockDataSource.activateDailyLogbook(any()),
+        ).thenAnswer((_) async => false);
+
+        final result = await repository.activateDailyLogbook('lb1');
+
+        expect(result, isA<Left>());
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.activateDailyLogbook(any()),
+        ).thenThrow(Exception('Error'));
+
+        final result = await repository.activateDailyLogbook('lb1');
+
+        expect(result, isA<Left>());
+      });
+    });
+
+    group('deactivateDailyLogbook', () {
+      test('should return Right with true on success', () async {
+        when(
+          () => mockDataSource.deactivateDailyLogbook(any()),
+        ).thenAnswer((_) async => true);
+
+        final result = await repository.deactivateDailyLogbook('lb1');
+
+        expect(result, isA<Right>());
+        result.fold(
+          (failure) => fail('Expected Right'),
+          (data) => expect(data, isTrue),
+        );
+        verify(() => mockDataSource.deactivateDailyLogbook('lb1')).called(1);
+      });
+
+      test('should return Left when datasource returns false', () async {
+        when(
+          () => mockDataSource.deactivateDailyLogbook(any()),
+        ).thenAnswer((_) async => false);
+
+        final result = await repository.deactivateDailyLogbook('lb1');
+
+        expect(result, isA<Left>());
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deactivateDailyLogbook(any()),
+        ).thenThrow(Exception('Error'));
+
+        final result = await repository.deactivateDailyLogbook('lb1');
+
+        expect(result, isA<Left>());
       });
     });
 

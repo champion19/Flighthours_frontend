@@ -5,6 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/update_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
@@ -20,6 +24,18 @@ class MockListLogbookDetailsUseCase extends Mock
 
 class MockDeleteLogbookDetailUseCase extends Mock
     implements DeleteLogbookDetailUseCase {}
+
+class MockCreateDailyLogbookUseCase extends Mock
+    implements CreateDailyLogbookUseCase {}
+
+class MockUpdateDailyLogbookUseCase extends Mock
+    implements UpdateDailyLogbookUseCase {}
+
+class MockActivateDailyLogbookUseCase extends Mock
+    implements ActivateDailyLogbookUseCase {}
+
+class MockDeactivateDailyLogbookUseCase extends Mock
+    implements DeactivateDailyLogbookUseCase {}
 
 void main() {
   group('LogbookEvent', () {
@@ -180,11 +196,19 @@ void main() {
     late MockListDailyLogbooksUseCase mockListDailyUseCase;
     late MockListLogbookDetailsUseCase mockListDetailsUseCase;
     late MockDeleteLogbookDetailUseCase mockDeleteUseCase;
+    late MockCreateDailyLogbookUseCase mockCreateUseCase;
+    late MockUpdateDailyLogbookUseCase mockUpdateUseCase;
+    late MockActivateDailyLogbookUseCase mockActivateUseCase;
+    late MockDeactivateDailyLogbookUseCase mockDeactivateUseCase;
 
     setUp(() {
       mockListDailyUseCase = MockListDailyLogbooksUseCase();
       mockListDetailsUseCase = MockListLogbookDetailsUseCase();
       mockDeleteUseCase = MockDeleteLogbookDetailUseCase();
+      mockCreateUseCase = MockCreateDailyLogbookUseCase();
+      mockUpdateUseCase = MockUpdateDailyLogbookUseCase();
+      mockActivateUseCase = MockActivateDailyLogbookUseCase();
+      mockDeactivateUseCase = MockDeactivateDailyLogbookUseCase();
     });
 
     LogbookBloc buildBloc() {
@@ -192,6 +216,10 @@ void main() {
         listDailyLogbooksUseCase: mockListDailyUseCase,
         listLogbookDetailsUseCase: mockListDetailsUseCase,
         deleteLogbookDetailUseCase: mockDeleteUseCase,
+        createDailyLogbookUseCase: mockCreateUseCase,
+        updateDailyLogbookUseCase: mockUpdateUseCase,
+        activateDailyLogbookUseCase: mockActivateUseCase,
+        deactivateDailyLogbookUseCase: mockDeactivateUseCase,
       );
     }
 
@@ -493,6 +521,316 @@ void main() {
             isA<LogbookLoading>(),
             isA<LogbookDetailsLoaded>(),
             isA<LogbookLoading>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== CreateDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Created, LogbooksLoaded] when CreateDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockCreateUseCase.call(
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'new1')));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Right([DailyLogbookEntity(id: 'new1')]),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            CreateDailyLogbookEvent(
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 1,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookCreated>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when CreateDailyLogbook fails',
+      setUp: () {
+        when(
+          () => mockCreateUseCase.call(
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer(
+          (_) async => const Left(Failure(message: 'Duplicate entry')),
+        );
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Right([DailyLogbookEntity(id: 'log1')]),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            CreateDailyLogbookEvent(
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 1,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Created] when CreateDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockCreateUseCase.call(
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'new1')));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            CreateDailyLogbookEvent(
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 1,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookCreated>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== UpdateDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Updated, LogbooksLoaded] when UpdateDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockUpdateUseCase.call(
+            id: any(named: 'id'),
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'lb1')));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateDailyLogbookEvent(
+              id: 'lb1',
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 2,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookUpdated>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when UpdateDailyLogbook fails',
+      setUp: () {
+        when(
+          () => mockUpdateUseCase.call(
+            id: any(named: 'id'),
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer((_) async => const Left(Failure(message: 'Not found')));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateDailyLogbookEvent(
+              id: 'lb1',
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 2,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Updated, Error] when UpdateDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockUpdateUseCase.call(
+            id: any(named: 'id'),
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'lb1')));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            UpdateDailyLogbookEvent(
+              id: 'lb1',
+              logDate: DateTime(2024, 1, 15),
+              bookPage: 2,
+            ),
+          ),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookUpdated>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== ActivateDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, StatusChanged, LogbooksLoaded] when ActivateDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockActivateUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const ActivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookStatusChanged>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when ActivateDailyLogbook fails',
+      setUp: () {
+        when(() => mockActivateUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Activate failed')),
+        );
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const ActivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, StatusChanged, Error] when ActivateDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockActivateUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const ActivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookStatusChanged>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== DeactivateDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, StatusChanged, LogbooksLoaded] when DeactivateDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockDeactivateUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeactivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookStatusChanged>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when DeactivateDailyLogbook fails',
+      setUp: () {
+        when(() => mockDeactivateUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Deactivate failed')),
+        );
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeactivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, StatusChanged, Error] when DeactivateDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockDeactivateUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeactivateDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookStatusChanged>(),
             isA<LogbookError>(),
           ],
     );

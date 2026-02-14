@@ -57,3 +57,50 @@ class ClearSelectedLogbook extends LogbookEvent {
 class RefreshLogbook extends LogbookEvent {
   const RefreshLogbook();
 }
+
+/// Event to create a new daily logbook
+class CreateDailyLogbookEvent extends LogbookEvent {
+  final DateTime logDate;
+  final int? bookPage;
+
+  const CreateDailyLogbookEvent({required this.logDate, this.bookPage});
+
+  @override
+  List<Object?> get props => [logDate, bookPage];
+}
+
+/// Event to update an existing daily logbook
+class UpdateDailyLogbookEvent extends LogbookEvent {
+  final String id;
+  final DateTime logDate;
+  final int? bookPage;
+
+  const UpdateDailyLogbookEvent({
+    required this.id,
+    required this.logDate,
+    this.bookPage,
+  });
+
+  @override
+  List<Object?> get props => [id, logDate, bookPage];
+}
+
+/// Event to activate a daily logbook
+class ActivateDailyLogbookEvent extends LogbookEvent {
+  final String id;
+
+  const ActivateDailyLogbookEvent(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+/// Event to deactivate a daily logbook
+class DeactivateDailyLogbookEvent extends LogbookEvent {
+  final String id;
+
+  const DeactivateDailyLogbookEvent(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}

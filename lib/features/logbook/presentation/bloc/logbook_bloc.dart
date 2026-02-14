@@ -1,6 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/update_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
@@ -12,6 +16,10 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   final ListDailyLogbooksUseCase _listDailyLogbooksUseCase;
   final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
   final DeleteLogbookDetailUseCase _deleteLogbookDetailUseCase;
+  final CreateDailyLogbookUseCase _createDailyLogbookUseCase;
+  final UpdateDailyLogbookUseCase _updateDailyLogbookUseCase;
+  final ActivateDailyLogbookUseCase _activateDailyLogbookUseCase;
+  final DeactivateDailyLogbookUseCase _deactivateDailyLogbookUseCase;
 
   // Track the current selected logbook for refresh operations
   DailyLogbookEntity? _currentSelectedLogbook;
@@ -20,6 +28,10 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     ListDailyLogbooksUseCase? listDailyLogbooksUseCase,
     ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
     DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
+    CreateDailyLogbookUseCase? createDailyLogbookUseCase,
+    UpdateDailyLogbookUseCase? updateDailyLogbookUseCase,
+    ActivateDailyLogbookUseCase? activateDailyLogbookUseCase,
+    DeactivateDailyLogbookUseCase? deactivateDailyLogbookUseCase,
   }) : _listDailyLogbooksUseCase =
            listDailyLogbooksUseCase ??
            InjectorApp.resolve<ListDailyLogbooksUseCase>(),
@@ -29,6 +41,18 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
        _deleteLogbookDetailUseCase =
            deleteLogbookDetailUseCase ??
            InjectorApp.resolve<DeleteLogbookDetailUseCase>(),
+       _createDailyLogbookUseCase =
+           createDailyLogbookUseCase ??
+           InjectorApp.resolve<CreateDailyLogbookUseCase>(),
+       _updateDailyLogbookUseCase =
+           updateDailyLogbookUseCase ??
+           InjectorApp.resolve<UpdateDailyLogbookUseCase>(),
+       _activateDailyLogbookUseCase =
+           activateDailyLogbookUseCase ??
+           InjectorApp.resolve<ActivateDailyLogbookUseCase>(),
+       _deactivateDailyLogbookUseCase =
+           deactivateDailyLogbookUseCase ??
+           InjectorApp.resolve<DeactivateDailyLogbookUseCase>(),
        super(const LogbookInitial()) {
     on<FetchDailyLogbooks>(_onFetchDailyLogbooks);
     on<SelectDailyLogbook>(_onSelectDailyLogbook);
@@ -36,6 +60,10 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     on<DeleteLogbookDetail>(_onDeleteLogbookDetail);
     on<ClearSelectedLogbook>(_onClearSelectedLogbook);
     on<RefreshLogbook>(_onRefreshLogbook);
+    on<CreateDailyLogbookEvent>(_onCreateDailyLogbook);
+    on<UpdateDailyLogbookEvent>(_onUpdateDailyLogbook);
+    on<ActivateDailyLogbookEvent>(_onActivateDailyLogbook);
+    on<DeactivateDailyLogbookEvent>(_onDeactivateDailyLogbook);
   }
 
   Future<void> _onFetchDailyLogbooks(
@@ -179,5 +207,142 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
         (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
       );
     }
+  }
+
+  Future<void> _onCreateDailyLogbook(
+    CreateDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _createDailyLogbookUseCase.call(
+      logDate: event.logDate,
+      bookPage: event.bookPage,
+    );
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to create logbook: ${failure.message}'));
+        // Re-fetch list so UI stays on the list view (SnackBar shows the error)
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (logbook) async {
+        emit(
+          const DailyLogbookCreated(message: 'Logbook created successfully'),
+        );
+        // Auto-refresh the list
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (failure) =>
+              emit(LogbookError('Failed to refresh: ${failure.message}')),
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+    );
+  }
+
+  Future<void> _onUpdateDailyLogbook(
+    UpdateDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _updateDailyLogbookUseCase.call(
+      id: event.id,
+      logDate: event.logDate,
+      bookPage: event.bookPage,
+    );
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to update logbook: ${failure.message}'));
+        // Re-fetch list so UI stays on the list view (SnackBar shows the error)
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (logbook) async {
+        emit(
+          const DailyLogbookUpdated(message: 'Logbook updated successfully'),
+        );
+        // Auto-refresh the list
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (failure) =>
+              emit(LogbookError('Failed to refresh: ${failure.message}')),
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+    );
+  }
+
+  Future<void> _onActivateDailyLogbook(
+    ActivateDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _activateDailyLogbookUseCase.call(event.id);
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to activate logbook: ${failure.message}'));
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (success) async {
+        emit(
+          const DailyLogbookStatusChanged(
+            message: 'Logbook activated successfully',
+          ),
+        );
+        // Auto-refresh the list
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (failure) =>
+              emit(LogbookError('Failed to refresh: ${failure.message}')),
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+    );
+  }
+
+  Future<void> _onDeactivateDailyLogbook(
+    DeactivateDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _deactivateDailyLogbookUseCase.call(event.id);
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to deactivate logbook: ${failure.message}'));
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (success) async {
+        emit(
+          const DailyLogbookStatusChanged(
+            message: 'Logbook deactivated successfully',
+          ),
+        );
+        // Auto-refresh the list
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (failure) =>
+              emit(LogbookError('Failed to refresh: ${failure.message}')),
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+    );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_even
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 /// Main page for displaying logbook details in a table format
 /// Matches the Figma design with MODALITY, FLIGHT #, FROM-TO, A/C REG, DATE, START, END, ACTIONS columns
@@ -32,11 +33,19 @@ class _LogbookPageState extends State<LogbookPage> {
       body: SafeArea(
         child: BlocConsumer<LogbookBloc, LogbookState>(
           listener: (context, state) {
-            // Show success message when a detail is deleted
-            if (state is LogbookDetailDeleted) {
+            // Show success messages for CRUD operations
+            if (state is LogbookDetailDeleted ||
+                state is DailyLogbookCreated ||
+                state is DailyLogbookUpdated ||
+                state is DailyLogbookStatusChanged) {
+              String message = '';
+              if (state is LogbookDetailDeleted) message = state.message;
+              if (state is DailyLogbookCreated) message = state.message;
+              if (state is DailyLogbookUpdated) message = state.message;
+              if (state is DailyLogbookStatusChanged) message = state.message;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(message),
                   backgroundColor: const Color(0xFF28a745),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
@@ -171,7 +180,31 @@ class _LogbookPageState extends State<LogbookPage> {
   Widget _buildLogbookListView(List<DailyLogbookEntity> logbooks) {
     return Column(
       children: [
-        _buildHeader(title: 'Select Logbook', showBackButton: true),
+        _buildHeader(title: 'My Logbooks', showBackButton: true),
+        // Add New Entry button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _showLogbookFormDialog(),
+              icon: const Icon(Icons.add_circle_outline, size: 20),
+              label: const Text(
+                'Add New Entry',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4facfe),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ),
+        ),
         Expanded(
           child:
               logbooks.isEmpty
@@ -195,14 +228,21 @@ class _LogbookPageState extends State<LogbookPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.book_outlined,
-            size: 80,
-            color: const Color(0xFF4facfe).withValues(alpha: 0.5),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4facfe).withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.menu_book_rounded,
+              size: 64,
+              color: const Color(0xFF4facfe).withValues(alpha: 0.6),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           const Text(
-            'No logbooks found',
+            'No logbooks yet',
             style: TextStyle(
               color: Color(0xFF1a1a2e),
               fontSize: 20,
@@ -211,109 +251,190 @@ class _LogbookPageState extends State<LogbookPage> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Your flight logbooks will appear here',
+            'Create your first logbook entry to get started',
             style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showLogbookFormDialog(),
+            icon: const Icon(Icons.add, size: 20),
+            label: const Text('Create First Entry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4facfe),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Card for each daily logbook
+  /// Card for each daily logbook — matches wireframe mockup
   Widget _buildLogbookCard(DailyLogbookEntity logbook) {
+    final isActive = logbook.isActive;
+    final statusColor =
+        isActive ? const Color(0xFF28a745) : const Color(0xFF6c757d);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            context.read<LogbookBloc>().add(SelectDailyLogbook(logbook));
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFe9ecef)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.book, color: Colors.white, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        logbook.fullFormattedDate,
-                        style: const TextStyle(
-                          color: Color(0xFF1a1a2e),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Page: ${logbook.bookPage ?? 'N/A'}',
-                        style: const TextStyle(
-                          color: Color(0xFF6c757d),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        logbook.isActive
-                            ? const Color(0xFF28a745).withValues(alpha: 0.1)
-                            : const Color(0xFF6c757d).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    logbook.displayStatus,
-                    style: TextStyle(
-                      color:
-                          logbook.isActive
-                              ? const Color(0xFF28a745)
-                              : const Color(0xFF6c757d),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Color(0xFF4facfe),
-                  size: 16,
-                ),
-              ],
-            ),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFe9ecef)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: Date + Book Page | Status badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Date: ${logbook.fullFormattedDate}',
+                      style: const TextStyle(
+                        color: Color(0xFF1a1a2e),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Book Page: ${logbook.bookPage ?? 'N/A'}',
+                      style: const TextStyle(
+                        color: Color(0xFF6c757d),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Status badge — visual indicator only
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      logbook.displayStatus,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      isActive ? Icons.check_circle : Icons.cancel,
+                      size: 16,
+                      color: statusColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Bottom row: View Info + Edit + Activate/Deactivate buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showLogbookInfoBottomSheet(logbook),
+                  icon: const Icon(Icons.visibility_outlined, size: 16),
+                  label: const Text('View Info'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4facfe),
+                    side: const BorderSide(color: Color(0xFF4facfe)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showLogbookFormDialog(logbook: logbook),
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text('Edit'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF667eea),
+                    side: const BorderSide(color: Color(0xFF667eea)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    if (isActive) {
+                      context.read<LogbookBloc>().add(
+                        DeactivateDailyLogbookEvent(logbook.uuid ?? logbook.id),
+                      );
+                    } else {
+                      context.read<LogbookBloc>().add(
+                        ActivateDailyLogbookEvent(logbook.uuid ?? logbook.id),
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    isActive
+                        ? Icons.pause_circle_outline
+                        : Icons.play_circle_outline,
+                    size: 16,
+                  ),
+                  label: Text(isActive ? 'Deactivate' : 'Activate'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor:
+                        isActive
+                            ? const Color(0xFFf5576c)
+                            : const Color(0xFF28a745),
+                    side: BorderSide(
+                      color:
+                          isActive
+                              ? const Color(0xFFf5576c)
+                              : const Color(0xFF28a745),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -1037,6 +1158,417 @@ class _LogbookPageState extends State<LogbookPage> {
               ),
             ],
           ),
+    );
+  }
+
+  /// Show logbook info in a bottom sheet — data from GET /daily-logbooks/:id
+  void _showLogbookInfoBottomSheet(DailyLogbookEntity logbook) {
+    final isActive = logbook.isActive;
+    final statusColor =
+        isActive ? const Color(0xFF28a745) : const Color(0xFF6c757d);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFe9ecef),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Title
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: const Text(
+                        'Logbook Details',
+                        style: TextStyle(
+                          color: Color(0xFF1a1a2e),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            logbook.displayStatus,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            isActive ? Icons.check_circle : Icons.cancel,
+                            size: 16,
+                            color: statusColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Detail rows
+                _buildLogbookInfoRow(
+                  Icons.calendar_today,
+                  'Log Date',
+                  logbook.fullFormattedDate,
+                ),
+                _buildLogbookInfoRow(
+                  Icons.book_outlined,
+                  'Book Page',
+                  logbook.bookPage?.toString() ?? 'N/A',
+                ),
+                _buildLogbookInfoRow(
+                  Icons.toggle_on_outlined,
+                  'Status',
+                  logbook.displayStatus,
+                  valueColor: statusColor,
+                ),
+                const SizedBox(height: 24),
+                // Close button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4facfe),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  /// Info row widget for logbook bottom sheet
+  Widget _buildLogbookInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF4facfe)),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(color: Color(0xFF6c757d), fontSize: 14),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? const Color(0xFF1a1a2e),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show the create/edit logbook form dialog
+  void _showLogbookFormDialog({DailyLogbookEntity? logbook}) {
+    final isEditing = logbook != null;
+    final dateController = TextEditingController(
+      text:
+          logbook != null
+              ? DateFormat(
+                'yyyy-MM-dd',
+              ).format(logbook.logDate ?? DateTime.now())
+              : '',
+    );
+    final bookPageController = TextEditingController(
+      text: logbook?.bookPage?.toString() ?? '',
+    );
+    DateTime? selectedDate = logbook?.logDate;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      isEditing ? Icons.edit : Icons.add_circle_outline,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    isEditing ? 'Edit Logbook' : 'New Logbook Entry',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1a1a2e),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Date field
+                    const Text(
+                      'Log Date *',
+                      style: TextStyle(
+                        color: Color(0xFF6c757d),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: dateController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        hintText: 'Select date',
+                        prefixIcon: const Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: Color(0xFF4facfe),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFe9ecef),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFe9ecef),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4facfe),
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate ?? now,
+                          firstDate: DateTime(2020),
+                          lastDate: now,
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedDate = picked;
+                            dateController.text = DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(picked);
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Book page field
+                    const Text(
+                      'Book Page (optional)',
+                      style: TextStyle(
+                        color: Color(0xFF6c757d),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: bookPageController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. 42',
+                        prefixIcon: const Icon(
+                          Icons.book_outlined,
+                          size: 18,
+                          color: Color(0xFF4facfe),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFe9ecef),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFe9ecef),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4facfe),
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFF6c757d)),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedDate == null) {
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Please select a date'),
+                          backgroundColor: Colors.orange,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    final bookPage = int.tryParse(bookPageController.text);
+                    Navigator.of(dialogContext).pop();
+
+                    if (isEditing) {
+                      this.context.read<LogbookBloc>().add(
+                        UpdateDailyLogbookEvent(
+                          id: logbook.uuid ?? logbook.id,
+                          logDate: selectedDate!,
+                          bookPage: bookPage,
+                        ),
+                      );
+                    } else {
+                      this.context.read<LogbookBloc>().add(
+                        CreateDailyLogbookEvent(
+                          logDate: selectedDate!,
+                          bookPage: bookPage,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4facfe),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    isEditing ? 'Update' : 'Create',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

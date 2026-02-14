@@ -19,11 +19,16 @@ abstract class LogbookRepository {
   Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
     required String id,
     required DateTime logDate,
-    required int bookPage,
-    required bool status,
+    int? bookPage,
   });
 
   Future<Either<Failure, bool>> deleteDailyLogbook(String id);
+
+  /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate
+  Future<Either<Failure, bool>> activateDailyLogbook(String id);
+
+  /// Deactivate a daily logbook → PATCH /daily-logbooks/:id/deactivate
+  Future<Either<Failure, bool>> deactivateDailyLogbook(String id);
 
   // ========== Logbook Detail (Flight Segment) Operations ==========
 

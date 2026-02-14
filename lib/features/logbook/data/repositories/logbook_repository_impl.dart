@@ -19,7 +19,9 @@ class LogbookRepositoryImpl implements LogbookRepository {
       final data = e.response!.data;
       if (data is Map<String, dynamic>) {
         return Failure(
-          message: data['message']?.toString() ?? 'Server error',
+          message: _sanitizeMessage(
+            data['message']?.toString() ?? 'Server error',
+          ),
           code: data['code']?.toString(),
           statusCode: e.response!.statusCode,
         );
@@ -30,6 +32,18 @@ class LogbookRepositoryImpl implements LogbookRepository {
       );
     }
     return Failure(message: 'Unexpected error occurred');
+  }
+
+  /// Cleans backend error messages for user display:
+  /// - Removes quotes: "book_page" → book_page
+  /// - Converts snake_case to readable: book_page → book page
+  String _sanitizeMessage(String message) {
+    return message
+        .replaceAll('"', '')
+        .replaceAllMapped(
+          RegExp(r'\b(\w+_\w+)\b'),
+          (match) => match.group(0)!.replaceAll('_', ' '),
+        );
   }
 
   // ========== Daily Logbook Operations ==========
@@ -70,10 +84,7 @@ class LogbookRepositoryImpl implements LogbookRepository {
         logDate: logDate,
         bookPage: bookPage,
       );
-      if (result == null) {
-        return Left(Failure(message: 'Failed to create daily logbook'));
-      }
-      return Right(result);
+      return Right(result!);
     } catch (e) {
       return Left(_handleError(e));
     }
@@ -83,20 +94,15 @@ class LogbookRepositoryImpl implements LogbookRepository {
   Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
     required String id,
     required DateTime logDate,
-    required int bookPage,
-    required bool status,
+    int? bookPage,
   }) async {
     try {
       final result = await _remoteDataSource.updateDailyLogbook(
         id: id,
         logDate: logDate,
         bookPage: bookPage,
-        status: status,
       );
-      if (result == null) {
-        return Left(Failure(message: 'Failed to update daily logbook'));
-      }
-      return Right(result);
+      return Right(result!);
     } catch (e) {
       return Left(_handleError(e));
     }
@@ -106,6 +112,32 @@ class LogbookRepositoryImpl implements LogbookRepository {
   Future<Either<Failure, bool>> deleteDailyLogbook(String id) async {
     try {
       return Right(await _remoteDataSource.deleteDailyLogbook(id));
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> activateDailyLogbook(String id) async {
+    try {
+      final result = await _remoteDataSource.activateDailyLogbook(id);
+      if (!result) {
+        return Left(Failure(message: 'Failed to activate daily logbook'));
+      }
+      return Right(result);
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deactivateDailyLogbook(String id) async {
+    try {
+      final result = await _remoteDataSource.deactivateDailyLogbook(id);
+      if (!result) {
+        return Left(Failure(message: 'Failed to deactivate daily logbook'));
+      }
+      return Right(result);
     } catch (e) {
       return Left(_handleError(e));
     }

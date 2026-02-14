@@ -166,7 +166,7 @@ void main() {
         expect(result, isA<DailyLogbookModel>());
       });
 
-      test('should return null on DioException with response', () async {
+      test('should rethrow DioException', () async {
         // Arrange
         when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
           DioException(
@@ -180,14 +180,14 @@ void main() {
           ),
         );
 
-        // Act
-        final result = await datasource.createDailyLogbook(
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 1,
+        // Act & Assert
+        expect(
+          () => datasource.createDailyLogbook(
+            logDate: DateTime(2024, 1, 15),
+            bookPage: 1,
+          ),
+          throwsA(isA<DioException>()),
         );
-
-        // Assert
-        expect(result, isNull);
       });
     });
 
@@ -214,14 +214,13 @@ void main() {
           id: 'lb1',
           logDate: DateTime(2024, 1, 15),
           bookPage: 2,
-          status: true,
         );
 
         // Assert
         expect(result, isA<DailyLogbookModel>());
       });
 
-      test('should return null on DioException with response', () async {
+      test('should rethrow DioException', () async {
         // Arrange
         when(() => mockDio.put(any(), data: any(named: 'data'))).thenThrow(
           DioException(
@@ -235,16 +234,93 @@ void main() {
           ),
         );
 
-        // Act
-        final result = await datasource.updateDailyLogbook(
-          id: 'lb1',
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 2,
-          status: true,
+        // Act & Assert
+        expect(
+          () => datasource.updateDailyLogbook(
+            id: 'lb1',
+            logDate: DateTime(2024, 1, 15),
+            bookPage: 2,
+          ),
+          throwsA(isA<DioException>()),
+        );
+      });
+    });
+
+    group('activateDailyLogbook', () {
+      test('should return true on success', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenAnswer(
+          (_) async => Response(
+            data: {'id': 'lb1', 'status': 'active', 'updated': true},
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/activate',
+            ),
+          ),
         );
 
+        // Act
+        final result = await datasource.activateDailyLogbook('lb1');
+
         // Assert
-        expect(result, isNull);
+        expect(result, isTrue);
+      });
+
+      test('should return false on DioException', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenThrow(
+          DioException(
+            type: DioExceptionType.badResponse,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/activate',
+            ),
+          ),
+        );
+
+        // Act
+        final result = await datasource.activateDailyLogbook('lb1');
+
+        // Assert
+        expect(result, isFalse);
+      });
+    });
+
+    group('deactivateDailyLogbook', () {
+      test('should return true on success', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenAnswer(
+          (_) async => Response(
+            data: {'id': 'lb1', 'status': 'inactive', 'updated': true},
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/deactivate',
+            ),
+          ),
+        );
+
+        // Act
+        final result = await datasource.deactivateDailyLogbook('lb1');
+
+        // Assert
+        expect(result, isTrue);
+      });
+
+      test('should return false on DioException', () async {
+        // Arrange
+        when(() => mockDio.patch(any())).thenThrow(
+          DioException(
+            type: DioExceptionType.badResponse,
+            requestOptions: RequestOptions(
+              path: '/daily-logbooks/lb1/deactivate',
+            ),
+          ),
+        );
+
+        // Act
+        final result = await datasource.deactivateDailyLogbook('lb1');
+
+        // Assert
+        expect(result, isFalse);
       });
     });
 

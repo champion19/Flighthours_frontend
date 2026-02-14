@@ -140,12 +140,11 @@ void main() {
         final request = DailyLogbookModel.updateRequest(
           logDate: logDate,
           bookPage: 12345,
-          status: true,
         );
 
         expect(request['log_date'], equals('2024-01-15'));
         expect(request['book_page'], equals(12345));
-        expect(request['status'], isTrue);
+        expect(request.containsKey('status'), isFalse);
       });
     });
   });
