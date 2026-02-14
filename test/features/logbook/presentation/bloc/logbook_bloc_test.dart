@@ -101,6 +101,42 @@ void main() {
       expect(event, isA<LogbookEvent>());
       expect(event.props, isEmpty);
     });
+
+    test('CreateDailyLogbookEvent should contain logDate and bookPage', () {
+      final event = CreateDailyLogbookEvent(
+        logDate: DateTime(2024, 1, 15),
+        bookPage: 1,
+      );
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(2));
+      expect(event.logDate, DateTime(2024, 1, 15));
+      expect(event.bookPage, 1);
+    });
+
+    test('UpdateDailyLogbookEvent should contain id, logDate and bookPage', () {
+      final event = UpdateDailyLogbookEvent(
+        id: 'lb1',
+        logDate: DateTime(2024, 1, 15),
+        bookPage: 2,
+      );
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(3));
+      expect(event.id, 'lb1');
+    });
+
+    test('ActivateDailyLogbookEvent should contain id', () {
+      const event = ActivateDailyLogbookEvent('lb1');
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(1));
+      expect(event.id, 'lb1');
+    });
+
+    test('DeactivateDailyLogbookEvent should contain id', () {
+      const event = DeactivateDailyLogbookEvent('lb1');
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(1));
+      expect(event.id, 'lb1');
+    });
   });
 
   group('LogbookState', () {
