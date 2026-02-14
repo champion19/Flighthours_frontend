@@ -106,6 +106,8 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory((c) => DeleteLogbookDetailUseCase(
           repository: c.resolve<LogbookRepository>()))
       ..registerFactory((c) =>
+          DeleteDailyLogbookUseCase(repository: c.resolve<LogbookRepository>()))
+      ..registerFactory((c) =>
           CreateDailyLogbookUseCase(repository: c.resolve<LogbookRepository>()))
       ..registerFactory((c) => ActivateDailyLogbookUseCase(
           repository: c.resolve<LogbookRepository>()))
@@ -122,6 +124,13 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<LicensePlateRepository>((c) =>
           LicensePlateRepositoryImpl(c.resolve<LicensePlateRemoteDataSource>()))
       ..registerFactory<LicensePlateRemoteDataSource>(
-          (c) => LicensePlateRemoteDataSourceImpl(dio: c.resolve<Dio>()));
+          (c) => LicensePlateRemoteDataSourceImpl(dio: c.resolve<Dio>()))
+      ..registerFactory((c) => ListCrewMemberTypesUseCase(
+          repository: c.resolve<CrewMemberTypeRepository>()))
+      ..registerFactory<CrewMemberTypeRepository>((c) =>
+          CrewMemberTypeRepositoryImpl(
+              remoteDataSource: c.resolve<CrewMemberTypeRemoteDataSource>()))
+      ..registerFactory<CrewMemberTypeRemoteDataSource>(
+          (c) => CrewMemberTypeRemoteDataSourceImpl(dio: c.resolve<Dio>()));
   }
 }

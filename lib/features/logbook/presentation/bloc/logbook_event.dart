@@ -88,3 +88,13 @@ class DeactivateDailyLogbookEvent extends LogbookEvent {
   @override
   List<Object?> get props => [id];
 }
+
+/// Event to delete a daily logbook
+class DeleteDailyLogbookEvent extends LogbookEvent {
+  final String id;
+
+  const DeleteDailyLogbookEvent(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}

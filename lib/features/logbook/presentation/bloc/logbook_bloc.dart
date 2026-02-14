@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
@@ -17,6 +18,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
   final DeleteLogbookDetailUseCase _deleteLogbookDetailUseCase;
   final CreateDailyLogbookUseCase _createDailyLogbookUseCase;
+  final DeleteDailyLogbookUseCase _deleteDailyLogbookUseCase;
 
   final ActivateDailyLogbookUseCase _activateDailyLogbookUseCase;
   final DeactivateDailyLogbookUseCase _deactivateDailyLogbookUseCase;
@@ -29,6 +31,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
     DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
     CreateDailyLogbookUseCase? createDailyLogbookUseCase,
+    DeleteDailyLogbookUseCase? deleteDailyLogbookUseCase,
 
     ActivateDailyLogbookUseCase? activateDailyLogbookUseCase,
     DeactivateDailyLogbookUseCase? deactivateDailyLogbookUseCase,
@@ -44,6 +47,9 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
        _createDailyLogbookUseCase =
            createDailyLogbookUseCase ??
            InjectorApp.resolve<CreateDailyLogbookUseCase>(),
+       _deleteDailyLogbookUseCase =
+           deleteDailyLogbookUseCase ??
+           InjectorApp.resolve<DeleteDailyLogbookUseCase>(),
 
        _activateDailyLogbookUseCase =
            activateDailyLogbookUseCase ??
@@ -62,6 +68,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
 
     on<ActivateDailyLogbookEvent>(_onActivateDailyLogbook);
     on<DeactivateDailyLogbookEvent>(_onDeactivateDailyLogbook);
+    on<DeleteDailyLogbookEvent>(_onDeleteDailyLogbook);
   }
 
   Future<void> _onFetchDailyLogbooks(
@@ -304,6 +311,42 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
               emit(LogbookError('Failed to refresh: ${failure.message}')),
           (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
         );
+      },
+    );
+  }
+
+  Future<void> _onDeleteDailyLogbook(
+    DeleteDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _deleteDailyLogbookUseCase.call(event.id);
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to delete logbook: ${failure.message}'));
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (success) async {
+        if (success) {
+          _currentSelectedLogbook = null;
+          emit(
+            const DailyLogbookDeleted(message: 'Logbook deleted successfully'),
+          );
+          // Auto-refresh the list
+          final listResult = await _listDailyLogbooksUseCase.call();
+          listResult.fold(
+            (failure) =>
+                emit(LogbookError('Failed to refresh: ${failure.message}')),
+            (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+          );
+        } else {
+          emit(const LogbookError('Failed to delete logbook'));
+        }
       },
     );
   }

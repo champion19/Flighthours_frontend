@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
@@ -33,6 +34,9 @@ class MockActivateDailyLogbookUseCase extends Mock
 
 class MockDeactivateDailyLogbookUseCase extends Mock
     implements DeactivateDailyLogbookUseCase {}
+
+class MockDeleteDailyLogbookUseCase extends Mock
+    implements DeleteDailyLogbookUseCase {}
 
 void main() {
   group('LogbookEvent', () {
@@ -119,6 +123,13 @@ void main() {
 
     test('DeactivateDailyLogbookEvent should contain id', () {
       const event = DeactivateDailyLogbookEvent('lb1');
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(1));
+      expect(event.id, 'lb1');
+    });
+
+    test('DeleteDailyLogbookEvent should contain id', () {
+      const event = DeleteDailyLogbookEvent('lb1');
       expect(event, isA<LogbookEvent>());
       expect(event.props.length, equals(1));
       expect(event.id, 'lb1');
@@ -212,6 +223,18 @@ void main() {
         expect(state.props.length, equals(3));
       });
     });
+
+    group('DailyLogbookDeleted', () {
+      test('should create with message', () {
+        const state = DailyLogbookDeleted(message: 'Logbook deleted');
+        expect(state.message, equals('Logbook deleted'));
+      });
+
+      test('props should contain message', () {
+        const state = DailyLogbookDeleted(message: 'msg');
+        expect(state.props.length, equals(1));
+      });
+    });
   });
 
   group('LogbookBloc', () {
@@ -222,6 +245,7 @@ void main() {
 
     late MockActivateDailyLogbookUseCase mockActivateUseCase;
     late MockDeactivateDailyLogbookUseCase mockDeactivateUseCase;
+    late MockDeleteDailyLogbookUseCase mockDeleteDailyUseCase;
 
     setUp(() {
       mockListDailyUseCase = MockListDailyLogbooksUseCase();
@@ -231,6 +255,7 @@ void main() {
 
       mockActivateUseCase = MockActivateDailyLogbookUseCase();
       mockDeactivateUseCase = MockDeactivateDailyLogbookUseCase();
+      mockDeleteDailyUseCase = MockDeleteDailyLogbookUseCase();
     });
 
     LogbookBloc buildBloc() {
@@ -239,6 +264,7 @@ void main() {
         listLogbookDetailsUseCase: mockListDetailsUseCase,
         deleteLogbookDetailUseCase: mockDeleteUseCase,
         createDailyLogbookUseCase: mockCreateUseCase,
+        deleteDailyLogbookUseCase: mockDeleteDailyUseCase,
 
         activateDailyLogbookUseCase: mockActivateUseCase,
         deactivateDailyLogbookUseCase: mockDeactivateUseCase,
@@ -758,6 +784,80 @@ void main() {
           () => [
             isA<LogbookLoading>(),
             isA<DailyLogbookStatusChanged>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== DeleteDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbookDeleted, LogbooksLoaded] when DeleteDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb2')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookDeleted>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when DeleteDailyLogbook fails',
+      setUp: () {
+        when(() => mockDeleteDailyUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Delete failed')),
+        );
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when DeleteDailyLogbook returns false',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(false));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbookDeleted, Error] when DeleteDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookDeleted>(),
             isA<LogbookError>(),
           ],
     );
