@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
-import 'package:flight_hours_app/features/logbook/domain/usecases/update_daily_logbook_use_case.dart';
+
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
@@ -17,7 +17,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
   final DeleteLogbookDetailUseCase _deleteLogbookDetailUseCase;
   final CreateDailyLogbookUseCase _createDailyLogbookUseCase;
-  final UpdateDailyLogbookUseCase _updateDailyLogbookUseCase;
+
   final ActivateDailyLogbookUseCase _activateDailyLogbookUseCase;
   final DeactivateDailyLogbookUseCase _deactivateDailyLogbookUseCase;
 
@@ -29,7 +29,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
     DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
     CreateDailyLogbookUseCase? createDailyLogbookUseCase,
-    UpdateDailyLogbookUseCase? updateDailyLogbookUseCase,
+
     ActivateDailyLogbookUseCase? activateDailyLogbookUseCase,
     DeactivateDailyLogbookUseCase? deactivateDailyLogbookUseCase,
   }) : _listDailyLogbooksUseCase =
@@ -44,9 +44,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
        _createDailyLogbookUseCase =
            createDailyLogbookUseCase ??
            InjectorApp.resolve<CreateDailyLogbookUseCase>(),
-       _updateDailyLogbookUseCase =
-           updateDailyLogbookUseCase ??
-           InjectorApp.resolve<UpdateDailyLogbookUseCase>(),
+
        _activateDailyLogbookUseCase =
            activateDailyLogbookUseCase ??
            InjectorApp.resolve<ActivateDailyLogbookUseCase>(),
@@ -61,7 +59,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     on<ClearSelectedLogbook>(_onClearSelectedLogbook);
     on<RefreshLogbook>(_onRefreshLogbook);
     on<CreateDailyLogbookEvent>(_onCreateDailyLogbook);
-    on<UpdateDailyLogbookEvent>(_onUpdateDailyLogbook);
+
     on<ActivateDailyLogbookEvent>(_onActivateDailyLogbook);
     on<DeactivateDailyLogbookEvent>(_onDeactivateDailyLogbook);
   }
@@ -232,42 +230,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       (logbook) async {
         emit(
           const DailyLogbookCreated(message: 'Logbook created successfully'),
-        );
-        // Auto-refresh the list
-        final listResult = await _listDailyLogbooksUseCase.call();
-        listResult.fold(
-          (failure) =>
-              emit(LogbookError('Failed to refresh: ${failure.message}')),
-          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
-        );
-      },
-    );
-  }
-
-  Future<void> _onUpdateDailyLogbook(
-    UpdateDailyLogbookEvent event,
-    Emitter<LogbookState> emit,
-  ) async {
-    emit(const LogbookLoading());
-
-    final result = await _updateDailyLogbookUseCase.call(
-      id: event.id,
-      logDate: event.logDate,
-      bookPage: event.bookPage,
-    );
-    await result.fold(
-      (failure) async {
-        emit(LogbookError('Failed to update logbook: ${failure.message}'));
-        // Re-fetch list so UI stays on the list view (SnackBar shows the error)
-        final listResult = await _listDailyLogbooksUseCase.call();
-        listResult.fold(
-          (_) => null,
-          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
-        );
-      },
-      (logbook) async {
-        emit(
-          const DailyLogbookUpdated(message: 'Logbook updated successfully'),
         );
         // Auto-refresh the list
         final listResult = await _listDailyLogbooksUseCase.call();

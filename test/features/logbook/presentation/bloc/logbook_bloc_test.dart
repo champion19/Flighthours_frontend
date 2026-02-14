@@ -6,7 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
-import 'package:flight_hours_app/features/logbook/domain/usecases/update_daily_logbook_use_case.dart';
+
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
@@ -27,9 +27,6 @@ class MockDeleteLogbookDetailUseCase extends Mock
 
 class MockCreateDailyLogbookUseCase extends Mock
     implements CreateDailyLogbookUseCase {}
-
-class MockUpdateDailyLogbookUseCase extends Mock
-    implements UpdateDailyLogbookUseCase {}
 
 class MockActivateDailyLogbookUseCase extends Mock
     implements ActivateDailyLogbookUseCase {}
@@ -111,17 +108,6 @@ void main() {
       expect(event.props.length, equals(2));
       expect(event.logDate, DateTime(2024, 1, 15));
       expect(event.bookPage, 1);
-    });
-
-    test('UpdateDailyLogbookEvent should contain id, logDate and bookPage', () {
-      final event = UpdateDailyLogbookEvent(
-        id: 'lb1',
-        logDate: DateTime(2024, 1, 15),
-        bookPage: 2,
-      );
-      expect(event, isA<LogbookEvent>());
-      expect(event.props.length, equals(3));
-      expect(event.id, 'lb1');
     });
 
     test('ActivateDailyLogbookEvent should contain id', () {
@@ -233,7 +219,7 @@ void main() {
     late MockListLogbookDetailsUseCase mockListDetailsUseCase;
     late MockDeleteLogbookDetailUseCase mockDeleteUseCase;
     late MockCreateDailyLogbookUseCase mockCreateUseCase;
-    late MockUpdateDailyLogbookUseCase mockUpdateUseCase;
+
     late MockActivateDailyLogbookUseCase mockActivateUseCase;
     late MockDeactivateDailyLogbookUseCase mockDeactivateUseCase;
 
@@ -242,7 +228,7 @@ void main() {
       mockListDetailsUseCase = MockListLogbookDetailsUseCase();
       mockDeleteUseCase = MockDeleteLogbookDetailUseCase();
       mockCreateUseCase = MockCreateDailyLogbookUseCase();
-      mockUpdateUseCase = MockUpdateDailyLogbookUseCase();
+
       mockActivateUseCase = MockActivateDailyLogbookUseCase();
       mockDeactivateUseCase = MockDeactivateDailyLogbookUseCase();
     });
@@ -253,7 +239,7 @@ void main() {
         listLogbookDetailsUseCase: mockListDetailsUseCase,
         deleteLogbookDetailUseCase: mockDeleteUseCase,
         createDailyLogbookUseCase: mockCreateUseCase,
-        updateDailyLogbookUseCase: mockUpdateUseCase,
+
         activateDailyLogbookUseCase: mockActivateUseCase,
         deactivateDailyLogbookUseCase: mockDeactivateUseCase,
       );
@@ -648,101 +634,6 @@ void main() {
           () => [
             isA<LogbookLoading>(),
             isA<DailyLogbookCreated>(),
-            isA<LogbookError>(),
-          ],
-    );
-
-    // ========== UpdateDailyLogbook Tests ==========
-
-    blocTest<LogbookBloc, LogbookState>(
-      'emits [Loading, Updated, LogbooksLoaded] when UpdateDailyLogbook succeeds',
-      setUp: () {
-        when(
-          () => mockUpdateUseCase.call(
-            id: any(named: 'id'),
-            logDate: any(named: 'logDate'),
-            bookPage: any(named: 'bookPage'),
-          ),
-        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'lb1')));
-        when(
-          () => mockListDailyUseCase.call(),
-        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
-      },
-      build: () => buildBloc(),
-      act:
-          (bloc) => bloc.add(
-            UpdateDailyLogbookEvent(
-              id: 'lb1',
-              logDate: DateTime(2024, 1, 15),
-              bookPage: 2,
-            ),
-          ),
-      expect:
-          () => [
-            isA<LogbookLoading>(),
-            isA<DailyLogbookUpdated>(),
-            isA<DailyLogbooksLoaded>(),
-          ],
-    );
-
-    blocTest<LogbookBloc, LogbookState>(
-      'emits [Loading, Error, LogbooksLoaded] when UpdateDailyLogbook fails',
-      setUp: () {
-        when(
-          () => mockUpdateUseCase.call(
-            id: any(named: 'id'),
-            logDate: any(named: 'logDate'),
-            bookPage: any(named: 'bookPage'),
-          ),
-        ).thenAnswer((_) async => const Left(Failure(message: 'Not found')));
-        when(
-          () => mockListDailyUseCase.call(),
-        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
-      },
-      build: () => buildBloc(),
-      act:
-          (bloc) => bloc.add(
-            UpdateDailyLogbookEvent(
-              id: 'lb1',
-              logDate: DateTime(2024, 1, 15),
-              bookPage: 2,
-            ),
-          ),
-      expect:
-          () => [
-            isA<LogbookLoading>(),
-            isA<LogbookError>(),
-            isA<DailyLogbooksLoaded>(),
-          ],
-    );
-
-    blocTest<LogbookBloc, LogbookState>(
-      'emits [Loading, Updated, Error] when UpdateDailyLogbook succeeds but refresh fails',
-      setUp: () {
-        when(
-          () => mockUpdateUseCase.call(
-            id: any(named: 'id'),
-            logDate: any(named: 'logDate'),
-            bookPage: any(named: 'bookPage'),
-          ),
-        ).thenAnswer((_) async => const Right(DailyLogbookEntity(id: 'lb1')));
-        when(() => mockListDailyUseCase.call()).thenAnswer(
-          (_) async => const Left(Failure(message: 'Refresh failed')),
-        );
-      },
-      build: () => buildBloc(),
-      act:
-          (bloc) => bloc.add(
-            UpdateDailyLogbookEvent(
-              id: 'lb1',
-              logDate: DateTime(2024, 1, 15),
-              bookPage: 2,
-            ),
-          ),
-      expect:
-          () => [
-            isA<LogbookLoading>(),
-            isA<DailyLogbookUpdated>(),
             isA<LogbookError>(),
           ],
     );

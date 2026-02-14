@@ -107,8 +107,6 @@ class _$InjectorApp extends InjectorApp {
           repository: c.resolve<LogbookRepository>()))
       ..registerFactory((c) =>
           CreateDailyLogbookUseCase(repository: c.resolve<LogbookRepository>()))
-      ..registerFactory((c) =>
-          UpdateDailyLogbookUseCase(repository: c.resolve<LogbookRepository>()))
       ..registerFactory((c) => ActivateDailyLogbookUseCase(
           repository: c.resolve<LogbookRepository>()))
       ..registerFactory((c) => DeactivateDailyLogbookUseCase(

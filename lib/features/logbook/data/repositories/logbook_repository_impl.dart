@@ -19,9 +19,7 @@ class LogbookRepositoryImpl implements LogbookRepository {
       final data = e.response!.data;
       if (data is Map<String, dynamic>) {
         return Failure(
-          message: _sanitizeMessage(
-            data['message']?.toString() ?? 'Server error',
-          ),
+          message: data['message']?.toString() ?? 'Server error',
           code: data['code']?.toString(),
           statusCode: e.response!.statusCode,
         );
@@ -32,18 +30,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
       );
     }
     return Failure(message: 'Unexpected error occurred');
-  }
-
-  /// Cleans backend error messages for user display:
-  /// - Removes quotes: "book_page" → book_page
-  /// - Converts snake_case to readable: book_page → book page
-  String _sanitizeMessage(String message) {
-    return message
-        .replaceAll('"', '')
-        .replaceAllMapped(
-          RegExp(r'\b(\w+_\w+)\b'),
-          (match) => match.group(0)!.replaceAll('_', ' '),
-        );
   }
 
   // ========== Daily Logbook Operations ==========
@@ -81,24 +67,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
   }) async {
     try {
       final result = await _remoteDataSource.createDailyLogbook(
-        logDate: logDate,
-        bookPage: bookPage,
-      );
-      return Right(result!);
-    } catch (e) {
-      return Left(_handleError(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    int? bookPage,
-  }) async {
-    try {
-      final result = await _remoteDataSource.updateDailyLogbook(
-        id: id,
         logDate: logDate,
         bookPage: bookPage,
       );

@@ -36,12 +36,10 @@ class _LogbookPageState extends State<LogbookPage> {
             // Show success messages for CRUD operations
             if (state is LogbookDetailDeleted ||
                 state is DailyLogbookCreated ||
-                state is DailyLogbookUpdated ||
                 state is DailyLogbookStatusChanged) {
               String message = '';
               if (state is LogbookDetailDeleted) message = state.message;
               if (state is DailyLogbookCreated) message = state.message;
-              if (state is DailyLogbookUpdated) message = state.message;
               if (state is DailyLogbookStatusChanged) message = state.message;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -359,7 +357,7 @@ class _LogbookPageState extends State<LogbookPage> {
             ],
           ),
           const SizedBox(height: 14),
-          // Bottom row: View Info + Edit + Activate/Deactivate buttons
+          // Bottom row: View Info + Activate/Deactivate buttons
           Row(
             children: [
               Expanded(
@@ -370,22 +368,6 @@ class _LogbookPageState extends State<LogbookPage> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF4facfe),
                     side: const BorderSide(color: Color(0xFF4facfe)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showLogbookFormDialog(logbook: logbook),
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  label: const Text('Edit'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF667eea),
-                    side: const BorderSide(color: Color(0xFF667eea)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -1337,21 +1319,11 @@ class _LogbookPageState extends State<LogbookPage> {
     );
   }
 
-  /// Show the create/edit logbook form dialog
-  void _showLogbookFormDialog({DailyLogbookEntity? logbook}) {
-    final isEditing = logbook != null;
-    final dateController = TextEditingController(
-      text:
-          logbook != null
-              ? DateFormat(
-                'yyyy-MM-dd',
-              ).format(logbook.logDate ?? DateTime.now())
-              : '',
-    );
-    final bookPageController = TextEditingController(
-      text: logbook?.bookPage?.toString() ?? '',
-    );
-    DateTime? selectedDate = logbook?.logDate;
+  /// Show the create logbook form dialog
+  void _showLogbookFormDialog() {
+    final dateController = TextEditingController();
+    final bookPageController = TextEditingController();
+    DateTime? selectedDate;
 
     showDialog(
       context: context,
@@ -1372,15 +1344,15 @@ class _LogbookPageState extends State<LogbookPage> {
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      isEditing ? Icons.edit : Icons.add_circle_outline,
+                    child: const Icon(
+                      Icons.add_circle_outline,
                       color: Colors.white,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    isEditing ? 'Edit Logbook' : 'New Logbook Entry',
+                  const Text(
+                    'New Logbook Entry',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -1531,22 +1503,12 @@ class _LogbookPageState extends State<LogbookPage> {
                     final bookPage = int.tryParse(bookPageController.text);
                     Navigator.of(dialogContext).pop();
 
-                    if (isEditing) {
-                      this.context.read<LogbookBloc>().add(
-                        UpdateDailyLogbookEvent(
-                          id: logbook.uuid ?? logbook.id,
-                          logDate: selectedDate!,
-                          bookPage: bookPage,
-                        ),
-                      );
-                    } else {
-                      this.context.read<LogbookBloc>().add(
-                        CreateDailyLogbookEvent(
-                          logDate: selectedDate!,
-                          bookPage: bookPage,
-                        ),
-                      );
-                    }
+                    this.context.read<LogbookBloc>().add(
+                      CreateDailyLogbookEvent(
+                        logDate: selectedDate!,
+                        bookPage: bookPage,
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4facfe),
@@ -1559,8 +1521,8 @@ class _LogbookPageState extends State<LogbookPage> {
                       vertical: 12,
                     ),
                   ),
-                  child: Text(
-                    isEditing ? 'Update' : 'Create',
+                  child: const Text(
+                    'Create',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),

@@ -191,61 +191,6 @@ void main() {
       });
     });
 
-    group('updateDailyLogbook', () {
-      test('should return DailyLogbookModel on success', () async {
-        // Arrange
-        when(() => mockDio.put(any(), data: any(named: 'data'))).thenAnswer(
-          (_) async => Response(
-            data: {
-              'data': {
-                'id': 'lb1',
-                'log_date': '2024-01-15',
-                'book_page': 2,
-                'status': true,
-              },
-            },
-            statusCode: 200,
-            requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
-          ),
-        );
-
-        // Act
-        final result = await datasource.updateDailyLogbook(
-          id: 'lb1',
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 2,
-        );
-
-        // Assert
-        expect(result, isA<DailyLogbookModel>());
-      });
-
-      test('should rethrow DioException', () async {
-        // Arrange
-        when(() => mockDio.put(any(), data: any(named: 'data'))).thenThrow(
-          DioException(
-            type: DioExceptionType.badResponse,
-            response: Response(
-              data: {'error': 'Not found'},
-              statusCode: 404,
-              requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
-            ),
-            requestOptions: RequestOptions(path: '/daily-logbooks/lb1'),
-          ),
-        );
-
-        // Act & Assert
-        expect(
-          () => datasource.updateDailyLogbook(
-            id: 'lb1',
-            logDate: DateTime(2024, 1, 15),
-            bookPage: 2,
-          ),
-          throwsA(isA<DioException>()),
-        );
-      });
-    });
-
     group('activateDailyLogbook', () {
       test('should return true on success', () async {
         // Arrange

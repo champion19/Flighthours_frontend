@@ -142,18 +142,5 @@ void main() {
       expect(result['log_date'], equals('2026-03-15'));
       expect(result['book_page'], equals(999));
     });
-
-    test('updateRequest should build correct request body', () {
-      // Act
-      final result = DailyLogbookModel.updateRequest(
-        logDate: DateTime(2026, 5, 20),
-        bookPage: 500,
-      );
-
-      // Assert
-      expect(result['log_date'], equals('2026-05-20'));
-      expect(result['book_page'], equals(500));
-      expect(result.containsKey('status'), isFalse);
-    });
   });
 }

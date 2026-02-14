@@ -80,16 +80,6 @@ class DailyLogbookCreated extends LogbookState {
   List<Object?> get props => [message];
 }
 
-/// State when a daily logbook was successfully updated
-class DailyLogbookUpdated extends LogbookState {
-  final String message;
-
-  const DailyLogbookUpdated({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-}
-
 /// State when a daily logbook status was changed (activated/deactivated)
 class DailyLogbookStatusChanged extends LogbookState {
   final String message;

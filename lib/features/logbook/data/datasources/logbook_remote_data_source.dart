@@ -19,13 +19,6 @@ abstract class LogbookRemoteDataSource {
     required int bookPage,
   });
 
-  /// Update an existing daily logbook (log_date and book_page only)
-  Future<DailyLogbookModel?> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    int? bookPage,
-  });
-
   /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate
   Future<bool> activateDailyLogbook(String id);
 
@@ -116,26 +109,6 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
       final response = await _dio.post(
         '/daily-logbooks',
         data: DailyLogbookModel.createRequest(
-          logDate: logDate,
-          bookPage: bookPage,
-        ),
-      );
-      return _parseLogbookFromMap(response.data);
-    } on DioException {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<DailyLogbookModel?> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    int? bookPage,
-  }) async {
-    try {
-      final response = await _dio.put(
-        '/daily-logbooks/$id',
-        data: DailyLogbookModel.updateRequest(
           logDate: logDate,
           bookPage: bookPage,
         ),

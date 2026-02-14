@@ -16,12 +16,6 @@ abstract class LogbookRepository {
     required int bookPage,
   });
 
-  Future<Either<Failure, DailyLogbookEntity>> updateDailyLogbook({
-    required String id,
-    required DateTime logDate,
-    int? bookPage,
-  });
-
   Future<Either<Failure, bool>> deleteDailyLogbook(String id);
 
   /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate

@@ -115,38 +115,6 @@ void main() {
       });
     });
 
-    group('updateDailyLogbook', () {
-      test('should return Right with entity', () async {
-        const logbook = DailyLogbookModel(id: 'lb1', bookPage: 2);
-        when(
-          () => mockDataSource.updateDailyLogbook(
-            id: any(named: 'id'),
-            logDate: any(named: 'logDate'),
-            bookPage: any(named: 'bookPage'),
-          ),
-        ).thenAnswer((_) async => logbook);
-
-        final result = await repository.updateDailyLogbook(
-          id: 'lb1',
-          logDate: DateTime(2024, 1, 15),
-          bookPage: 2,
-        );
-
-        expect(result, isA<Right>());
-        result.fold(
-          (failure) => fail('Expected Right'),
-          (data) => expect(data, isA<DailyLogbookEntity>()),
-        );
-        verify(
-          () => mockDataSource.updateDailyLogbook(
-            id: 'lb1',
-            logDate: any(named: 'logDate'),
-            bookPage: 2,
-          ),
-        ).called(1);
-      });
-    });
-
     group('deleteDailyLogbook', () {
       test('should return Right with true on success', () async {
         when(

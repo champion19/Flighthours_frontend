@@ -69,22 +69,6 @@ class CreateDailyLogbookEvent extends LogbookEvent {
   List<Object?> get props => [logDate, bookPage];
 }
 
-/// Event to update an existing daily logbook
-class UpdateDailyLogbookEvent extends LogbookEvent {
-  final String id;
-  final DateTime logDate;
-  final int? bookPage;
-
-  const UpdateDailyLogbookEvent({
-    required this.id,
-    required this.logDate,
-    this.bookPage,
-  });
-
-  @override
-  List<Object?> get props => [id, logDate, bookPage];
-}
-
 /// Event to activate a daily logbook
 class ActivateDailyLogbookEvent extends LogbookEvent {
   final String id;
