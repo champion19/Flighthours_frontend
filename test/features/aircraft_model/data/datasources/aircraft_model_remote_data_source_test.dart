@@ -191,9 +191,9 @@ void main() {
           data: {
             'success': true,
             'data': {
-              'aircraft_models': [
-                {'id': '1', 'name': 'A320-200'},
-                {'id': '2', 'name': 'A320neo'},
+              'aircraft_families': [
+                {'family': 'A320-200', 'manufacturer': 'Airbus'},
+                {'family': 'A320neo', 'manufacturer': 'Airbus'},
               ],
             },
           },

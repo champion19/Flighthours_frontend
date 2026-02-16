@@ -364,9 +364,15 @@ class _LogbookPageState extends State<LogbookPage> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showLogbookInfoBottomSheet(logbook),
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/daily-logbook-detail',
+                      arguments: logbook,
+                    );
+                  },
                   icon: const Icon(Icons.visibility_outlined, size: 16),
-                  label: const Text('View Info'),
+                  label: const Text('View Detail'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF4facfe),
                     side: const BorderSide(color: Color(0xFF4facfe)),
@@ -1409,7 +1415,7 @@ class _LogbookPageState extends State<LogbookPage> {
                   const SizedBox(width: 12),
                   const Text(
                     'New Logbook Entry',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1a1a2e),
@@ -1579,7 +1585,7 @@ class _LogbookPageState extends State<LogbookPage> {
                   ),
                   child: const Text(
                     'Create',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

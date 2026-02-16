@@ -99,3 +99,13 @@ class DailyLogbookDeleted extends LogbookState {
   @override
   List<Object?> get props => [message];
 }
+
+/// State when a logbook detail was successfully updated
+class LogbookDetailUpdated extends LogbookState {
+  final String message;
+
+  const LogbookDetailUpdated({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
