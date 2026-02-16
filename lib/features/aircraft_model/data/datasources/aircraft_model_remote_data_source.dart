@@ -62,13 +62,44 @@ class AircraftModelRemoteDataSourceImpl
   ) async {
     try {
       final response = await _dio.get('/aircraft-families/$family');
-      return _parseAircraftModelListFromMap(response.data);
+      return _parseAircraftFamilyResponse(response.data);
     } on DioException catch (e) {
       if (e.response != null) {
         return [];
       }
       rethrow;
     }
+  }
+
+  /// Parses the aircraft families response which has a different key
+  /// and DTO shape than the aircraft models response.
+  ///
+  /// Backend returns: {data: {aircraft_families: [{family, manufacturer}], total}}
+  List<AircraftModelModel> _parseAircraftFamilyResponse(dynamic decoded) {
+    if (decoded is Map<String, dynamic>) {
+      if (decoded.containsKey('data')) {
+        final data = decoded['data'];
+        if (data is Map<String, dynamic>) {
+          final families = data['aircraft_families'];
+          if (families is List) {
+            return List<AircraftModelModel>.from(
+              families.map((x) {
+                final map = x as Map<String, dynamic>;
+                // Build a minimal AircraftModelModel from family data
+                return AircraftModelModel.fromJson({
+                  'id': '',
+                  'name': map['family'] ?? '',
+                  'family': map['family'] ?? '',
+                  'manufacturer': map['manufacturer'] ?? '',
+                  'status': true,
+                });
+              }),
+            );
+          }
+        }
+      }
+    }
+    return [];
   }
 
   @override

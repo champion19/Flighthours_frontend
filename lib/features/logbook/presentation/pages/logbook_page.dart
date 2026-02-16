@@ -36,11 +36,13 @@ class _LogbookPageState extends State<LogbookPage> {
             // Show success messages for CRUD operations
             if (state is LogbookDetailDeleted ||
                 state is DailyLogbookCreated ||
-                state is DailyLogbookStatusChanged) {
+                state is DailyLogbookStatusChanged ||
+                state is DailyLogbookDeleted) {
               String message = '';
               if (state is LogbookDetailDeleted) message = state.message;
               if (state is DailyLogbookCreated) message = state.message;
               if (state is DailyLogbookStatusChanged) message = state.message;
+              if (state is DailyLogbookDeleted) message = state.message;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
@@ -357,14 +359,20 @@ class _LogbookPageState extends State<LogbookPage> {
             ],
           ),
           const SizedBox(height: 14),
-          // Bottom row: View Info + Activate/Deactivate buttons
+          // Bottom row: View Info + Activate/Deactivate + Delete buttons
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showLogbookInfoBottomSheet(logbook),
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/daily-logbook-detail',
+                      arguments: logbook,
+                    );
+                  },
                   icon: const Icon(Icons.visibility_outlined, size: 16),
-                  label: const Text('View Info'),
+                  label: const Text('View Detail'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF4facfe),
                     side: const BorderSide(color: Color(0xFF4facfe)),
@@ -415,6 +423,24 @@ class _LogbookPageState extends State<LogbookPage> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          // Delete button — full width
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _confirmDeleteDailyLogbook(logbook),
+              icon: const Icon(Icons.delete_outline, size: 16),
+              label: const Text('Delete Logbook'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red.shade400,
+                side: BorderSide(color: Colors.red.shade400),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+            ),
           ),
         ],
       ),
@@ -1143,6 +1169,42 @@ class _LogbookPageState extends State<LogbookPage> {
     );
   }
 
+  /// Confirmation dialog for deleting a daily logbook
+  void _confirmDeleteDailyLogbook(DailyLogbookEntity logbook) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Delete Logbook'),
+            content: Text(
+              'Are you sure you want to delete the logbook from ${logbook.fullFormattedDate}?\n\nThis logbook and all its flight records will be permanently deleted. This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  this.context.read<LogbookBloc>().add(
+                    DeleteDailyLogbookEvent(logbook.uuid ?? logbook.id),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+    );
+  }
+
   /// Show logbook info in a bottom sheet — data from GET /daily-logbooks/:id
   void _showLogbookInfoBottomSheet(DailyLogbookEntity logbook) {
     final isActive = logbook.isActive;
@@ -1353,7 +1415,7 @@ class _LogbookPageState extends State<LogbookPage> {
                   const SizedBox(width: 12),
                   const Text(
                     'New Logbook Entry',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1a1a2e),
@@ -1523,7 +1585,7 @@ class _LogbookPageState extends State<LogbookPage> {
                   ),
                   child: const Text(
                     'Create',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

@@ -9,6 +9,7 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_log
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 
 class MockLogbookRepository extends Mock implements LogbookRepository {}
 
@@ -158,6 +159,39 @@ void main() {
       ).thenAnswer((_) async => const Left(Failure(message: 'Delete failed')));
 
       final result = await useCase.call('det1');
+
+      expect(result, isA<Left>());
+    });
+  });
+
+  group('DeleteDailyLogbookUseCase', () {
+    late DeleteDailyLogbookUseCase useCase;
+
+    setUp(() {
+      useCase = DeleteDailyLogbookUseCase(repository: mockRepository);
+    });
+
+    test('should return Right with true on success', () async {
+      when(
+        () => mockRepository.deleteDailyLogbook('lb1'),
+      ).thenAnswer((_) async => const Right(true));
+
+      final result = await useCase.call('lb1');
+
+      expect(result, isA<Right>());
+      result.fold(
+        (failure) => fail('Expected Right'),
+        (data) => expect(data, isTrue),
+      );
+      verify(() => mockRepository.deleteDailyLogbook('lb1')).called(1);
+    });
+
+    test('should return Left on failure', () async {
+      when(
+        () => mockRepository.deleteDailyLogbook('lb1'),
+      ).thenAnswer((_) async => const Left(Failure(message: 'Delete failed')));
+
+      final result = await useCase.call('lb1');
 
       expect(result, isA<Left>());
     });
