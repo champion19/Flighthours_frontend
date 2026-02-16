@@ -27,6 +27,10 @@ import 'package:flight_hours_app/features/license_plate/presentation/bloc/licens
 import 'package:flight_hours_app/features/license_plate/presentation/pages/license_plate_lookup_page.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
+import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_bloc.dart';
+import 'package:flight_hours_app/features/daily_logbook_detail/presentation/pages/daily_logbook_detail_page.dart';
+import 'package:flight_hours_app/features/daily_logbook_detail/presentation/pages/flight_records_list_page.dart';
+import 'package:flight_hours_app/features/crew_member_type/presentation/pages/crew_member_type_list_page.dart';
 import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,6 +74,7 @@ void main() async {
         BlocProvider(create: (_) => AircraftModelBloc()),
         BlocProvider(create: (_) => LicensePlateBloc()),
         BlocProvider(create: (_) => FlightBloc()),
+        BlocProvider(create: (_) => CrewMemberTypeBloc()),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
@@ -94,6 +99,10 @@ void main() async {
           '/aircraft-models': (context) => const AircraftModelListPage(),
           '/aircraft-families': (context) => const AircraftFamiliesPage(),
           '/license-plate': (context) => const LicensePlateLookupPage(),
+          '/crew-member-types': (context) => const CrewMemberTypeListPage(),
+          '/daily-logbook-detail': (context) => const FlightRecordsListPage(),
+          '/daily-logbook-detail-form':
+              (context) => const DailyLogbookDetailPage(),
         },
         debugShowCheckedModeBanner: false,
         home: const AuthPage(),

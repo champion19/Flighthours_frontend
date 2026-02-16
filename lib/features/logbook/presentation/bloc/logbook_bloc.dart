@@ -2,10 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/update_logbook_detail_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_logbooks_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
@@ -17,9 +19,11 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
   final ListLogbookDetailsUseCase _listLogbookDetailsUseCase;
   final DeleteLogbookDetailUseCase _deleteLogbookDetailUseCase;
   final CreateDailyLogbookUseCase _createDailyLogbookUseCase;
+  final DeleteDailyLogbookUseCase _deleteDailyLogbookUseCase;
 
   final ActivateDailyLogbookUseCase _activateDailyLogbookUseCase;
   final DeactivateDailyLogbookUseCase _deactivateDailyLogbookUseCase;
+  final UpdateLogbookDetailUseCase _updateLogbookDetailUseCase;
 
   // Track the current selected logbook for refresh operations
   DailyLogbookEntity? _currentSelectedLogbook;
@@ -29,9 +33,11 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     ListLogbookDetailsUseCase? listLogbookDetailsUseCase,
     DeleteLogbookDetailUseCase? deleteLogbookDetailUseCase,
     CreateDailyLogbookUseCase? createDailyLogbookUseCase,
+    DeleteDailyLogbookUseCase? deleteDailyLogbookUseCase,
 
     ActivateDailyLogbookUseCase? activateDailyLogbookUseCase,
     DeactivateDailyLogbookUseCase? deactivateDailyLogbookUseCase,
+    UpdateLogbookDetailUseCase? updateLogbookDetailUseCase,
   }) : _listDailyLogbooksUseCase =
            listDailyLogbooksUseCase ??
            InjectorApp.resolve<ListDailyLogbooksUseCase>(),
@@ -44,6 +50,9 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
        _createDailyLogbookUseCase =
            createDailyLogbookUseCase ??
            InjectorApp.resolve<CreateDailyLogbookUseCase>(),
+       _deleteDailyLogbookUseCase =
+           deleteDailyLogbookUseCase ??
+           InjectorApp.resolve<DeleteDailyLogbookUseCase>(),
 
        _activateDailyLogbookUseCase =
            activateDailyLogbookUseCase ??
@@ -51,6 +60,9 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
        _deactivateDailyLogbookUseCase =
            deactivateDailyLogbookUseCase ??
            InjectorApp.resolve<DeactivateDailyLogbookUseCase>(),
+       _updateLogbookDetailUseCase =
+           updateLogbookDetailUseCase ??
+           InjectorApp.resolve<UpdateLogbookDetailUseCase>(),
        super(const LogbookInitial()) {
     on<FetchDailyLogbooks>(_onFetchDailyLogbooks);
     on<SelectDailyLogbook>(_onSelectDailyLogbook);
@@ -62,6 +74,8 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
 
     on<ActivateDailyLogbookEvent>(_onActivateDailyLogbook);
     on<DeactivateDailyLogbookEvent>(_onDeactivateDailyLogbook);
+    on<DeleteDailyLogbookEvent>(_onDeleteDailyLogbook);
+    on<UpdateLogbookDetailEvent>(_onUpdateLogbookDetail);
   }
 
   Future<void> _onFetchDailyLogbooks(
@@ -85,7 +99,8 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     emit(const LogbookLoading());
     _currentSelectedLogbook = event.logbook;
 
-    final logbookId = event.logbook.uuid ?? event.logbook.id;
+    // Use the obfuscated ID — the endpoint expects it, not the real UUID
+    final logbookId = event.logbook.id;
     final result = await _listLogbookDetailsUseCase.call(logbookId);
     result.fold(
       (failure) => emit(
@@ -305,6 +320,81 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
           (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
         );
       },
+    );
+  }
+
+  Future<void> _onDeleteDailyLogbook(
+    DeleteDailyLogbookEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final result = await _deleteDailyLogbookUseCase.call(event.id);
+    await result.fold(
+      (failure) async {
+        emit(LogbookError('Failed to delete logbook: ${failure.message}'));
+        final listResult = await _listDailyLogbooksUseCase.call();
+        listResult.fold(
+          (_) => null,
+          (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+        );
+      },
+      (success) async {
+        if (success) {
+          _currentSelectedLogbook = null;
+          emit(
+            const DailyLogbookDeleted(message: 'Logbook deleted successfully'),
+          );
+          // Auto-refresh the list
+          final listResult = await _listDailyLogbooksUseCase.call();
+          listResult.fold(
+            (failure) =>
+                emit(LogbookError('Failed to refresh: ${failure.message}')),
+            (logbooks) => emit(DailyLogbooksLoaded(logbooks)),
+          );
+        } else {
+          emit(const LogbookError('Failed to delete logbook'));
+        }
+      },
+    );
+  }
+
+  // ══ Update Logbook Detail ══════════════════════════════════
+  Future<void> _onUpdateLogbookDetail(
+    UpdateLogbookDetailEvent event,
+    Emitter<LogbookState> emit,
+  ) async {
+    emit(const LogbookLoading());
+
+    final detail = event.originalDetail;
+
+    final result = await _updateLogbookDetailUseCase.call(
+      id: detail.id,
+      flightRealDate:
+          detail.flightRealDate?.toIso8601String().split('T').first ?? '',
+      flightNumber: detail.flightNumber ?? '',
+      airlineRouteId: detail.airlineRouteId ?? '',
+      actualAircraftRegistrationId: detail.actualAircraftRegistrationId ?? '',
+      passengers: event.passengers,
+      outTime: event.outTime,
+      takeoffTime: event.takeoffTime,
+      landingTime: event.landingTime,
+      inTime: event.inTime,
+      pilotRole: event.pilotRole,
+      companionName: detail.companionName ?? '',
+      airTime: detail.airTime ?? '',
+      blockTime: detail.blockTime ?? '',
+      dutyTime: detail.dutyTime ?? '',
+      approachType: detail.approachType ?? '',
+      flightType: detail.flightType ?? '',
+    );
+
+    result.fold(
+      (failure) =>
+          emit(LogbookError('Failed to update flight: ${failure.message}')),
+      (updatedDetail) => emit(
+        const LogbookDetailUpdated(message: 'Flight updated successfully'),
+      ),
     );
   }
 }

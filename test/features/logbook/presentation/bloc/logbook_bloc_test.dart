@@ -6,6 +6,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/update_logbook_detail_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
@@ -33,6 +35,12 @@ class MockActivateDailyLogbookUseCase extends Mock
 
 class MockDeactivateDailyLogbookUseCase extends Mock
     implements DeactivateDailyLogbookUseCase {}
+
+class MockDeleteDailyLogbookUseCase extends Mock
+    implements DeleteDailyLogbookUseCase {}
+
+class MockUpdateLogbookDetailUseCase extends Mock
+    implements UpdateLogbookDetailUseCase {}
 
 void main() {
   group('LogbookEvent', () {
@@ -123,6 +131,32 @@ void main() {
       expect(event.props.length, equals(1));
       expect(event.id, 'lb1');
     });
+
+    test('DeleteDailyLogbookEvent should contain id', () {
+      const event = DeleteDailyLogbookEvent('lb1');
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(1));
+      expect(event.id, 'lb1');
+    });
+
+    test('UpdateLogbookDetailEvent should contain all fields', () {
+      const detail = LogbookDetailEntity(id: 'd1');
+      const event = UpdateLogbookDetailEvent(
+        originalDetail: detail,
+        dailyLogbookId: 'lb1',
+        passengers: 150,
+        outTime: '08:00',
+        takeoffTime: '08:15',
+        landingTime: '10:00',
+        inTime: '10:15',
+        pilotRole: 'PIC',
+        crewRole: 'Captain',
+      );
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(9));
+      expect(event.originalDetail.id, 'd1');
+      expect(event.passengers, 150);
+    });
   });
 
   group('LogbookState', () {
@@ -212,6 +246,30 @@ void main() {
         expect(state.props.length, equals(3));
       });
     });
+
+    group('DailyLogbookDeleted', () {
+      test('should create with message', () {
+        const state = DailyLogbookDeleted(message: 'Logbook deleted');
+        expect(state.message, equals('Logbook deleted'));
+      });
+
+      test('props should contain message', () {
+        const state = DailyLogbookDeleted(message: 'msg');
+        expect(state.props.length, equals(1));
+      });
+    });
+
+    group('LogbookDetailUpdated', () {
+      test('should create with message', () {
+        const state = LogbookDetailUpdated(message: 'Flight updated');
+        expect(state.message, equals('Flight updated'));
+      });
+
+      test('props should contain message', () {
+        const state = LogbookDetailUpdated(message: 'msg');
+        expect(state.props.length, equals(1));
+      });
+    });
   });
 
   group('LogbookBloc', () {
@@ -222,6 +280,8 @@ void main() {
 
     late MockActivateDailyLogbookUseCase mockActivateUseCase;
     late MockDeactivateDailyLogbookUseCase mockDeactivateUseCase;
+    late MockDeleteDailyLogbookUseCase mockDeleteDailyUseCase;
+    late MockUpdateLogbookDetailUseCase mockUpdateDetailUseCase;
 
     setUp(() {
       mockListDailyUseCase = MockListDailyLogbooksUseCase();
@@ -231,6 +291,8 @@ void main() {
 
       mockActivateUseCase = MockActivateDailyLogbookUseCase();
       mockDeactivateUseCase = MockDeactivateDailyLogbookUseCase();
+      mockDeleteDailyUseCase = MockDeleteDailyLogbookUseCase();
+      mockUpdateDetailUseCase = MockUpdateLogbookDetailUseCase();
     });
 
     LogbookBloc buildBloc() {
@@ -239,9 +301,11 @@ void main() {
         listLogbookDetailsUseCase: mockListDetailsUseCase,
         deleteLogbookDetailUseCase: mockDeleteUseCase,
         createDailyLogbookUseCase: mockCreateUseCase,
+        deleteDailyLogbookUseCase: mockDeleteDailyUseCase,
 
         activateDailyLogbookUseCase: mockActivateUseCase,
         deactivateDailyLogbookUseCase: mockDeactivateUseCase,
+        updateLogbookDetailUseCase: mockUpdateDetailUseCase,
       );
     }
 
@@ -760,6 +824,174 @@ void main() {
             isA<DailyLogbookStatusChanged>(),
             isA<LogbookError>(),
           ],
+    );
+
+    // ========== DeleteDailyLogbook Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbookDeleted, LogbooksLoaded] when DeleteDailyLogbook succeeds',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb2')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookDeleted>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error, LogbooksLoaded] when DeleteDailyLogbook fails',
+      setUp: () {
+        when(() => mockDeleteDailyUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Delete failed')),
+        );
+        when(
+          () => mockListDailyUseCase.call(),
+        ).thenAnswer((_) async => const Right([DailyLogbookEntity(id: 'lb1')]));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<LogbookError>(),
+            isA<DailyLogbooksLoaded>(),
+          ],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when DeleteDailyLogbook returns false',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(false));
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DailyLogbookDeleted, Error] when DeleteDailyLogbook succeeds but refresh fails',
+      setUp: () {
+        when(
+          () => mockDeleteDailyUseCase.call(any()),
+        ).thenAnswer((_) async => const Right(true));
+        when(() => mockListDailyUseCase.call()).thenAnswer(
+          (_) async => const Left(Failure(message: 'Refresh failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const DeleteDailyLogbookEvent('lb1')),
+      expect:
+          () => [
+            isA<LogbookLoading>(),
+            isA<DailyLogbookDeleted>(),
+            isA<LogbookError>(),
+          ],
+    );
+
+    // ========== UpdateLogbookDetail Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DetailUpdated] when UpdateLogbookDetail succeeds',
+      setUp: () {
+        when(
+          () => mockUpdateDetailUseCase.call(
+            id: any(named: 'id'),
+            flightRealDate: any(named: 'flightRealDate'),
+            flightNumber: any(named: 'flightNumber'),
+            airlineRouteId: any(named: 'airlineRouteId'),
+            actualAircraftRegistrationId: any(
+              named: 'actualAircraftRegistrationId',
+            ),
+            passengers: any(named: 'passengers'),
+            outTime: any(named: 'outTime'),
+            takeoffTime: any(named: 'takeoffTime'),
+            landingTime: any(named: 'landingTime'),
+            inTime: any(named: 'inTime'),
+            pilotRole: any(named: 'pilotRole'),
+            companionName: any(named: 'companionName'),
+            airTime: any(named: 'airTime'),
+            blockTime: any(named: 'blockTime'),
+            dutyTime: any(named: 'dutyTime'),
+            approachType: any(named: 'approachType'),
+            flightType: any(named: 'flightType'),
+          ),
+        ).thenAnswer((_) async => const Right(LogbookDetailEntity(id: 'd1')));
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const UpdateLogbookDetailEvent(
+              originalDetail: LogbookDetailEntity(id: 'd1'),
+              dailyLogbookId: 'lb1',
+              passengers: 150,
+              outTime: '08:00',
+              takeoffTime: '08:15',
+              landingTime: '10:00',
+              inTime: '10:15',
+              pilotRole: 'PIC',
+              crewRole: 'Captain',
+            ),
+          ),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookDetailUpdated>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when UpdateLogbookDetail fails',
+      setUp: () {
+        when(
+          () => mockUpdateDetailUseCase.call(
+            id: any(named: 'id'),
+            flightRealDate: any(named: 'flightRealDate'),
+            flightNumber: any(named: 'flightNumber'),
+            airlineRouteId: any(named: 'airlineRouteId'),
+            actualAircraftRegistrationId: any(
+              named: 'actualAircraftRegistrationId',
+            ),
+            passengers: any(named: 'passengers'),
+            outTime: any(named: 'outTime'),
+            takeoffTime: any(named: 'takeoffTime'),
+            landingTime: any(named: 'landingTime'),
+            inTime: any(named: 'inTime'),
+            pilotRole: any(named: 'pilotRole'),
+            companionName: any(named: 'companionName'),
+            airTime: any(named: 'airTime'),
+            blockTime: any(named: 'blockTime'),
+            dutyTime: any(named: 'dutyTime'),
+            approachType: any(named: 'approachType'),
+            flightType: any(named: 'flightType'),
+          ),
+        ).thenAnswer(
+          (_) async => const Left(Failure(message: 'Update failed')),
+        );
+      },
+      build: () => buildBloc(),
+      act:
+          (bloc) => bloc.add(
+            const UpdateLogbookDetailEvent(
+              originalDetail: LogbookDetailEntity(id: 'd1'),
+              dailyLogbookId: 'lb1',
+              passengers: 150,
+              outTime: '08:00',
+              takeoffTime: '08:15',
+              landingTime: '10:00',
+              inTime: '10:15',
+              pilotRole: 'PIC',
+              crewRole: 'Captain',
+            ),
+          ),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
     );
   });
 }

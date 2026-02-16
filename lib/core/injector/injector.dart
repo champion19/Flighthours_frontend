@@ -64,6 +64,8 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/list_daily_log
 import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/update_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
@@ -73,6 +75,10 @@ import 'package:flight_hours_app/features/license_plate/data/repositories/licens
 import 'package:flight_hours_app/features/license_plate/domain/repositories/license_plate_repository.dart';
 import 'package:flight_hours_app/features/license_plate/domain/usecases/get_license_plate_by_id_use_case.dart';
 import 'package:flight_hours_app/features/license_plate/domain/usecases/list_license_plates_use_case.dart';
+import 'package:flight_hours_app/features/crew_member_type/data/datasources/crew_member_type_remote_data_source.dart';
+import 'package:flight_hours_app/features/crew_member_type/data/repositories/crew_member_type_repository_impl.dart';
+import 'package:flight_hours_app/features/crew_member_type/domain/repositories/crew_member_type_repository.dart';
+import 'package:flight_hours_app/features/crew_member_type/domain/usecases/list_crew_member_types_use_case.dart';
 import 'package:kiwi/kiwi.dart';
 
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -173,6 +179,8 @@ abstract class InjectorApp {
   @Register.factory(ListLogbookDetailsUseCase)
   @Register.factory(GetLogbookDetailByIdUseCase)
   @Register.factory(DeleteLogbookDetailUseCase)
+  @Register.factory(UpdateLogbookDetailUseCase)
+  @Register.factory(DeleteDailyLogbookUseCase)
   @Register.factory(CreateDailyLogbookUseCase)
   @Register.factory(ActivateDailyLogbookUseCase)
   @Register.factory(DeactivateDailyLogbookUseCase)
@@ -185,6 +193,16 @@ abstract class InjectorApp {
   @Register.factory(
     LicensePlateRemoteDataSource,
     from: LicensePlateRemoteDataSourceImpl,
+  )
+  // Crew Member Type
+  @Register.factory(ListCrewMemberTypesUseCase)
+  @Register.factory(
+    CrewMemberTypeRepository,
+    from: CrewMemberTypeRepositoryImpl,
+  )
+  @Register.factory(
+    CrewMemberTypeRemoteDataSource,
+    from: CrewMemberTypeRemoteDataSourceImpl,
   )
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs
