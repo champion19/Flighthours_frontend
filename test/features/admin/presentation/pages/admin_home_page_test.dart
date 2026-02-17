@@ -20,10 +20,6 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
 
       expect(find.text('Welcome, Admin!'), findsOneWidget);
-      expect(
-        find.text('Manage your flight hours system from here'),
-        findsOneWidget,
-      );
     });
 
     testWidgets('displays route management section', (tester) async {

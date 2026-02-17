@@ -1,4 +1,5 @@
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
@@ -62,20 +63,13 @@ class _HelloEmployeeState extends State<HelloEmployee> {
       case 0:
         return _buildHomePage();
       case 1:
-        // Flights - Navigate to new flight page
-        _selectedIndex = 0;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.pushNamed(context, '/new-flight');
-        });
-        return _buildHomePage();
-      case 2:
         // Logbook - Navigate to logbook page
         _selectedIndex = 0;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushNamed(context, '/logbook');
         });
         return _buildHomePage();
-      case 3:
+      case 2:
         return _buildSettingsPage();
       default:
         return _buildHomePage();
@@ -166,6 +160,7 @@ class _HelloEmployeeState extends State<HelloEmployee> {
                 Navigator.pushNamed(context, '/change-password');
                 break;
               case 'logout':
+                TokenRefreshService().stopTokenRefreshCycle();
                 await SessionService().clearSession();
                 if (mounted) {
                   Navigator.pushNamedAndRemoveUntil(
@@ -594,22 +589,16 @@ class _HelloEmployeeState extends State<HelloEmployee> {
                 index: 0,
               ),
               _buildNavItem(
-                icon: Icons.flight_outlined,
-                activeIcon: Icons.flight,
-                label: 'Flights',
-                index: 1,
-              ),
-              _buildNavItem(
                 icon: Icons.book_outlined,
                 activeIcon: Icons.book,
                 label: 'Logbook',
-                index: 2,
+                index: 1,
               ),
               _buildNavItem(
                 icon: Icons.settings_outlined,
                 activeIcon: Icons.settings,
                 label: 'Settings',
-                index: 3,
+                index: 2,
               ),
             ],
           ),

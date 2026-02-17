@@ -39,6 +39,7 @@ import 'package:flight_hours_app/core/authpage.dart';
 import 'package:flight_hours_app/features/login/presentation/bloc/login_bloc.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 
 /// Global navigator key — enables navigation from anywhere (e.g. Dio interceptor on 401)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -50,8 +51,14 @@ void main() async {
   // Initialize session service to restore any persisted tokens
   await SessionService().init();
 
+  // If user was logged in, validate token and restart refresh timer
+  if (SessionService().isLoggedIn) {
+    await TokenRefreshService().tryRestoreSession();
+  }
+
   // Wire DioClient to redirect to login when token expires and refresh fails
   DioClient().onForceLogout = () {
+    TokenRefreshService().stopTokenRefreshCycle();
     navigatorKey.currentState?.pushNamedAndRemoveUntil(
       '/',
       (route) => false, // Clear the entire navigation stack
