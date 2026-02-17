@@ -165,7 +165,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           title: Column(
             children: [
               Text(
-                _isEditMode ? 'Edit Flight' : 'Detail',
+                _isEditMode ? 'Daily Logbook Detail' : 'Detail',
                 style: const TextStyle(
                   color: Color(0xFF1a1a2e),
                   fontSize: 20,
@@ -189,10 +189,8 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Action Buttons ──
-              if (!_isEditMode) ...[
-                _buildActionButtons(),
-                const SizedBox(height: 20),
-              ],
+              _buildActionButtons(),
+              const SizedBox(height: 20),
 
               // ── Flight Summary Card ──
               _buildSectionLabel('Flight Information'),
@@ -250,12 +248,47 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   //  ACTION BUTTONS: Add Flight Info / Edit Flight Info
   // ══════════════════════════════════════════════════════════════
   Widget _buildActionButtons() {
+    final editButton = Expanded(
+      child: OutlinedButton.icon(
+        onPressed: () {
+          // Pass existing flight data for pre-filling
+          final editArgs = <String, dynamic>{};
+          if (_detail != null) {
+            editArgs['flight_number'] = _detail!.flightNumber;
+            editArgs['flight_real_date'] = _detail!.flightRealDate;
+            editArgs['airline_route_id'] = _detail!.airlineRouteId;
+            editArgs['origin_iata_code'] = _detail!.originIataCode;
+            editArgs['destination_iata_code'] = _detail!.destinationIataCode;
+            editArgs['airline_name'] = _detail!.airlineCode;
+            editArgs['daily_logbook_id'] = _detail!.dailyLogbookId;
+            editArgs['license_plate'] = _detail!.licensePlate;
+          }
+          Navigator.pushNamed(context, '/new-flight', arguments: editArgs);
+        },
+        icon: const Icon(Icons.edit_outlined, size: 18),
+        label: const Text('Edit'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF667eea),
+          side: const BorderSide(color: Color(0xFF667eea)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+
+    // In edit mode, show only the Edit button
+    if (_isEditMode) {
+      return Row(children: [editButton]);
+    }
+
+    // In non-edit mode, show both Add Flight Info + Edit
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () {
-              // Navigate to NewFlightPage to enter flight info
               Navigator.pushNamed(context, '/new-flight');
             },
             icon: const Icon(Icons.add_circle_outline, size: 18),
@@ -271,23 +304,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {
-              _showComingSoon('Edit Flight Info');
-            },
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit Flight Info'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF667eea),
-              side: const BorderSide(color: Color(0xFF667eea)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          ),
-        ),
+        editButton,
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 import 'package:flight_hours_app/features/employee/data/datasources/employee_remote_data_source.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_use_case.dart';
@@ -66,7 +67,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           refreshToken: loginResult.refreshToken,
           email: loginResult.email,
           name: loginResult.name,
+          expiresIn: loginResult.expiresIn,
         );
+
+        // Start proactive token refresh timer
+        TokenRefreshService().startTokenRefreshCycle(loginResult.expiresIn);
 
         // Fetch employee data to get the role
         String userRole = 'pilot'; // Default role
@@ -86,6 +91,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
               email: loginResult.email,
               name: employeeResponse.data!.name,
               role: userRole,
+              expiresIn: loginResult.expiresIn,
             );
           }
         } catch (_) {
