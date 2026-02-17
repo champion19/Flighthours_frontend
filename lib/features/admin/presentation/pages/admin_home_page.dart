@@ -253,11 +253,6 @@ class AdminHomePage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  AdminMessages.welcomeSubtitle,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
               ],
             ),
           ),
