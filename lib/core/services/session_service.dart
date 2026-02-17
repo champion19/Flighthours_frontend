@@ -20,6 +20,8 @@ class SessionService {
   static const String _keyEmail = 'email';
   static const String _keyName = 'name';
   static const String _keyRole = 'role';
+  static const String _keyExpiresIn = 'expires_in';
+  static const String _keyTokenTimestamp = 'token_timestamp';
 
   // In-memory cache for fast access (avoids async calls during the session)
   String? _employeeId;
@@ -28,6 +30,8 @@ class SessionService {
   String? _email;
   String? _name;
   String? _role;
+  int? _expiresIn;
+  String? _tokenTimestamp;
 
   /// Initializes the session by restoring any persisted data.
   /// Call this method in main.dart before runApp().
@@ -38,6 +42,9 @@ class SessionService {
     _email = await _storage.read(key: _keyEmail);
     _name = await _storage.read(key: _keyName);
     _role = await _storage.read(key: _keyRole);
+    final expiresInStr = await _storage.read(key: _keyExpiresIn);
+    _expiresIn = expiresInStr != null ? int.tryParse(expiresInStr) : null;
+    _tokenTimestamp = await _storage.read(key: _keyTokenTimestamp);
   }
 
   /// Sets the session data after a successful login.
@@ -49,6 +56,7 @@ class SessionService {
     String? email,
     String? name,
     String? role,
+    int? expiresIn,
   }) async {
     // Update in-memory cache
     _employeeId = employeeId;
@@ -57,6 +65,10 @@ class SessionService {
     _email = email;
     _name = name;
     _role = role;
+    if (expiresIn != null) {
+      _expiresIn = expiresIn;
+      _tokenTimestamp = DateTime.now().toIso8601String();
+    }
 
     // Persist to secure storage
     await _storage.write(key: _keyEmployeeId, value: employeeId);
@@ -67,6 +79,10 @@ class SessionService {
     }
     if (name != null) {
       await _storage.write(key: _keyName, value: name);
+    }
+    if (expiresIn != null) {
+      await _storage.write(key: _keyExpiresIn, value: expiresIn.toString());
+      await _storage.write(key: _keyTokenTimestamp, value: _tokenTimestamp!);
     }
     if (role != null) {
       await _storage.write(key: _keyRole, value: role);
@@ -92,6 +108,25 @@ class SessionService {
   /// Returns 'pilot' or 'admin'
   String? get role => _role;
 
+  /// Gets the token expiration time in seconds
+  int? get expiresIn => _expiresIn;
+
+  /// Gets the timestamp when the token was issued
+  String? get tokenTimestamp => _tokenTimestamp;
+
+  /// Calculates remaining seconds before the token expires
+  int get remainingTokenSeconds {
+    if (_expiresIn == null || _tokenTimestamp == null) return 0;
+    final issuedAt = DateTime.tryParse(_tokenTimestamp!);
+    if (issuedAt == null) return 0;
+    final elapsed = DateTime.now().difference(issuedAt).inSeconds;
+    final remaining = _expiresIn! - elapsed;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  /// Checks if the current access token has expired
+  bool get isTokenExpired => remainingTokenSeconds <= 0;
+
   /// Checks if a user is currently logged in
   bool get isLoggedIn => _employeeId != null && _accessToken != null;
 
@@ -105,6 +140,8 @@ class SessionService {
     _email = null;
     _name = null;
     _role = null;
+    _expiresIn = null;
+    _tokenTimestamp = null;
 
     // Clear secure storage
     await _storage.deleteAll();
@@ -120,6 +157,14 @@ class SessionService {
   Future<void> updateRefreshToken(String newRefreshToken) async {
     _refreshToken = newRefreshToken;
     await _storage.write(key: _keyRefreshToken, value: newRefreshToken);
+  }
+
+  /// Updates the token expiration metadata (after a refresh)
+  Future<void> updateTokenExpiry(int expiresIn) async {
+    _expiresIn = expiresIn;
+    _tokenTimestamp = DateTime.now().toIso8601String();
+    await _storage.write(key: _keyExpiresIn, value: expiresIn.toString());
+    await _storage.write(key: _keyTokenTimestamp, value: _tokenTimestamp!);
   }
 
   // ========== PENDING EMPLOYEE DATA ==========

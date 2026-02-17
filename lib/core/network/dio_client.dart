@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flight_hours_app/core/config/config.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
+import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 
 /// Cliente Dio centralizado para todas las llamadas HTTP
 /// Proporciona configuración base, interceptores y manejo de autenticación con refresh token
@@ -91,6 +92,10 @@ class DioClient {
           if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
             await SessionService().updateRefreshToken(newRefreshToken);
           }
+          // Update token expiry and restart proactive refresh timer
+          final newExpiresIn = data['expires_in'] as int? ?? 300;
+          await SessionService().updateTokenExpiry(newExpiresIn);
+          TokenRefreshService().startTokenRefreshCycle(newExpiresIn);
           return true;
         }
       }
@@ -113,6 +118,7 @@ class DioClient {
 
   /// Maneja el logout forzado
   void _handleLogout() {
+    TokenRefreshService().stopTokenRefreshCycle();
     SessionService().clearSession();
     onForceLogout?.call();
   }

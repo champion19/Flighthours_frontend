@@ -68,4 +68,32 @@ class ValidationMessages {
       'Must be exactly $length characters';
   static String rangeLength(int min, int max) =>
       'Must be between $min and $max characters';
+
+  // License plate validations
+  static const String licensePlateRequired = 'Registration number is required';
+  static const String licensePlateInvalid =
+      'Only uppercase letters, digits, and hyphens allowed';
+  static String licensePlateMaxLength(int max) => 'Maximum $max characters';
+
+  // Flight number validations
+  static const String flightNumberRequired = 'Flight number is required';
+
+  // Companion name validations
+  static const String companionNameTooLong = 'Name is too long';
+
+  // Business partner validations
+  static const String bpTooLong = 'BP code is too long';
+
+  // Passenger validations
+  static const String passengersInvalid =
+      'Enter a valid number of passengers (0 or more)';
+
+  // Time format validations
+  static const String timeFormatInvalid = 'Must be in HH:MM format';
+
+  // Numeric-only validations
+  static const String numericOnly = 'Only digits are allowed';
+
+  // Book page validations
+  static const String bookPageInvalid = 'Page must be 1 or higher';
 }
