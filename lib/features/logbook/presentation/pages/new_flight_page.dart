@@ -735,7 +735,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
-  void _onContinue() {
+  Future<void> _onContinue() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -776,7 +776,21 @@ class _NewFlightPageState extends State<NewFlightPage> {
         'airline_route_id': _selectedRoute!.id,
       };
 
-      Navigator.pushNamed(context, '/license-plate', arguments: flightData);
+      // Forward detail_id if editing an existing flight (for PUT instead of POST)
+      if (_editArgs != null && _editArgs!['detail_id'] != null) {
+        flightData['detail_id'] = _editArgs!['detail_id'];
+      }
+
+      final result = await Navigator.pushNamed(
+        context,
+        '/license-plate',
+        arguments: flightData,
+      );
+
+      // If LicensePlate returned edit data (Map), propagate back to DailyLogbookDetailPage
+      if (result is Map<String, dynamic> && mounted) {
+        Navigator.of(context).pop(result);
+      }
     }
   }
 }

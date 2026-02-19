@@ -206,9 +206,14 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
     required Map<String, dynamic> data,
   }) async {
     try {
+      print('🔧 [LogbookDataSource] PUT /daily-logbook-details/$id');
+      print('🔧 [LogbookDataSource] Request data: $data');
       final response = await _dio.put('/daily-logbook-details/$id', data: data);
+      print('🔧 [LogbookDataSource] Response: ${response.data}');
       return _parseDetailFromMap(response.data);
     } on DioException catch (e) {
+      print('🔧 [LogbookDataSource] PUT error: ${e.response?.statusCode}');
+      print('🔧 [LogbookDataSource] PUT error body: ${e.response?.data}');
       if (e.response != null) {
         return null;
       }

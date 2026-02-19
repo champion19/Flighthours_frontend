@@ -8,6 +8,7 @@ import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/delete_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/update_logbook_detail_use_case.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/get_logbook_detail_by_id_use_case.dart';
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
@@ -41,6 +42,9 @@ class MockDeleteDailyLogbookUseCase extends Mock
 
 class MockUpdateLogbookDetailUseCase extends Mock
     implements UpdateLogbookDetailUseCase {}
+
+class MockGetLogbookDetailByIdUseCase extends Mock
+    implements GetLogbookDetailByIdUseCase {}
 
 void main() {
   group('LogbookEvent', () {
@@ -153,9 +157,15 @@ void main() {
         crewRole: 'Captain',
       );
       expect(event, isA<LogbookEvent>());
-      expect(event.props.length, equals(9));
+      expect(event.props.length, equals(15));
       expect(event.originalDetail.id, 'd1');
       expect(event.passengers, 150);
+    });
+    test('FetchLogbookDetailById should contain detailId', () {
+      const event = FetchLogbookDetailById('det-123');
+      expect(event, isA<LogbookEvent>());
+      expect(event.props.length, equals(1));
+      expect(event.detailId, 'det-123');
     });
   });
 
@@ -270,6 +280,20 @@ void main() {
         expect(state.props.length, equals(1));
       });
     });
+
+    group('LogbookDetailByIdLoaded', () {
+      test('should create with detail', () {
+        const detail = LogbookDetailEntity(id: 'det-1');
+        const state = LogbookDetailByIdLoaded(detail);
+        expect(state.detail.id, equals('det-1'));
+      });
+
+      test('props should contain detail', () {
+        const detail = LogbookDetailEntity(id: 'det-1');
+        const state = LogbookDetailByIdLoaded(detail);
+        expect(state.props.length, equals(1));
+      });
+    });
   });
 
   group('LogbookBloc', () {
@@ -282,6 +306,7 @@ void main() {
     late MockDeactivateDailyLogbookUseCase mockDeactivateUseCase;
     late MockDeleteDailyLogbookUseCase mockDeleteDailyUseCase;
     late MockUpdateLogbookDetailUseCase mockUpdateDetailUseCase;
+    late MockGetLogbookDetailByIdUseCase mockGetDetailByIdUseCase;
 
     setUp(() {
       mockListDailyUseCase = MockListDailyLogbooksUseCase();
@@ -293,6 +318,7 @@ void main() {
       mockDeactivateUseCase = MockDeactivateDailyLogbookUseCase();
       mockDeleteDailyUseCase = MockDeleteDailyLogbookUseCase();
       mockUpdateDetailUseCase = MockUpdateLogbookDetailUseCase();
+      mockGetDetailByIdUseCase = MockGetLogbookDetailByIdUseCase();
     });
 
     LogbookBloc buildBloc() {
@@ -306,6 +332,7 @@ void main() {
         activateDailyLogbookUseCase: mockActivateUseCase,
         deactivateDailyLogbookUseCase: mockDeactivateUseCase,
         updateLogbookDetailUseCase: mockUpdateDetailUseCase,
+        getLogbookDetailByIdUseCase: mockGetDetailByIdUseCase,
       );
     }
 
@@ -911,15 +938,14 @@ void main() {
             flightRealDate: any(named: 'flightRealDate'),
             flightNumber: any(named: 'flightNumber'),
             airlineRouteId: any(named: 'airlineRouteId'),
-            actualAircraftRegistrationId: any(
-              named: 'actualAircraftRegistrationId',
-            ),
+            licensePlateId: any(named: 'licensePlateId'),
             passengers: any(named: 'passengers'),
             outTime: any(named: 'outTime'),
             takeoffTime: any(named: 'takeoffTime'),
             landingTime: any(named: 'landingTime'),
             inTime: any(named: 'inTime'),
             pilotRole: any(named: 'pilotRole'),
+            crewRole: any(named: 'crewRole'),
             companionName: any(named: 'companionName'),
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
@@ -956,15 +982,14 @@ void main() {
             flightRealDate: any(named: 'flightRealDate'),
             flightNumber: any(named: 'flightNumber'),
             airlineRouteId: any(named: 'airlineRouteId'),
-            actualAircraftRegistrationId: any(
-              named: 'actualAircraftRegistrationId',
-            ),
+            licensePlateId: any(named: 'licensePlateId'),
             passengers: any(named: 'passengers'),
             outTime: any(named: 'outTime'),
             takeoffTime: any(named: 'takeoffTime'),
             landingTime: any(named: 'landingTime'),
             inTime: any(named: 'inTime'),
             pilotRole: any(named: 'pilotRole'),
+            crewRole: any(named: 'crewRole'),
             companionName: any(named: 'companionName'),
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
@@ -991,6 +1016,32 @@ void main() {
               crewRole: 'Captain',
             ),
           ),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
+    );
+
+    // ========== FetchLogbookDetailById Tests ==========
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, DetailByIdLoaded] when FetchLogbookDetailById succeeds',
+      setUp: () {
+        when(() => mockGetDetailByIdUseCase.call(any())).thenAnswer(
+          (_) async => const Right(LogbookDetailEntity(id: 'det-1')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const FetchLogbookDetailById('det-1')),
+      expect: () => [isA<LogbookLoading>(), isA<LogbookDetailByIdLoaded>()],
+    );
+
+    blocTest<LogbookBloc, LogbookState>(
+      'emits [Loading, Error] when FetchLogbookDetailById fails',
+      setUp: () {
+        when(() => mockGetDetailByIdUseCase.call(any())).thenAnswer(
+          (_) async => const Left(Failure(message: 'Detail not found')),
+        );
+      },
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(const FetchLogbookDetailById('det-1')),
       expect: () => [isA<LogbookLoading>(), isA<LogbookError>()],
     );
   });

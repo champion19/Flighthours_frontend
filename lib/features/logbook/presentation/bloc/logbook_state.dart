@@ -44,6 +44,16 @@ class LogbookDetailsLoaded extends LogbookState {
   List<Object?> get props => [selectedLogbook, details];
 }
 
+/// State when a single logbook detail has been loaded by ID
+class LogbookDetailByIdLoaded extends LogbookState {
+  final LogbookDetailEntity detail;
+
+  const LogbookDetailByIdLoaded(this.detail);
+
+  @override
+  List<Object?> get props => [detail];
+}
+
 /// Error state when something goes wrong
 class LogbookError extends LogbookState {
   final String message;
