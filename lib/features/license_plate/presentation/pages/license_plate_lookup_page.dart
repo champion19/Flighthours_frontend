@@ -544,21 +544,11 @@ class _LicensePlateLookupPageState extends State<LicensePlateLookupPage> {
       return;
     }
 
-    // Build payload for POST /daily-logbooks/:id/details
-    // 4 fields: flight info + airline route + license plate
-    final completeData = <String, dynamic>{
-      'flight_real_date': flightData['flight_real_date'],
-      'flight_number': flightData['flight_number'],
-      'airline_route_id': flightData['airline_route_id'],
-      'license_plate_id': licensePlate.id,
-    };
-
-    // Extract logbook ID (it's not part of the POST body)
-    // Extract logbook ID from step 1 data
     final logbookId = (flightData['daily_logbook_id'] as String?) ?? '';
+    final detailId = flightData['detail_id'] as String?;
 
     debugPrint('🛫 _onSaveFlight: logbookId = "$logbookId"');
-    debugPrint('🛫 _onSaveFlight: completeData = $completeData');
+    debugPrint('🛫 _onSaveFlight: detailId = "$detailId"');
 
     if (logbookId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -576,10 +566,31 @@ class _LicensePlateLookupPageState extends State<LicensePlateLookupPage> {
 
     setState(() => _isSaving = true);
 
-    // Fire CreateFlight event → POST /daily-logbooks/:logbookId/details
-    context.read<FlightBloc>().add(
-      CreateFlight(dailyLogbookId: logbookId, data: completeData),
-    );
+    if (detailId != null && detailId.isNotEmpty) {
+      // ── EDIT MODE: Just pop back with the data ──
+      // DailyLogbookDetailPage will do the actual PUT with all 16 fields
+      Navigator.of(context).pop({
+        'detail_id': detailId,
+        'license_plate_id': licensePlate.id,
+        'license_plate_name': licensePlate.licensePlate,
+        'flight_real_date': flightData['flight_real_date'],
+        'flight_number': flightData['flight_number'],
+        'airline_route_id': flightData['airline_route_id'],
+        'daily_logbook_id': logbookId,
+      });
+    } else {
+      // ── CREATE MODE: POST /daily-logbooks/:logbookId/details ──
+      final completeData = <String, dynamic>{
+        'flight_real_date': flightData['flight_real_date'],
+        'flight_number': flightData['flight_number'],
+        'airline_route_id': flightData['airline_route_id'],
+        'license_plate_id': licensePlate.id,
+      };
+
+      context.read<FlightBloc>().add(
+        CreateFlight(dailyLogbookId: logbookId, data: completeData),
+      );
+    }
   }
 
   void _showSuccessDialog() {

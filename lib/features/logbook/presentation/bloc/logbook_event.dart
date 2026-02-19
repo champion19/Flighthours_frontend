@@ -35,6 +35,16 @@ class FetchLogbookDetails extends LogbookEvent {
   List<Object?> get props => [dailyLogbookId];
 }
 
+/// Event to fetch a single logbook detail by its ID
+class FetchLogbookDetailById extends LogbookEvent {
+  final String detailId;
+
+  const FetchLogbookDetailById(this.detailId);
+
+  @override
+  List<Object?> get props => [detailId];
+}
+
 /// Event to delete a logbook detail
 class DeleteLogbookDetail extends LogbookEvent {
   final String detailId;
@@ -112,6 +122,12 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   final String inTime;
   final String pilotRole;
   final String crewRole;
+  final String? companionName;
+  final String? airTime;
+  final String? blockTime;
+  final String? dutyTime;
+  final String? approachType;
+  final String? flightType;
 
   const UpdateLogbookDetailEvent({
     required this.originalDetail,
@@ -123,6 +139,12 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     required this.inTime,
     required this.pilotRole,
     required this.crewRole,
+    this.companionName,
+    this.airTime,
+    this.blockTime,
+    this.dutyTime,
+    this.approachType,
+    this.flightType,
   });
 
   @override
@@ -136,5 +158,11 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     inTime,
     pilotRole,
     crewRole,
+    companionName,
+    airTime,
+    blockTime,
+    dutyTime,
+    approachType,
+    flightType,
   ];
 }

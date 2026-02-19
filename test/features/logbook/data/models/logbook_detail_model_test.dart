@@ -177,7 +177,7 @@ void main() {
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
         airlineRouteId: 'route123',
-        actualAircraftRegistrationId: 'aircraft123',
+        licensePlateId: 'aircraft123',
         passengers: 150,
         outTime: '21:17:00',
         takeoffTime: '21:35:00',

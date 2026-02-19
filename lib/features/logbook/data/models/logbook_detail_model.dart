@@ -76,8 +76,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       originIataCode: json['origin_iata_code']?.toString(),
       destinationIataCode: json['destination_iata_code']?.toString(),
       airlineCode: json['airline_code']?.toString(),
-      actualAircraftRegistrationId:
-          json['actual_aircraft_registration_id']?.toString(),
+      actualAircraftRegistrationId: json['license_plate_id']?.toString(),
       licensePlate: json['license_plate']?.toString(),
       modelName: json['model_name']?.toString(),
       outTime: json['out_time']?.toString(),
@@ -125,7 +124,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
         'flight_real_date': _formatDate(flightRealDate!),
       if (airlineRouteId != null) 'airline_route_id': airlineRouteId,
       if (actualAircraftRegistrationId != null)
-        'actual_aircraft_registration_id': actualAircraftRegistrationId,
+        'license_plate_id': actualAircraftRegistrationId,
       if (passengers != null) 'passengers': passengers,
       if (outTime != null) 'out_time': outTime,
       if (takeoffTime != null) 'takeoff_time': takeoffTime,
@@ -151,7 +150,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
     required String flightRealDate,
     required String flightNumber,
     required String airlineRouteId,
-    required String actualAircraftRegistrationId,
+    required String licensePlateId,
     required int passengers,
     required String outTime,
     required String takeoffTime,
@@ -169,7 +168,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
       'airline_route_id': airlineRouteId,
-      'actual_aircraft_registration_id': actualAircraftRegistrationId,
+      'license_plate_id': licensePlateId,
       'passengers': passengers,
       'out_time': outTime,
       'takeoff_time': takeoffTime,
@@ -186,41 +185,82 @@ class LogbookDetailModel extends LogbookDetailEntity {
   }
 
   /// Create request body for updating a logbook detail
+  /// Matches backend schema: license_plate_id, HH:MM times, omits empty optionals
   static Map<String, dynamic> updateRequest({
     required String flightRealDate,
     required String flightNumber,
     required String airlineRouteId,
-    required String actualAircraftRegistrationId,
-    required int passengers,
-    required String outTime,
-    required String takeoffTime,
-    required String landingTime,
-    required String inTime,
-    required String pilotRole,
-    required String companionName,
-    required String airTime,
-    required String blockTime,
-    required String dutyTime,
-    required String approachType,
-    required String flightType,
+    required String licensePlateId,
+    int? passengers,
+    String? outTime,
+    String? takeoffTime,
+    String? landingTime,
+    String? inTime,
+    String? pilotRole,
+    String? crewRole,
+    String? companionName,
+    String? airTime,
+    String? blockTime,
+    String? dutyTime,
+    String? approachType,
+    String? flightType,
   }) {
-    return createRequest(
-      flightRealDate: flightRealDate,
-      flightNumber: flightNumber,
-      airlineRouteId: airlineRouteId,
-      actualAircraftRegistrationId: actualAircraftRegistrationId,
-      passengers: passengers,
-      outTime: outTime,
-      takeoffTime: takeoffTime,
-      landingTime: landingTime,
-      inTime: inTime,
-      pilotRole: pilotRole,
-      companionName: companionName,
-      airTime: airTime,
-      blockTime: blockTime,
-      dutyTime: dutyTime,
-      approachType: approachType,
-      flightType: flightType,
-    );
+    final map = <String, dynamic>{
+      // Required fields (always sent)
+      'flight_real_date': flightRealDate,
+      'flight_number': flightNumber,
+      'airline_route_id': airlineRouteId,
+      'license_plate_id': licensePlateId,
+    };
+
+    // Optional fields — only include if non-empty
+    if (passengers != null) map['passengers'] = passengers;
+    if (outTime != null && outTime.isNotEmpty) {
+      map['out_time'] = _toHHMM(outTime);
+    }
+    if (takeoffTime != null && takeoffTime.isNotEmpty) {
+      map['takeoff_time'] = _toHHMM(takeoffTime);
+    }
+    if (landingTime != null && landingTime.isNotEmpty) {
+      map['landing_time'] = _toHHMM(landingTime);
+    }
+    if (inTime != null && inTime.isNotEmpty) {
+      map['in_time'] = _toHHMM(inTime);
+    }
+    if (pilotRole != null && pilotRole.isNotEmpty) {
+      map['pilot_role'] = pilotRole;
+    }
+    if (crewRole != null && crewRole.isNotEmpty) {
+      map['crew_role'] = crewRole;
+    }
+    if (companionName != null && companionName.isNotEmpty) {
+      map['companion_name'] = companionName;
+    }
+    if (airTime != null && airTime.isNotEmpty) {
+      map['air_time'] = _toHHMM(airTime);
+    }
+    if (blockTime != null && blockTime.isNotEmpty) {
+      map['block_time'] = _toHHMM(blockTime);
+    }
+    if (dutyTime != null && dutyTime.isNotEmpty) {
+      map['duty_time'] = _toHHMM(dutyTime);
+    }
+    if (approachType != null && approachType.isNotEmpty) {
+      map['approach_type'] = approachType;
+    }
+    if (flightType != null && flightType.isNotEmpty) {
+      map['flight_type'] = flightType;
+    }
+
+    return map;
+  }
+
+  /// Convert HH:MM:SS or HH:MM to HH:MM (backend expects HH:MM)
+  static String _toHHMM(String time) {
+    final parts = time.split(':');
+    if (parts.length >= 2) {
+      return '${parts[0]}:${parts[1]}';
+    }
+    return time;
   }
 }
