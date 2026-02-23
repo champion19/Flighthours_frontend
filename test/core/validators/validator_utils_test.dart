@@ -113,5 +113,68 @@ void main() {
         expect(validator.validate('abc'), isNotNull);
       });
     });
+    group('loginPassword', () {
+      test('should return permissive PasswordValidator', () {
+        final validator = ValidatorUtils.loginPassword();
+        expect(validator.validate('a'), isNull);
+      });
+    });
+
+    group('numericOnly', () {
+      test('should return NumericOnlyValidator', () {
+        final validator = ValidatorUtils.numericOnly();
+        expect(validator.validate('12345'), isNull);
+        expect(validator.validate('abc'), isNotNull);
+      });
+    });
+
+    group('tailNumber', () {
+      test('should return TailNumberValidator', () {
+        final validator = ValidatorUtils.tailNumber();
+        expect(validator.validate('HK-1333'), isNull);
+      });
+    });
+
+    group('flightNumber', () {
+      test('should return FlightNumberValidator', () {
+        final validator = ValidatorUtils.flightNumber();
+        expect(validator.validate('AV123'), isNull);
+      });
+    });
+
+    group('companionName', () {
+      test('should return CompanionNameValidator', () {
+        final validator = ValidatorUtils.companionName();
+        expect(validator.validate('John'), isNull);
+      });
+    });
+
+    group('bp', () {
+      test('should return BpValidator', () {
+        final validator = ValidatorUtils.bp();
+        expect(validator.validate('BP001'), isNull);
+      });
+    });
+
+    group('passengers', () {
+      test('should return PassengersValidator', () {
+        final validator = ValidatorUtils.passengers();
+        expect(validator.validate('10'), isNull);
+      });
+    });
+
+    group('timeField', () {
+      test('should return TimeFieldValidator', () {
+        final validator = ValidatorUtils.timeField();
+        expect(validator.validate('14:30'), isNull);
+      });
+    });
+
+    group('bookPage', () {
+      test('should return BookPageValidator', () {
+        final validator = ValidatorUtils.bookPage();
+        expect(validator.validate('1'), isNull);
+      });
+    });
   });
 }

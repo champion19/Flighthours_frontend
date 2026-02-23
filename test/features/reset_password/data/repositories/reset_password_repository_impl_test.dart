@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/reset_password/data/datasources/reset_password_datasource.dart';
@@ -69,16 +70,31 @@ void main() {
       });
 
       test('should return Left on unexpected exception', () async {
-        // Arrange
         when(
           () => mockDatasource.requestPasswordReset(any()),
         ).thenThrow(Exception('Unexpected'));
 
-        // Act
         final result = await repository.requestPasswordReset('test@test.com');
 
-        // Assert
         expect(result, isA<Left>());
+      });
+
+      test('should return Left on DioException with response data', () async {
+        when(() => mockDatasource.requestPasswordReset(any())).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 500,
+              data: {'message': 'Server down', 'code': 'ERR'},
+            ),
+          ),
+        );
+        final result = await repository.requestPasswordReset('t@t.com');
+        result.fold(
+          (f) => expect(f.message, 'Server down'),
+          (_) => fail('Left'),
+        );
       });
     });
   });
