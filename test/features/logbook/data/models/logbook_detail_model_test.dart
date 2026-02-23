@@ -199,5 +199,35 @@ void main() {
       expect(result['passengers'], equals(150));
       expect(result['pilot_role'], equals('PM'));
     });
+    test('toJson should include formatted flight_real_date', () {
+      final model = LogbookDetailModel(
+        id: 'test123',
+        flightRealDate: DateTime(2025, 12, 14),
+      );
+      final result = model.toJson();
+      expect(result['flight_real_date'], equals('2025-12-14'));
+    });
+
+    test('updateRequest should include crewRole when provided', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        airlineRouteId: 'r1',
+        tailNumberId: 't1',
+        crewRole: 'captain',
+      );
+      expect(result['crew_role'], equals('captain'));
+    });
+
+    test('updateRequest should exclude crewRole when empty', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        airlineRouteId: 'r1',
+        tailNumberId: 't1',
+        crewRole: '',
+      );
+      expect(result.containsKey('crew_role'), isFalse);
+    });
   });
 }
