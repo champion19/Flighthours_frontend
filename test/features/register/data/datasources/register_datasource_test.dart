@@ -182,7 +182,7 @@ void main() {
             isA<RegisterException>().having(
               (e) => e.message,
               'message',
-              contains('conexión'),
+              contains('connection error'),
             ),
           ),
         );

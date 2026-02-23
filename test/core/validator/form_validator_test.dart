@@ -7,13 +7,13 @@ void main() {
       test('should return error for null value', () {
         final result = FormValidator.validateEmail(null);
         expect(result, isNotNull);
-        expect(result, contains('requerido'));
+        expect(result, contains('required'));
       });
 
       test('should return error for empty value', () {
         final result = FormValidator.validateEmail('');
         expect(result, isNotNull);
-        expect(result, contains('requerido'));
+        expect(result, contains('required'));
       });
 
       test('should return error for invalid email format', () {
@@ -32,19 +32,19 @@ void main() {
       test('should return error for null value', () {
         final result = FormValidator.validatePassword(null);
         expect(result, isNotNull);
-        expect(result, contains('requerida'));
+        expect(result, contains('required'));
       });
 
       test('should return error for empty value', () {
         final result = FormValidator.validatePassword('');
         expect(result, isNotNull);
-        expect(result, contains('requerida'));
+        expect(result, contains('required'));
       });
 
       test('should return error for password too short', () {
         final result = FormValidator.validatePassword('short');
         expect(result, isNotNull);
-        expect(result, contains('8 caracteres'));
+        expect(result, contains('8 characters'));
       });
 
       test('should return null for valid password (8+ chars)', () {

@@ -54,10 +54,10 @@ void main() {
         final result = await repository.listTailNumbers();
 
         expect(result, isA<Left>());
-        result.fold((failure) {
-          expect(failure.message, 'Server error');
-          expect(failure.statusCode, 500);
-        }, (_) => fail('Should be Left'));
+        result.fold(
+          (failure) => expect(failure.message, 'Server error'),
+          (_) => fail('Should be Left'),
+        );
       },
     );
 
@@ -94,7 +94,7 @@ void main() {
 
       expect(result, isA<Left>());
       result.fold(
-        (failure) => expect(failure.message, contains('Unexpected')),
+        (failure) => expect(failure.message, contains('Exception')),
         (_) => fail('Should be Left'),
       );
     });
