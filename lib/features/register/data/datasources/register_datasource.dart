@@ -3,7 +3,7 @@ import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/register/data/models/register_response_model.dart';
 import 'package:flight_hours_app/features/register/domain/entities/Employee_Entity_Register.dart';
 
-/// Excepción personalizada para errores de registro
+/// Custom exception for registration errors
 class RegisterException implements Exception {
   final String message;
   final String code;
@@ -27,7 +27,7 @@ class RegisterDatasource {
 
   RegisterDatasource({Dio? dio}) : _dio = dio ?? DioClient().client;
 
-  /// Formatea una fecha ISO a formato simple YYYY-MM-DD
+  /// Formats an ISO date to simple YYYY-MM-DD format
   String _formatDate(String isoDate) {
     try {
       final date = DateTime.parse(isoDate);
@@ -37,16 +37,16 @@ class RegisterDatasource {
     }
   }
 
-  /// Registra un nuevo empleado en el sistema
+  /// Registers a new employee in the system
   ///
-  /// Retorna [RegisterResponseModel] si el registro es exitoso (201)
-  /// Lanza [RegisterException] si hay error (409 duplicado, u otros errores)
+  /// Returns [RegisterResponseModel] if registration is successful (201)
+  /// Throws [RegisterException] on error (409 duplicate, or other errors)
   Future<RegisterResponseModel> registerEmployee(
     EmployeeEntityRegister employee,
   ) async {
-    // POST /register solo acepta estos campos:
+    // POST /register only accepts these fields:
     // name, email, password, identificationnumber, start_date, end_date, role
-    // Los campos bp, airline, active se enviarán después del login via PUT /employees/me
+    // The fields bp, airline, active will be sent after login via PUT /employees/me
     final Map<String, dynamic> payload = {
       'name': employee.name,
       'email': employee.email,
@@ -67,10 +67,10 @@ class RegisterDatasource {
       final registerResponse = RegisterResponseModel.fromMap(response.data);
 
       if (response.statusCode == 201 && registerResponse.success) {
-        // Registro exitoso
+        // Registration successful
         return registerResponse;
       } else {
-        // Error del backend (409 duplicado u otro error)
+        // Backend error (409 duplicate or other error)
         throw RegisterException(
           message: registerResponse.message,
           code: registerResponse.code,
@@ -103,13 +103,12 @@ class RegisterDatasource {
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
-        errorMessage =
-            'Tiempo de conexión agotado. Por favor intenta de nuevo.';
+        errorMessage = 'Connection timed out. Please try again.';
       } else if (e.type == DioExceptionType.connectionError) {
         errorMessage =
-            'Error de conexión con el servidor. Verifica que el backend esté corriendo.';
+            'Server connection error. Please verify the backend is running.';
       } else {
-        errorMessage = 'Error de red. Verifica tu conexión.';
+        errorMessage = 'Network error. Please check your connection.';
       }
 
       throw RegisterException(
@@ -121,7 +120,7 @@ class RegisterDatasource {
       rethrow;
     } catch (e) {
       throw RegisterException(
-        message: 'Error inesperado. Por favor intenta de nuevo.',
+        message: 'Unexpected error. Please try again.',
         code: 'UNEXPECTED_ERROR',
         statusCode: 0,
       );

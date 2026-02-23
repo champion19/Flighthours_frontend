@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
@@ -84,7 +86,10 @@ class _HelloEmployeeState extends State<HelloEmployee> {
         children: [
           _buildHeader(),
           const SizedBox(height: 24),
-          _buildWelcomeCard(),
+          const SizedBox(height: 24),
+          _buildOperationalBreakdown(),
+          const SizedBox(height: 24),
+          _buildRecentFlights(),
         ],
       ),
     );
@@ -133,13 +138,29 @@ class _HelloEmployeeState extends State<HelloEmployee> {
             ],
           ),
         ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.notifications_outlined,
-            color: Color(0xFF6c757d),
-            size: 26,
-          ),
+        Stack(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pushNamed(context, '/alerts'),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFF6c757d),
+                size: 26,
+              ),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFe17055),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
         ),
         PopupMenuButton<String>(
           icon: const Icon(
@@ -228,62 +249,190 @@ class _HelloEmployeeState extends State<HelloEmployee> {
     return 'Good evening';
   }
 
-  Widget _buildWelcomeCard() {
+  // ==================== OPERATIONAL BREAKDOWN ====================
+  Widget _buildOperationalBreakdown() {
+    // Mockup data
+    final segments = [
+      _ChartSegment('PF', 0.40, const Color(0xFF36A2EB)),
+      _ChartSegment('PFL', 0.25, const Color(0xFFFF9F40)),
+      _ChartSegment('PFTO', 0.20, const Color(0xFF4BC0C0)),
+      _ChartSegment('PM', 0.15, const Color(0xFF9966FF)),
+    ];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFe9ecef)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4facfe).withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Operational Breakdown',
+            style: TextStyle(
+              color: Color(0xFF1a1a2e),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Donut chart
+          Center(
+            child: SizedBox(
+              width: 180,
+              height: 180,
+              child: CustomPaint(
+                painter: _DonutChartPainter(segments),
+                child: const Center(
+                  child: Text(
+                    '120h',
+                    style: TextStyle(
+                      color: Color(0xFF1a1a2e),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Legend
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children:
+                segments.map((s) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: s.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${s.label} (${(s.percentage * 100).toInt()}%)',
+                        style: const TextStyle(
+                          color: Color(0xFF6c757d),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==================== RECENT FLIGHTS ====================
+  Widget _buildRecentFlights() {
+    final flights = [
+      {'date': 'Jan 22, 2024', 'aircraft': 'Boeing 737', 'hours': '4.5h'},
+      {'date': 'Jan 19, 2024', 'aircraft': 'Airbus A320', 'hours': '5.2h'},
+      {'date': 'Jan 15, 2024', 'aircraft': 'Boeing 737', 'hours': '3.8h'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Recent Flights',
+          style: TextStyle(
+            color: Color(0xFF1a1a2e),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...flights.map(
+          (f) => _buildFlightCard(
+            date: f['date']!,
+            aircraft: f['aircraft']!,
+            hours: f['hours']!,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlightCard({
+    required String date,
+    required String aircraft,
+    required String hours,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFe9ecef)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.flight, color: Color(0xFF4facfe), size: 20),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Welcome back!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                Text(
+                  date,
+                  style: const TextStyle(
+                    color: Color(0xFF1a1a2e),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
-                  _currentAirline.isNotEmpty
-                      ? 'Flying with $_currentAirline'
-                      : 'Ready for your next flight',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 14,
+                  aircraft,
+                  style: const TextStyle(
+                    color: Color(0xFF6c757d),
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.flight_takeoff,
-              color: Colors.white,
-              size: 32,
+          Text(
+            hours,
+            style: const TextStyle(
+              color: Color(0xFF4facfe),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -641,4 +790,49 @@ class _HelloEmployeeState extends State<HelloEmployee> {
       ),
     );
   }
+}
+
+// ==================== DONUT CHART PAINTER ====================
+class _ChartSegment {
+  final String label;
+  final double percentage;
+  final Color color;
+
+  const _ChartSegment(this.label, this.percentage, this.color);
+}
+
+class _DonutChartPainter extends CustomPainter {
+  final List<_ChartSegment> segments;
+
+  _DonutChartPainter(this.segments);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    const strokeWidth = 28.0;
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
+
+    double startAngle = -math.pi / 2; // start from top
+    const gapAngle = 0.04; // small gap between segments
+
+    for (final segment in segments) {
+      final sweepAngle = 2 * math.pi * segment.percentage - gapAngle;
+      final paint =
+          Paint()
+            ..color = segment.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth
+            ..strokeCap = StrokeCap.round;
+
+      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+      startAngle += sweepAngle + gapAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

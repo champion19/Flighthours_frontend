@@ -599,7 +599,7 @@ class _LogbookPageState extends State<LogbookPage> {
                       child: _buildInfoItem(
                         Icons.airplanemode_active,
                         'Aircraft',
-                        detail.licensePlate ?? '--',
+                        detail.tailNumber ?? '--',
                       ),
                     ),
                   ],
@@ -920,7 +920,6 @@ class _LogbookPageState extends State<LogbookPage> {
             _buildDetailRow('Block In', _formatTimeDisplay(detail.inTime)),
             _buildDetailRow('Air Time', _formatTimeDisplay(detail.airTime)),
             _buildDetailRow('Block Time', _formatTimeDisplay(detail.blockTime)),
-            _buildDetailRow('Duty Time', _formatTimeDisplay(detail.dutyTime)),
 
             if (detail.companionName != null) ...[
               const SizedBox(height: 16),

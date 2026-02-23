@@ -16,8 +16,8 @@ void main() {
         'origin_iata_code': 'MDE',
         'destination_iata_code': 'BOG',
         'airline_code': 'AV',
-        'actual_aircraft_registration_id': 'RrydfpW2u8QGhKYoH8LptV3JcJ5NCGQ5',
-        'license_plate': 'CC-BAQ',
+        'tail_number_id': 'RrydfpW2u8QGhKYoH8LptV3JcJ5NCGQ5',
+        'tail_number': 'CC-BAQ',
         'model_name': 'A320-112',
         'passengers': 174,
         'out_time': '21:17:00',
@@ -46,7 +46,7 @@ void main() {
       expect(result.originIataCode, equals('MDE'));
       expect(result.destinationIataCode, equals('BOG'));
       expect(result.airlineCode, equals('AV'));
-      expect(result.licensePlate, equals('CC-BAQ'));
+      expect(result.tailNumber, equals('CC-BAQ'));
       expect(result.modelName, equals('A320-112'));
       expect(result.passengers, equals(174));
       expect(result.outTime, equals('21:17:00'));
@@ -177,7 +177,7 @@ void main() {
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
         airlineRouteId: 'route123',
-        licensePlateId: 'aircraft123',
+        tailNumberId: 'aircraft123',
         passengers: 150,
         outTime: '21:17:00',
         takeoffTime: '21:35:00',

@@ -24,7 +24,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   final _outController = TextEditingController();
   final _offController = TextEditingController();
   final _companionNameController = TextEditingController();
-  final _dutyTimeController = TextEditingController();
 
   // Dropdown selections
   String? _selectedCrewRole; // Captain / Copilot
@@ -36,17 +35,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   String _calculatedAirTime = '--:--';
   String _calculatedBlockTime = '--:--';
 
-  final List<String> _crewRoles = ['Captain', 'Copilot'];
-  final List<String> _pilotRoles = ['PF', 'PNF', 'PFL', 'PFTO'];
-  final List<String> _approachTypes = [
-    'VISUAL',
-    'ILS',
-    'VOR',
-    'NDB',
-    'RNAV',
-    'PA',
-    'NPA',
-  ];
+  final List<String> _crewRoles = ['captain', 'first_officer'];
+  final List<String> _pilotRoles = ['PF', 'PM', 'PFTO', 'PFL'];
+  final List<String> _approachTypes = ['APV', 'VISUAL'];
   final List<String> _flightTypes = [
     'COMMERCIAL',
     'Comercial',
@@ -60,16 +51,31 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   LogbookDetailEntity? _detail;
   bool _isEditMode = false;
   bool _initialized = false;
+  bool _hasChanges = false; // Tracks if user modified any field
 
   @override
   void initState() {
     super.initState();
     // Recalculate air & block times whenever time inputs change
     void recalc() => setState(() => _recalculateTimes());
+    // Mark dirty on any text input change
+    void markDirty() {
+      if (_initialized && !_hasChanges) {
+        setState(() => _hasChanges = true);
+      }
+    }
+
     _outController.addListener(recalc);
     _offController.addListener(recalc);
     _onController.addListener(recalc);
     _inController.addListener(recalc);
+    // Track changes on all text fields
+    _outController.addListener(markDirty);
+    _offController.addListener(markDirty);
+    _onController.addListener(markDirty);
+    _inController.addListener(markDirty);
+    _paxController.addListener(markDirty);
+    _companionNameController.addListener(markDirty);
   }
 
   @override
@@ -108,7 +114,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     _onController.text = _formatTimeForField(d.landingTime);
     _inController.text = _formatTimeForField(d.inTime);
     _companionNameController.text = d.companionName ?? '';
-    _dutyTimeController.text = _formatTimeForField(d.dutyTime);
 
     // Map pilot role
     if (d.pilotRole != null &&
@@ -116,9 +121,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       _selectedPilotRole = d.pilotRole!.toUpperCase();
     }
 
-    // Map crew role — backend sends 'captain'/'copilot', dropdown expects 'Captain'/'Copilot'
+    // Map crew role — backend sends 'captain'/'first_officer'
     if (d.companionName != null || d.pilotRole != null) {
-      _selectedCrewRole = 'Captain';
+      _selectedCrewRole = 'captain';
     }
 
     // Approach type
@@ -133,6 +138,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
 
     // Recalculate air & block times
     _recalculateTimes();
+
+    // Reset dirty flag after prefill (edits start clean)
+    _hasChanges = false;
   }
 
   /// Calculate Air Time (OFF→ON = takeoff→landing) and Block Time (OUT→IN)
@@ -168,10 +176,17 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   }
 
   /// Format HH:MM to HH:MM:SS for API
+  /// Converts time for API: normalizes aviation 24+ hours to 00-23 and appends seconds
   String _formatTimeForApi(String time) {
     if (time.isEmpty) return '00:00:00';
     final parts = time.split(':');
-    if (parts.length == 2) return '$time:00';
+    if (parts.length >= 2) {
+      int hours = int.tryParse(parts[0]) ?? 0;
+      final minutes = parts[1];
+      // Normalize aviation format: 24:10 → 00:10, 25:30 → 01:30
+      hours = hours % 24;
+      return '${hours.toString().padLeft(2, '0')}:$minutes:00';
+    }
     return time;
   }
 
@@ -183,7 +198,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     _outController.dispose();
     _offController.dispose();
     _companionNameController.dispose();
-    _dutyTimeController.dispose();
     super.dispose();
   }
 
@@ -208,7 +222,26 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               ),
             ),
           );
-          Navigator.pop(context, true); // Return true to signal update
+          // Stay on page — reset dirty flag and update detail
+          setState(() => _hasChanges = false);
+        } else if (state is LogbookDetailDeleted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text(state.message),
+                ],
+              ),
+              backgroundColor: const Color(0xFF28a745),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          Navigator.pop(context, true); // Return true to refresh list
         } else if (state is LogbookDetailByIdLoaded) {
           // Detail reloaded from backend after edit — refresh and enter edit mode
           setState(() {
@@ -293,7 +326,11 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 label: 'Captain / Copilot',
                 value: _selectedCrewRole,
                 items: _crewRoles,
-                onChanged: (v) => setState(() => _selectedCrewRole = v),
+                onChanged:
+                    (v) => setState(() {
+                      _selectedCrewRole = v;
+                      _hasChanges = true;
+                    }),
               ),
               const SizedBox(height: 16),
 
@@ -305,7 +342,11 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 label: 'PF / PNF',
                 value: _selectedPilotRole,
                 items: _pilotRoles,
-                onChanged: (v) => setState(() => _selectedPilotRole = v),
+                onChanged:
+                    (v) => setState(() {
+                      _selectedPilotRole = v;
+                      _hasChanges = true;
+                    }),
               ),
               const SizedBox(height: 24),
 
@@ -314,20 +355,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               const SizedBox(height: 8),
               _buildInputField(
                 label: 'Companion Name',
-                hint: 'e.g. Juan Pérez',
+                hint: 'e.g. John Smith',
                 controller: _companionNameController,
                 icon: Icons.people_outline,
-              ),
-              const SizedBox(height: 24),
-
-              // ── Duty Time ──
-              _buildSectionLabel('Duty Time'),
-              const SizedBox(height: 8),
-              _buildInputField(
-                label: 'Duty Time',
-                hint: 'HH:MM',
-                controller: _dutyTimeController,
-                icon: Icons.access_time,
               ),
               const SizedBox(height: 24),
 
@@ -339,7 +369,11 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 label: 'Select approach',
                 value: _selectedApproachType,
                 items: _approachTypes,
-                onChanged: (v) => setState(() => _selectedApproachType = v),
+                onChanged:
+                    (v) => setState(() {
+                      _selectedApproachType = v;
+                      _hasChanges = true;
+                    }),
               ),
               const SizedBox(height: 24),
 
@@ -351,7 +385,11 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 label: 'Select flight type',
                 value: _selectedFlightType,
                 items: _flightTypes,
-                onChanged: (v) => setState(() => _selectedFlightType = v),
+                onChanged:
+                    (v) => setState(() {
+                      _selectedFlightType = v;
+                      _hasChanges = true;
+                    }),
               ),
               const SizedBox(height: 24),
 
@@ -389,7 +427,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             editArgs['destination_iata_code'] = _detail!.destinationIataCode;
             editArgs['airline_name'] = _detail!.airlineCode;
             editArgs['daily_logbook_id'] = _detail!.dailyLogbookId;
-            editArgs['license_plate'] = _detail!.licensePlate;
+            editArgs['tail_number'] = _detail!.tailNumber;
           }
           final result = await Navigator.pushNamed(
             context,
@@ -416,12 +454,12 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 airlineRouteId:
                     result['airline_route_id']?.toString() ??
                     _detail!.airlineRouteId,
-                actualAircraftRegistrationId:
-                    result['license_plate_id']?.toString() ??
-                    _detail!.actualAircraftRegistrationId,
-                licensePlate:
-                    result['license_plate_name']?.toString() ??
-                    _detail!.licensePlate,
+                tailNumberId:
+                    result['tail_number_id']?.toString() ??
+                    _detail!.tailNumberId,
+                tailNumber:
+                    result['tail_number_name']?.toString() ??
+                    _detail!.tailNumber,
                 // Preserved existing fields
                 logDate: _detail!.logDate,
                 routeCode: _detail!.routeCode,
@@ -435,7 +473,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 inTime: _detail!.inTime,
                 airTime: _detail!.airTime,
                 blockTime: _detail!.blockTime,
-                dutyTime: _detail!.dutyTime,
                 pilotRole: _detail!.pilotRole,
                 companionName: _detail!.companionName,
                 passengers: _detail!.passengers,
@@ -444,6 +481,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               );
               _isEditMode = true;
               _prefillFields();
+              _hasChanges = true; // Edit flow returned changes
             });
           }
         },
@@ -460,9 +498,28 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       ),
     );
 
-    // In edit mode, show only the Edit button
+    // Delete button — only in edit mode
+    final deleteButton = Expanded(
+      child: OutlinedButton.icon(
+        onPressed: () => _confirmDeleteDetail(),
+        icon: const Icon(Icons.delete_outline, size: 18),
+        label: const Text('Delete'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.red.shade400,
+          side: BorderSide(color: Colors.red.shade400),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+
+    // In edit mode, show Edit + Delete buttons
     if (_isEditMode) {
-      return Row(children: [editButton]);
+      return Row(
+        children: [editButton, const SizedBox(width: 12), deleteButton],
+      );
     }
 
     // In non-edit mode, show both Add Flight Info + Edit
@@ -497,7 +554,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   Widget _buildFlightSummaryCard() {
     final flightNum = _detail?.flightNumber ?? '--';
     final route = _detail?.routeDisplay ?? '-- → --';
-    final aircraft = _detail?.licensePlate ?? '--';
+    final aircraft = _detail?.tailNumber ?? '--';
     final date = _detail?.formattedDate ?? '--';
     final departure = _detail?.startTime ?? '--:--';
     final arrival = _detail?.endTime ?? '--:--';
@@ -894,7 +951,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: isLoading ? null : _onSave,
+            onPressed: (isLoading || !_hasChanges) ? null : _onSave,
             icon:
                 isLoading
                     ? const SizedBox(
@@ -925,13 +982,109 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     );
   }
 
+  // ══════════════════════════════════════════════════════════════
+  //  FORM VALIDATION (mirrors backend rules)
+  // ══════════════════════════════════════════════════════════════
+
+  /// HH:MM format regex — supports aviation 24+ hours (e.g., 24:20 = next day)
+  /// Allows 00:00 to 47:59
+  static final _timeFormatRegex = RegExp(r'^([0-3]\d|4[0-7]):[0-5]\d$');
+
+  /// Parses "HH:MM" into total minutes for comparison (supports hours 00-47)
+  int? _parseMinutes(String time) {
+    if (!_timeFormatRegex.hasMatch(time)) return null;
+    final parts = time.split(':');
+    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  /// Validates the form and returns null if valid, or an error message string.
+  String? _validateForm() {
+    // 1. Required time fields
+    final out = _outController.text.trim();
+    final off = _offController.text.trim();
+    final on = _onController.text.trim();
+    final inT = _inController.text.trim();
+
+    if (out.isEmpty) return 'OUT time is required';
+    if (off.isEmpty) return 'OFF (takeoff) time is required';
+    if (on.isEmpty) return 'ON (landing) time is required';
+    if (inT.isEmpty) return 'IN time is required';
+
+    // 2. Time format (HH:MM)
+    if (!_timeFormatRegex.hasMatch(out)) return 'OUT time must be HH:MM format';
+    if (!_timeFormatRegex.hasMatch(off)) return 'OFF time must be HH:MM format';
+    if (!_timeFormatRegex.hasMatch(on)) return 'ON time must be HH:MM format';
+    if (!_timeFormatRegex.hasMatch(inT)) return 'IN time must be HH:MM format';
+
+    // 3. Time sequence: OUT < OFF < ON < IN (supports midnight crossings)
+    // For overnight flights (e.g., OUT 23:13 → OFF 23:30 → ON 00:10 → IN 00:20),
+    // if a subsequent time is smaller, it means midnight was crossed.
+    int outMin = _parseMinutes(out)!;
+    int offMin = _parseMinutes(off)!;
+    int onMin = _parseMinutes(on)!;
+    int inMin = _parseMinutes(inT)!;
+
+    // Adjust for midnight crossings: if next time < previous, add 24h (1440 min)
+    if (offMin <= outMin) offMin += 1440;
+    if (onMin <= offMin) onMin += 1440;
+    if (inMin <= onMin) inMin += 1440;
+
+    if (outMin >= offMin) return 'OUT time must be before OFF (takeoff) time';
+    if (offMin >= onMin) {
+      return 'OFF (takeoff) time must be before ON (landing) time';
+    }
+    if (onMin >= inMin) return 'ON (landing) time must be before IN time';
+
+    // 4. Pilot role required
+    if (_selectedPilotRole == null || _selectedPilotRole!.isEmpty) {
+      return 'Pilot role is required';
+    }
+    if (!_pilotRoles.contains(_selectedPilotRole)) {
+      return 'Invalid pilot role. Must be: ${_pilotRoles.join(", ")}';
+    }
+
+    // 5. Crew role required
+    if (_selectedCrewRole == null || _selectedCrewRole!.isEmpty) {
+      return 'Crew role is required';
+    }
+
+    // 6. Calculated times must be valid
+    if (_calculatedAirTime == '--:--') {
+      return 'Air time could not be calculated. Check OFF and ON times';
+    }
+    if (_calculatedBlockTime == '--:--') {
+      return 'Block time could not be calculated. Check OUT and IN times';
+    }
+
+    // 7. Approach type (optional, but if selected must be valid)
+    if (_selectedApproachType != null &&
+        !_approachTypes.contains(_selectedApproachType)) {
+      return 'Invalid approach type. Must be: ${_approachTypes.join(", ")}';
+    }
+
+    return null; // All validations passed
+  }
+
   void _onSave() {
     if (_detail == null) return;
 
-    final pax = int.tryParse(_paxController.text) ?? _detail!.passengers ?? 0;
-
-    // Recalculate before saving
+    // Recalculate before validating
     _recalculateTimes();
+
+    // Validate form (mirrors backend validations)
+    final error = _validateForm();
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final pax = int.tryParse(_paxController.text) ?? _detail!.passengers ?? 0;
 
     context.read<LogbookBloc>().add(
       UpdateLogbookDetailEvent(
@@ -951,10 +1104,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         airTime: _calculatedAirTime != '--:--' ? _calculatedAirTime : null,
         blockTime:
             _calculatedBlockTime != '--:--' ? _calculatedBlockTime : null,
-        dutyTime:
-            _dutyTimeController.text.isNotEmpty
-                ? _dutyTimeController.text
-                : null,
         approachType: _selectedApproachType,
         flightType: _selectedFlightType,
       ),
@@ -1012,6 +1161,47 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
+    );
+  }
+
+  /// Confirmation dialog before deleting the logbook detail
+  void _confirmDeleteDetail() {
+    if (_detail == null) return;
+
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Delete Flight Record'),
+            content: Text(
+              'Are you sure you want to delete flight ${_detail!.flightNumber ?? 'N/A'} (${_detail!.routeDisplay})?\n\nThis action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  context.read<LogbookBloc>().add(
+                    DeleteLogbookDetail(
+                      detailId: _detail!.uuid ?? _detail!.id,
+                      dailyLogbookId: _detail!.dailyLogbookId ?? '',
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
     );
   }
 }

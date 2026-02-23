@@ -765,7 +765,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
         return;
       }
 
-      // Navigate to License Plate lookup (Step 2)
+      // Navigate to Tail Number lookup (Step 2)
       // POST /daily-logbooks/:id/details needs: flight_real_date, flight_number, airline_route_id
       // The backend resolves route_code, origin/destination iata, airline_code from airline_route_id
       final flightData = <String, dynamic>{
@@ -783,11 +783,11 @@ class _NewFlightPageState extends State<NewFlightPage> {
 
       final result = await Navigator.pushNamed(
         context,
-        '/license-plate',
+        '/tail-number',
         arguments: flightData,
       );
 
-      // If LicensePlate returned edit data (Map), propagate back to DailyLogbookDetailPage
+      // If TailNumber returned edit data (Map), propagate back to DailyLogbookDetailPage
       if (result is Map<String, dynamic> && mounted) {
         Navigator.of(context).pop(result);
       }

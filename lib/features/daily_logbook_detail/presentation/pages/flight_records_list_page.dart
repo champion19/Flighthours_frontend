@@ -269,7 +269,7 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
                       const SizedBox(width: 10),
                       _buildInfoChip(
                         Icons.airplanemode_active,
-                        detail.licensePlate ?? '—',
+                        detail.tailNumber ?? '--',
                       ),
                     ],
                   ),

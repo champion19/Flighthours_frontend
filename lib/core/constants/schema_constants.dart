@@ -43,15 +43,15 @@ class SchemaConstants {
   static const int bpMaxLength = 16;
 
   // ══════════════════════════════════════════════════════════════
-  // LICENSE PLATE (Aircraft Registration)
+  // TAIL NUMBER (Aircraft Registration)
   // ══════════════════════════════════════════════════════════════
 
   /// Aircraft registration number (e.g., HK-5432, CC-BFA)
-  static const int licensePlateMinLength = 1;
-  static const int licensePlateMaxLength = 7;
+  static const int tailNumberMinLength = 1;
+  static const int tailNumberMaxLength = 7;
 
   /// Pattern: uppercase letters, digits, and hyphens only
-  static final RegExp licensePlatePattern = RegExp(r'^[A-Z0-9-]+$');
+  static final RegExp tailNumberPattern = RegExp(r'^[A-Z0-9-]+$');
 
   // ══════════════════════════════════════════════════════════════
   // DAILY LOGBOOK DETAIL

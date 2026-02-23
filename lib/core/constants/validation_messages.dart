@@ -69,11 +69,11 @@ class ValidationMessages {
   static String rangeLength(int min, int max) =>
       'Must be between $min and $max characters';
 
-  // License plate validations
-  static const String licensePlateRequired = 'Registration number is required';
-  static const String licensePlateInvalid =
-      'Only uppercase letters, digits, and hyphens allowed';
-  static String licensePlateMaxLength(int max) => 'Maximum $max characters';
+  // Tail number validations
+  static const String tailNumberRequired = 'Registration number is required';
+  static const String tailNumberInvalid =
+      'Only uppercase letters, numbers and hyphens allowed';
+  static String tailNumberMaxLength(int max) => 'Maximum $max characters';
 
   // Flight number validations
   static const String flightNumberRequired = 'Flight number is required';

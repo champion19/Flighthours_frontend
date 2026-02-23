@@ -1,4 +1,3 @@
-
 import 'validators.dart';
 
 /// Validador para correos electrónicos
@@ -218,26 +217,26 @@ class NumericOnlyValidator extends BaseValidator {
 
 /// Validador para matrículas de aeronave
 /// Backend: license_plate maxLength 7, pattern ^[A-Z0-9-]+$
-class LicensePlateValidator extends BaseValidator {
-  const LicensePlateValidator({super.customMessage});
+class TailNumberValidator extends BaseValidator {
+  const TailNumberValidator({super.customMessage});
 
   @override
   String? validate(String? value) {
     final requiredResult = const RequiredValidator().validate(value);
     if (requiredResult != null) {
-      return getMessage(ValidationMessages.licensePlateRequired);
+      return getMessage(ValidationMessages.tailNumberRequired);
     }
 
-    if (value!.length > SchemaConstants.licensePlateMaxLength) {
+    if (value!.length > SchemaConstants.tailNumberMaxLength) {
       return getMessage(
-        ValidationMessages.licensePlateMaxLength(
-          SchemaConstants.licensePlateMaxLength,
+        ValidationMessages.tailNumberMaxLength(
+          SchemaConstants.tailNumberMaxLength,
         ),
       );
     }
 
-    if (!SchemaConstants.licensePlatePattern.hasMatch(value)) {
-      return getMessage(ValidationMessages.licensePlateInvalid);
+    if (!SchemaConstants.tailNumberPattern.hasMatch(value)) {
+      return getMessage(ValidationMessages.tailNumberInvalid);
     }
 
     return null;

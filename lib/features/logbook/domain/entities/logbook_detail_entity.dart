@@ -20,8 +20,8 @@ class LogbookDetailEntity extends Equatable {
   final String? airlineCode; // e.g., "AV"
 
   // Aircraft information (denormalized from aircraft_registration)
-  final String? actualAircraftRegistrationId;
-  final String? licensePlate; // e.g., "CC-BAQ"
+  final String? tailNumberId;
+  final String? tailNumber; // e.g., "CC-BAQ"
   final String? modelName; // e.g., "A320-112"
 
   // Time tracking (format HH:MM:SS)
@@ -54,8 +54,8 @@ class LogbookDetailEntity extends Equatable {
     this.originIataCode,
     this.destinationIataCode,
     this.airlineCode,
-    this.actualAircraftRegistrationId,
-    this.licensePlate,
+    this.tailNumberId,
+    this.tailNumber,
     this.modelName,
     this.outTime,
     this.takeoffTime,
@@ -123,12 +123,12 @@ class LogbookDetailEntity extends Equatable {
 
   /// Returns full aircraft display (e.g., "CC-BAQ (A320)")
   String get aircraftDisplay {
-    if (licensePlate != null && modelName != null) {
+    if (tailNumber != null && modelName != null) {
       // Extract short model name (e.g., "A320" from "A320-112")
       final shortModel = modelName!.split('-').first;
-      return '$licensePlate ($shortModel)';
+      return '$tailNumber ($shortModel)';
     }
-    return licensePlate ?? modelName ?? 'Unknown Aircraft';
+    return tailNumber ?? modelName ?? 'Unknown Aircraft';
   }
 
   @override
@@ -144,8 +144,8 @@ class LogbookDetailEntity extends Equatable {
     originIataCode,
     destinationIataCode,
     airlineCode,
-    actualAircraftRegistrationId,
-    licensePlate,
+    tailNumberId,
+    tailNumber,
     modelName,
     outTime,
     takeoffTime,
