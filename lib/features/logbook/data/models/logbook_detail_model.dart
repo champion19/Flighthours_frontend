@@ -15,8 +15,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
     super.originIataCode,
     super.destinationIataCode,
     super.airlineCode,
-    super.actualAircraftRegistrationId,
-    super.licensePlate,
+    super.tailNumberId,
+    super.tailNumber,
     super.modelName,
     super.outTime,
     super.takeoffTime,
@@ -60,7 +60,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
   ///   "origin_iata_code": "MDE",
   ///   "destination_iata_code": "BOG",
   ///   "airline_code": "AV",
-  ///   "license_plate": "CC-BAQ",
+  ///   "tail_number": "CC-BAQ",
   ///   "model_name": "A320-112"
   /// }
   factory LogbookDetailModel.fromJson(Map<String, dynamic> json) {
@@ -76,8 +76,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
       originIataCode: json['origin_iata_code']?.toString(),
       destinationIataCode: json['destination_iata_code']?.toString(),
       airlineCode: json['airline_code']?.toString(),
-      actualAircraftRegistrationId: json['license_plate_id']?.toString(),
-      licensePlate: json['license_plate']?.toString(),
+      tailNumberId: json['tail_number_id']?.toString(),
+      tailNumber: json['tail_number']?.toString(),
       modelName: json['model_name']?.toString(),
       outTime: json['out_time']?.toString(),
       takeoffTime: json['takeoff_time']?.toString(),
@@ -123,8 +123,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (flightRealDate != null)
         'flight_real_date': _formatDate(flightRealDate!),
       if (airlineRouteId != null) 'airline_route_id': airlineRouteId,
-      if (actualAircraftRegistrationId != null)
-        'license_plate_id': actualAircraftRegistrationId,
+      if (tailNumberId != null) 'tail_number_id': tailNumberId,
       if (passengers != null) 'passengers': passengers,
       if (outTime != null) 'out_time': outTime,
       if (takeoffTime != null) 'takeoff_time': takeoffTime,
@@ -150,7 +149,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
     required String flightRealDate,
     required String flightNumber,
     required String airlineRouteId,
-    required String licensePlateId,
+    required String tailNumberId,
     required int passengers,
     required String outTime,
     required String takeoffTime,
@@ -168,7 +167,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
       'airline_route_id': airlineRouteId,
-      'license_plate_id': licensePlateId,
+      'tail_number_id': tailNumberId,
       'passengers': passengers,
       'out_time': outTime,
       'takeoff_time': takeoffTime,
@@ -185,12 +184,12 @@ class LogbookDetailModel extends LogbookDetailEntity {
   }
 
   /// Create request body for updating a logbook detail
-  /// Matches backend schema: license_plate_id, HH:MM times, omits empty optionals
+  /// Matches backend schema: tail_number_id, HH:MM times, omits empty optionals
   static Map<String, dynamic> updateRequest({
     required String flightRealDate,
     required String flightNumber,
     required String airlineRouteId,
-    required String licensePlateId,
+    required String tailNumberId,
     int? passengers,
     String? outTime,
     String? takeoffTime,
@@ -210,7 +209,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
       'airline_route_id': airlineRouteId,
-      'license_plate_id': licensePlateId,
+      'tail_number_id': tailNumberId,
     };
 
     // Optional fields — only include if non-empty

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flight_hours_app/features/manufacturer/data/datasources/manufacturer_remote_data_source.dart';
 import 'package:flight_hours_app/features/manufacturer/data/models/manufacturer_model.dart';
 import 'package:flight_hours_app/features/manufacturer/data/repositories/manufacturer_repository_impl.dart';
@@ -75,6 +76,39 @@ void main() {
         result.fold(
           (failure) => expect(failure.message, isNotEmpty),
           (data) => fail('Expected Left but got Right'),
+        );
+      });
+
+      test('should return Left on DioException with map data', () async {
+        when(() => mockDataSource.getManufacturers()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 500,
+              data: {'message': 'Internal', 'code': 'ERR'},
+            ),
+          ),
+        );
+        final result = await repository.getManufacturers();
+        result.fold((f) => expect(f.message, 'Internal'), (_) => fail('Left'));
+      });
+
+      test('should return Left on DioException with non-map data', () async {
+        when(() => mockDataSource.getManufacturers()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 503,
+              data: 'text',
+            ),
+          ),
+        );
+        final result = await repository.getManufacturers();
+        result.fold(
+          (f) => expect(f.message, 'Server error'),
+          (_) => fail('Left'),
         );
       });
     });

@@ -1,9 +1,18 @@
+import 'dart:math' as math;
+
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_event.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_state.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_hours_summary_model.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_alerts_model.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/recent_flights_model.dart';
+import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,11 +30,25 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // Flight summary data from backend
+  FlightHoursSummaryData? _summaryData;
+  List<FlightAlertData> _alerts = [];
+  List<RecentFlightData> _recentFlights = [];
+
   @override
   void initState() {
     super.initState();
     context.read<EmployeeBloc>().add(LoadCurrentEmployee());
     context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+    // Load flight data — overall summary is always annual (donut)
+    _refreshFlightSummary();
+  }
+
+  /// Re-fetch all flight summary data (donut, alerts, recent flights)
+  void _refreshFlightSummary() {
+    context.read<FlightSummaryBloc>().add(LoadOverallSummary());
+    context.read<FlightSummaryBloc>().add(LoadFlightAlerts());
+    context.read<FlightSummaryBloc>().add(LoadRecentFlights());
   }
 
   @override
@@ -44,16 +67,31 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   }
 
   Widget _buildBody() {
-    return BlocListener<EmployeeBloc, EmployeeState>(
-      listener: (context, state) {
-        if (state is EmployeeDetailSuccess && state.response.data != null) {
-          setState(() {
-            final data = state.response.data!;
-            _pilotName = data.name;
-            _currentAirline = data.airline ?? '';
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EmployeeBloc, EmployeeState>(
+          listener: (context, state) {
+            if (state is EmployeeDetailSuccess && state.response.data != null) {
+              setState(() {
+                final data = state.response.data!;
+                _pilotName = data.name;
+                _currentAirline = data.airline ?? '';
+              });
+            }
+          },
+        ),
+        BlocListener<FlightSummaryBloc, FlightSummaryState>(
+          listener: (context, state) {
+            if (state is OverallSummarySuccess) {
+              setState(() => _summaryData = state.data);
+            } else if (state is FlightAlertsSuccess) {
+              setState(() => _alerts = state.alerts);
+            } else if (state is RecentFlightsSuccess) {
+              setState(() => _recentFlights = state.flights);
+            }
+          },
+        ),
+      ],
       child: _buildCurrentPage(),
     );
   }
@@ -65,8 +103,10 @@ class _HelloEmployeeState extends State<HelloEmployee> {
       case 1:
         // Logbook - Navigate to logbook page
         _selectedIndex = 0;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.pushNamed(context, '/logbook');
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await Navigator.pushNamed(context, '/logbook');
+          // Refresh home data when returning from logbook
+          if (mounted) _refreshFlightSummary();
         });
         return _buildHomePage();
       case 2:
@@ -84,7 +124,10 @@ class _HelloEmployeeState extends State<HelloEmployee> {
         children: [
           _buildHeader(),
           const SizedBox(height: 24),
-          _buildWelcomeCard(),
+          const SizedBox(height: 24),
+          _buildOperationalBreakdown(),
+          const SizedBox(height: 24),
+          _buildRecentFlights(),
         ],
       ),
     );
@@ -133,13 +176,42 @@ class _HelloEmployeeState extends State<HelloEmployee> {
             ],
           ),
         ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.notifications_outlined,
-            color: Color(0xFF6c757d),
-            size: 26,
-          ),
+        Stack(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pushNamed(context, '/alerts'),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFF6c757d),
+                size: 26,
+              ),
+            ),
+            if (_alerts.isNotEmpty)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFe17055),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${_alerts.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
         ),
         PopupMenuButton<String>(
           icon: const Icon(
@@ -228,65 +300,267 @@ class _HelloEmployeeState extends State<HelloEmployee> {
     return 'Good evening';
   }
 
-  Widget _buildWelcomeCard() {
+  // Role colors for donut chart
+  static const _roleColors = {
+    'PF': Color(0xFF36A2EB),
+    'PFL': Color(0xFFFF9F40),
+    'PFTO': Color(0xFF4BC0C0),
+    'PM': Color(0xFF9966FF),
+  };
+
+  // ==================== OPERATIONAL BREAKDOWN ====================
+  Widget _buildOperationalBreakdown() {
+    // Build segments from real data or show empty state
+    final List<_ChartSegment> segments;
+    final String totalLabel;
+
+    if (_summaryData != null && _summaryData!.totalMinutes > 0) {
+      final breakdownMinutes = _summaryData!.breakdownMinutes;
+      final total = _summaryData!.totalMinutes;
+      segments =
+          breakdownMinutes.entries.map((e) {
+            final pct = e.value / total;
+            final color = _roleColors[e.key] ?? const Color(0xFF6c757d);
+            return _ChartSegment(e.key, pct, color);
+          }).toList();
+      totalLabel = _summaryData!.totalHours;
+    } else {
+      segments = [_ChartSegment('No data', 1.0, const Color(0xFFe9ecef))];
+      totalLabel = '0:00';
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFe9ecef)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4facfe).withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Welcome back!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          const Text(
+            'Operational Breakdown',
+            style: TextStyle(
+              color: Color(0xFF1a1a2e),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Donut chart
+          Center(
+            child: SizedBox(
+              width: 180,
+              height: 180,
+              child: CustomPaint(
+                painter: _DonutChartPainter(segments),
+                child: Center(
+                  child: Text(
+                    totalLabel,
+                    style: const TextStyle(
+                      color: Color(0xFF1a1a2e),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Legend
+          if (_summaryData != null && _summaryData!.totalMinutes > 0)
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children:
+                  segments.map((s) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: s.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${s.label} (${(s.percentage * 100).toInt()}%)',
+                          style: const TextStyle(
+                            color: Color(0xFF6c757d),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ==================== RECENT FLIGHTS ====================
+  Widget _buildRecentFlights() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Recent Flights',
+          style: TextStyle(
+            color: Color(0xFF1a1a2e),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_recentFlights.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFe9ecef)),
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.flight_outlined, color: Color(0xFF6c757d), size: 40),
+                SizedBox(height: 8),
                 Text(
-                  _currentAirline.isNotEmpty
-                      ? 'Flying with $_currentAirline'
-                      : 'Ready for your next flight',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 14,
-                  ),
+                  'No recent flights',
+                  style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
                 ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
+          )
+        else
+          ..._recentFlights.map((f) => _buildFlightCard(flight: f)),
+      ],
+    );
+  }
+
+  Widget _buildFlightCard({required RecentFlightData flight}) {
+    return GestureDetector(
+      onTap: () async {
+        // Convert RecentFlightData to LogbookDetailEntity with ALL fields
+        final entity = LogbookDetailEntity(
+          id: flight.id,
+          dailyLogbookId: flight.dailyLogbookId,
+          flightNumber: flight.flightNumber,
+          flightRealDate: DateTime.tryParse(flight.flightRealDate),
+          logDate:
+              flight.logDate != null
+                  ? DateTime.tryParse(flight.logDate!)
+                  : null,
+          airlineRouteId: flight.airlineRouteId,
+          routeCode: flight.routeCode,
+          originIataCode: flight.originIataCode,
+          destinationIataCode: flight.destinationIataCode,
+          airlineCode: flight.airlineCode,
+          tailNumberId: flight.tailNumberId,
+          tailNumber: flight.tailNumber,
+          modelName: flight.modelName,
+          outTime: flight.outTime,
+          takeoffTime: flight.takeoffTime,
+          landingTime: flight.landingTime,
+          inTime: flight.inTime,
+          airTime: flight.airTime,
+          blockTime: flight.blockTime,
+          pilotRole: flight.pilotRole,
+          companionName: flight.companionName,
+          passengers: flight.passengers,
+          approachType: flight.approachType,
+          flightType: flight.flightType,
+        );
+        await Navigator.pushNamed(
+          context,
+          '/daily-logbook-detail-form',
+          arguments: {'detail': entity},
+        );
+        // Refresh home data when returning from flight detail
+        if (mounted) _refreshFlightSummary();
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFe9ecef)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: const Icon(
-              Icons.flight_takeoff,
-              color: Colors.white,
-              size: 32,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.flight,
+                color: Color(0xFF4facfe),
+                size: 20,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    flight.displayDate,
+                    style: const TextStyle(
+                      color: Color(0xFF1a1a2e),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    flight.modelName.isNotEmpty
+                        ? flight.modelName
+                        : flight.displayRoute,
+                    style: const TextStyle(
+                      color: Color(0xFF6c757d),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              flight.airTime ?? '--',
+              style: const TextStyle(
+                color: Color(0xFF4facfe),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, color: Color(0xFF6c757d), size: 20),
+          ],
+        ),
       ),
     );
   }
@@ -641,4 +915,49 @@ class _HelloEmployeeState extends State<HelloEmployee> {
       ),
     );
   }
+}
+
+// ==================== DONUT CHART PAINTER ====================
+class _ChartSegment {
+  final String label;
+  final double percentage;
+  final Color color;
+
+  const _ChartSegment(this.label, this.percentage, this.color);
+}
+
+class _DonutChartPainter extends CustomPainter {
+  final List<_ChartSegment> segments;
+
+  _DonutChartPainter(this.segments);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    const strokeWidth = 28.0;
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
+
+    double startAngle = -math.pi / 2; // start from top
+    const gapAngle = 0.04; // small gap between segments
+
+    for (final segment in segments) {
+      final sweepAngle = 2 * math.pi * segment.percentage - gapAngle;
+      final paint =
+          Paint()
+            ..color = segment.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth
+            ..strokeCap = StrokeCap.round;
+
+      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+      startAngle += sweepAngle + gapAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

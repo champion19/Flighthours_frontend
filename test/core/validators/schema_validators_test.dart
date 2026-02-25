@@ -105,8 +105,8 @@ void main() {
     });
   });
 
-  group('LicensePlateValidator (max 7, ^[A-Z0-9-]+\$)', () {
-    const validator = LicensePlateValidator();
+  group('TailNumberValidator (max 7, ^[A-Z0-9-]+\$)', () {
+    const validator = TailNumberValidator();
 
     test('should require a value (not optional)', () {
       expect(validator.validate(null), isNotNull);
@@ -295,9 +295,9 @@ void main() {
     });
 
     test('license plate constraints match schema', () {
-      expect(SchemaConstants.licensePlateMaxLength, 7);
-      expect(SchemaConstants.licensePlatePattern.hasMatch('HK-5432'), isTrue);
-      expect(SchemaConstants.licensePlatePattern.hasMatch('hk-5432'), isFalse);
+      expect(SchemaConstants.tailNumberMaxLength, 7);
+      expect(SchemaConstants.tailNumberPattern.hasMatch('HK-5432'), isTrue);
+      expect(SchemaConstants.tailNumberPattern.hasMatch('hk-5432'), isFalse);
     });
 
     test('logbook detail constraints match schema', () {

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/data/datasources/airport_remote_data_source.dart';
@@ -58,6 +59,45 @@ void main() {
         final result = await repository.getAirports();
 
         expect(result, isA<Left>());
+      });
+
+      test(
+        'should return Left with message on DioException with map data',
+        () async {
+          when(() => mockDataSource.getAirports()).thenThrow(
+            DioException(
+              requestOptions: RequestOptions(),
+              response: Response(
+                requestOptions: RequestOptions(),
+                statusCode: 500,
+                data: {'message': 'Internal', 'code': 'ERR_500'},
+              ),
+            ),
+          );
+          final result = await repository.getAirports();
+          result.fold((f) {
+            expect(f.message, 'Internal');
+            expect(f.statusCode, 500);
+          }, (_) => fail('Left'));
+        },
+      );
+
+      test('should return Left on DioException with non-map data', () async {
+        when(() => mockDataSource.getAirports()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 503,
+              data: 'Service Unavailable',
+            ),
+          ),
+        );
+        final result = await repository.getAirports();
+        result.fold(
+          (f) => expect(f.message, 'Server error'),
+          (_) => fail('Left'),
+        );
       });
     });
 

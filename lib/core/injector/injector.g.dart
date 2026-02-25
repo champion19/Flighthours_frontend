@@ -120,13 +120,13 @@ class _$InjectorApp extends InjectorApp {
       ..registerFactory<LogbookRemoteDataSource>(
           (c) => LogbookRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory(
-          (c) => ListLicensePlatesUseCase(c.resolve<LicensePlateRepository>()))
-      ..registerFactory((c) =>
-          GetLicensePlateByPlateUseCase(c.resolve<LicensePlateRepository>()))
-      ..registerFactory<LicensePlateRepository>((c) =>
-          LicensePlateRepositoryImpl(c.resolve<LicensePlateRemoteDataSource>()))
-      ..registerFactory<LicensePlateRemoteDataSource>(
-          (c) => LicensePlateRemoteDataSourceImpl(dio: c.resolve<Dio>()))
+          (c) => ListTailNumbersUseCase(c.resolve<TailNumberRepository>()))
+      ..registerFactory(
+          (c) => GetTailNumberByPlateUseCase(c.resolve<TailNumberRepository>()))
+      ..registerFactory<TailNumberRepository>((c) =>
+          TailNumberRepositoryImpl(c.resolve<TailNumberRemoteDataSource>()))
+      ..registerFactory<TailNumberRemoteDataSource>(
+          (c) => TailNumberRemoteDataSourceImpl(dio: c.resolve<Dio>()))
       ..registerFactory((c) => ListCrewMemberTypesUseCase(
           repository: c.resolve<CrewMemberTypeRepository>()))
       ..registerFactory<CrewMemberTypeRepository>((c) =>

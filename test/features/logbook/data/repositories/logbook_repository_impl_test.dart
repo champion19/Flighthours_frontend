@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';
@@ -52,6 +53,39 @@ void main() {
 
         expect(result, isA<Left>());
       });
+
+      test('should return Left on DioException with map data', () async {
+        when(() => mockDataSource.getDailyLogbooks()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 500,
+              data: {'message': 'Internal', 'code': 'ERR'},
+            ),
+          ),
+        );
+        final result = await repository.getDailyLogbooks();
+        result.fold((f) => expect(f.message, 'Internal'), (_) => fail('Left'));
+      });
+
+      test('should return Left on DioException with non-map data', () async {
+        when(() => mockDataSource.getDailyLogbooks()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 503,
+              data: 'text',
+            ),
+          ),
+        );
+        final result = await repository.getDailyLogbooks();
+        result.fold(
+          (f) => expect(f.message, 'Server error'),
+          (_) => fail('Left'),
+        );
+      });
     });
 
     group('getDailyLogbookById', () {
@@ -84,6 +118,14 @@ void main() {
           (data) => fail('Expected Left'),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getDailyLogbookById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getDailyLogbookById('id');
+        expect(result, isA<Left>());
+      });
     });
 
     group('createDailyLogbook', () {
@@ -112,6 +154,20 @@ void main() {
             bookPage: 1,
           ),
         ).called(1);
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.createDailyLogbook(
+            logDate: any(named: 'logDate'),
+            bookPage: any(named: 'bookPage'),
+          ),
+        ).thenThrow(Exception('err'));
+        final result = await repository.createDailyLogbook(
+          logDate: DateTime(2024),
+          bookPage: 1,
+        );
+        expect(result, isA<Left>());
       });
     });
 
@@ -239,6 +295,14 @@ void main() {
         );
         verify(() => mockDataSource.getLogbookDetails('lb1')).called(1);
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getLogbookDetails(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getLogbookDetails('lb1');
+        expect(result, isA<Left>());
+      });
     });
 
     group('getLogbookDetailById', () {
@@ -284,7 +348,7 @@ void main() {
           flightRealDate: '2024-01-15',
           flightNumber: 'AV001',
           airlineRouteId: 'route1',
-          licensePlateId: 'aircraft1',
+          tailNumberId: 'aircraft1',
           passengers: 150,
           outTime: '10:00',
           takeoffTime: '10:15',
@@ -311,6 +375,64 @@ void main() {
           ),
         ).called(1);
       });
+
+      test('should return Left when datasource returns null', () async {
+        when(
+          () => mockDataSource.createLogbookDetail(
+            dailyLogbookId: any(named: 'dailyLogbookId'),
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer((_) async => null);
+        final result = await repository.createLogbookDetail(
+          dailyLogbookId: 'lb1',
+          flightRealDate: '2024-01-15',
+          flightNumber: 'AV1',
+          airlineRouteId: 'r1',
+          tailNumberId: 'a1',
+          passengers: 10,
+          outTime: '10:00',
+          takeoffTime: '10:15',
+          landingTime: '11:00',
+          inTime: '11:10',
+          pilotRole: 'PF',
+          companionName: 'Co',
+          airTime: '00:45',
+          blockTime: '01:10',
+          dutyTime: '08:00',
+          approachType: 'ILS',
+          flightType: 'C',
+        );
+        expect(result, isA<Left>());
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.createLogbookDetail(
+            dailyLogbookId: any(named: 'dailyLogbookId'),
+            data: any(named: 'data'),
+          ),
+        ).thenThrow(Exception('err'));
+        final result = await repository.createLogbookDetail(
+          dailyLogbookId: 'lb1',
+          flightRealDate: '2024-01-15',
+          flightNumber: 'AV1',
+          airlineRouteId: 'r1',
+          tailNumberId: 'a1',
+          passengers: 10,
+          outTime: '10:00',
+          takeoffTime: '10:15',
+          landingTime: '11:00',
+          inTime: '11:10',
+          pilotRole: 'PF',
+          companionName: 'Co',
+          airTime: '00:45',
+          blockTime: '01:10',
+          dutyTime: '08:00',
+          approachType: 'ILS',
+          flightType: 'C',
+        );
+        expect(result, isA<Left>());
+      });
     });
 
     group('updateLogbookDetail', () {
@@ -328,7 +450,7 @@ void main() {
           flightRealDate: '2024-01-15',
           flightNumber: 'AV002',
           airlineRouteId: 'route1',
-          licensePlateId: 'aircraft1',
+          tailNumberId: 'aircraft1',
           passengers: 160,
           outTime: '10:00',
           takeoffTime: '10:15',
@@ -355,6 +477,40 @@ void main() {
           ),
         ).called(1);
       });
+
+      test('should return Left when datasource returns null', () async {
+        when(
+          () => mockDataSource.updateLogbookDetail(
+            id: any(named: 'id'),
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer((_) async => null);
+        final result = await repository.updateLogbookDetail(
+          id: 'det1',
+          flightRealDate: '2024-01-15',
+          flightNumber: 'AV2',
+          airlineRouteId: 'r1',
+          tailNumberId: 'a1',
+        );
+        expect(result, isA<Left>());
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.updateLogbookDetail(
+            id: any(named: 'id'),
+            data: any(named: 'data'),
+          ),
+        ).thenThrow(Exception('err'));
+        final result = await repository.updateLogbookDetail(
+          id: 'det1',
+          flightRealDate: '2024-01-15',
+          flightNumber: 'AV2',
+          airlineRouteId: 'r1',
+          tailNumberId: 'a1',
+        );
+        expect(result, isA<Left>());
+      });
     });
 
     group('deleteLogbookDetail', () {
@@ -371,6 +527,14 @@ void main() {
           (data) => expect(data, isTrue),
         );
         verify(() => mockDataSource.deleteLogbookDetail('det1')).called(1);
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deleteLogbookDetail(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.deleteLogbookDetail('det1');
+        expect(result, isA<Left>());
       });
     });
   });

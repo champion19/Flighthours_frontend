@@ -70,11 +70,11 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_l
 
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
-import 'package:flight_hours_app/features/license_plate/data/datasources/license_plate_remote_data_source.dart';
-import 'package:flight_hours_app/features/license_plate/data/repositories/license_plate_repository_impl.dart';
-import 'package:flight_hours_app/features/license_plate/domain/repositories/license_plate_repository.dart';
-import 'package:flight_hours_app/features/license_plate/domain/usecases/get_license_plate_by_id_use_case.dart';
-import 'package:flight_hours_app/features/license_plate/domain/usecases/list_license_plates_use_case.dart';
+import 'package:flight_hours_app/features/tail_number/data/datasources/tail_number_remote_data_source.dart';
+import 'package:flight_hours_app/features/tail_number/data/repositories/tail_number_repository_impl.dart';
+import 'package:flight_hours_app/features/tail_number/domain/repositories/tail_number_repository.dart';
+import 'package:flight_hours_app/features/tail_number/domain/usecases/get_tail_number_by_plate_use_case.dart';
+import 'package:flight_hours_app/features/tail_number/domain/usecases/list_tail_numbers_use_case.dart';
 import 'package:flight_hours_app/features/crew_member_type/data/datasources/crew_member_type_remote_data_source.dart';
 import 'package:flight_hours_app/features/crew_member_type/data/repositories/crew_member_type_repository_impl.dart';
 import 'package:flight_hours_app/features/crew_member_type/domain/repositories/crew_member_type_repository.dart';
@@ -186,13 +186,13 @@ abstract class InjectorApp {
   @Register.factory(DeactivateDailyLogbookUseCase)
   @Register.factory(LogbookRepository, from: LogbookRepositoryImpl)
   @Register.factory(LogbookRemoteDataSource, from: LogbookRemoteDataSourceImpl)
-  // License Plate
-  @Register.factory(ListLicensePlatesUseCase)
-  @Register.factory(GetLicensePlateByPlateUseCase)
-  @Register.factory(LicensePlateRepository, from: LicensePlateRepositoryImpl)
+  // Tail Number
+  @Register.factory(ListTailNumbersUseCase)
+  @Register.factory(GetTailNumberByPlateUseCase)
+  @Register.factory(TailNumberRepository, from: TailNumberRepositoryImpl)
   @Register.factory(
-    LicensePlateRemoteDataSource,
-    from: LicensePlateRemoteDataSourceImpl,
+    TailNumberRemoteDataSource,
+    from: TailNumberRemoteDataSourceImpl,
   )
   // Crew Member Type
   @Register.factory(ListCrewMemberTypesUseCase)

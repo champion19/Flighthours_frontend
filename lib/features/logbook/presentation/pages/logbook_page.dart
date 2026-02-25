@@ -599,7 +599,7 @@ class _LogbookPageState extends State<LogbookPage> {
                       child: _buildInfoItem(
                         Icons.airplanemode_active,
                         'Aircraft',
-                        detail.licensePlate ?? '--',
+                        detail.tailNumber ?? '--',
                       ),
                     ),
                   ],
@@ -920,7 +920,6 @@ class _LogbookPageState extends State<LogbookPage> {
             _buildDetailRow('Block In', _formatTimeDisplay(detail.inTime)),
             _buildDetailRow('Air Time', _formatTimeDisplay(detail.airTime)),
             _buildDetailRow('Block Time', _formatTimeDisplay(detail.blockTime)),
-            _buildDetailRow('Duty Time', _formatTimeDisplay(detail.dutyTime)),
 
             if (detail.companionName != null) ...[
               const SizedBox(height: 16),
@@ -1387,6 +1386,18 @@ class _LogbookPageState extends State<LogbookPage> {
     final bookPageController = TextEditingController();
     DateTime? selectedDate;
 
+    // Auto-increment: find max book_page from existing logbooks
+    final state = context.read<LogbookBloc>().state;
+    if (state is DailyLogbooksLoaded) {
+      int maxPage = 0;
+      for (final lb in state.logbooks) {
+        if (lb.bookPage != null && lb.bookPage! > maxPage) {
+          maxPage = lb.bookPage!;
+        }
+      }
+      bookPageController.text = (maxPage + 1).toString();
+    }
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -1563,6 +1574,21 @@ class _LogbookPageState extends State<LogbookPage> {
                       return;
                     }
                     final bookPage = int.tryParse(bookPageController.text);
+                    // Backend schema: book_page minimum: 1
+                    if (bookPageController.text.isNotEmpty &&
+                        (bookPage == null || bookPage < 1)) {
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Book page must be a number ≥ 1'),
+                          backgroundColor: Colors.orange,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
 
                     this.context.read<LogbookBloc>().add(

@@ -175,7 +175,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       if (event.code == '1234') {
         emit(RecoveryCodeVerified());
       } else {
-        emit(const RecoveryError(message: 'Código de verificación incorrecto'));
+        emit(const RecoveryError(message: 'Incorrect verification code'));
       }
     } catch (e) {
       emit(RecoveryError(message: e.toString()));
