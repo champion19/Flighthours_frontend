@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_event.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_state.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_hours_summary_model.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_alerts_model.dart';
 
 class AlertsPage extends StatefulWidget {
   const AlertsPage({super.key});
@@ -17,9 +23,17 @@ class _AlertsPageState extends State<AlertsPage> {
     'Semi-annual',
     'Annual',
   ];
+  // Maps display names to API period values
+  final List<String> _periodValues = [
+    'monthly',
+    'bimonthly',
+    'quarterly',
+    'semiannual',
+    'annual',
+  ];
 
   // Month tab state
-  int _selectedMonthIndex = 0;
+  int _selectedMonthIndex = DateTime.now().month - 1;
   final List<String> _months = [
     'Jan',
     'Feb',
@@ -34,6 +48,33 @@ class _AlertsPageState extends State<AlertsPage> {
     'Nov',
     'Dec',
   ];
+
+  // Data from BLoC
+  FlightHoursSummaryData? _summaryData;
+  List<FlightAlertData> _alerts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlightAlerts();
+    _loadFlightHoursSummary();
+  }
+
+  void _loadFlightAlerts() {
+    context.read<FlightSummaryBloc>().add(LoadFlightAlerts());
+  }
+
+  void _loadFlightHoursSummary() {
+    final year = DateTime.now().year;
+    final month = _selectedMonthIndex + 1;
+    final referenceDate = '$year-${month.toString().padLeft(2, '0')}-15';
+    context.read<FlightSummaryBloc>().add(
+      LoadFlightHoursSummary(
+        referenceDate: referenceDate,
+        period: _periodValues[_selectedPeriodIndex],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,48 +97,136 @@ class _AlertsPageState extends State<AlertsPage> {
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAlertCard(
-              icon: Icons.access_time_filled,
-              iconColor: const Color(0xFFe17055),
-              borderColor: const Color(0xFFe17055),
-              title: 'Flight Hours Limit',
-              description:
-                  'You must not exceed the maximum consecutive flight hours allowed',
-              timestamp: 'Today, 10:30 AM',
-            ),
-            const SizedBox(height: 12),
-            _buildAlertCard(
-              icon: Icons.flight_land,
-              iconColor: const Color(0xFFFF9F40),
-              borderColor: const Color(0xFFFF9F40),
-              title: 'Monthly Landings Required',
-              description:
-                  'You must complete the minimum number of landings required this month',
-              timestamp: 'Feb 20, 2026',
-            ),
-            const SizedBox(height: 28),
-            const Divider(color: Color(0xFFe9ecef)),
-            const SizedBox(height: 20),
-            _buildFlightHoursSummary(),
-          ],
+      body: BlocListener<FlightSummaryBloc, FlightSummaryState>(
+        listener: (context, state) {
+          if (state is FlightHoursSummarySuccess) {
+            setState(() => _summaryData = state.data);
+          } else if (state is FlightAlertsSuccess) {
+            setState(() => _alerts = state.alerts);
+          }
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAlertCards(),
+              const SizedBox(height: 28),
+              const Divider(color: Color(0xFFe9ecef)),
+              const SizedBox(height: 20),
+              _buildFlightHoursSummary(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ==================== ALERT CARD ====================
+  // ==================== ALERT CARDS ====================
+  Widget _buildAlertCards() {
+    if (_alerts.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFe9ecef)),
+        ),
+        child: const Column(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              color: Color(0xFF00b894),
+              size: 40,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'No active alerts',
+              style: TextStyle(
+                color: Color(0xFF1a1a2e),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'All flight parameters are within limits',
+              style: TextStyle(color: Color(0xFF6c757d), fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children:
+          _alerts.map((alert) {
+            final isHourAlert = alert.isHourLimit;
+            final icon =
+                isHourAlert ? Icons.access_time_filled : Icons.flight_land;
+
+            // 3-phase coloring: WARNING=red, INFO=orange, NOTICE=gray
+            Color color;
+            if (alert.isWarning) {
+              color = const Color(0xFFe17055); // red
+            } else if (alert.isInfo) {
+              color = const Color(0xFFFF9F40); // orange
+            } else {
+              color = const Color(0xFF8395a7); // gray (NOTICE)
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAlertCard(
+                icon: icon,
+                iconColor: color,
+                borderColor: color,
+                title: _getAlertTitle(alert.type),
+                description: alert.message,
+                severity: alert.severity,
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  String _getAlertTitle(String type) {
+    switch (type) {
+      case 'HOUR_LIMIT_15_DAYS':
+        return '15-Day Hour Limit';
+      case 'HOUR_LIMIT_MONTHLY':
+        return 'Monthly Hour Limit';
+      case 'HOUR_LIMIT_QUARTERLY':
+        return 'Quarterly Hour Limit';
+      case 'HOUR_LIMIT_ANNUAL':
+        return 'Annual Hour Limit';
+      case 'MIN_LANDINGS_90_DAYS':
+        return 'Landing Currency';
+      default:
+        return 'Flight Alert';
+    }
+  }
+
+  Color _getSeverityColor(String severity) {
+    switch (severity) {
+      case 'WARNING':
+        return const Color(0xFFe17055); // red
+      case 'INFO':
+        return const Color(0xFFFF9F40); // orange
+      case 'NOTICE':
+      default:
+        return const Color(0xFF8395a7); // gray
+    }
+  }
+
   Widget _buildAlertCard({
     required IconData icon,
     required Color iconColor,
     required Color borderColor,
     required String title,
     required String description,
-    required String timestamp,
+    required String severity,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -129,13 +258,39 @@ class _AlertsPageState extends State<AlertsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF1a1a2e),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getSeverityColor(
+                          severity,
+                        ).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        severity,
+                        style: TextStyle(
+                          color: _getSeverityColor(severity),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -144,14 +299,6 @@ class _AlertsPageState extends State<AlertsPage> {
                     color: Color(0xFF6c757d),
                     fontSize: 13,
                     height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  timestamp,
-                  style: TextStyle(
-                    color: const Color(0xFF6c757d).withValues(alpha: 0.6),
-                    fontSize: 12,
                   ),
                 ),
               ],
@@ -195,7 +342,10 @@ class _AlertsPageState extends State<AlertsPage> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
-              onTap: () => setState(() => _selectedPeriodIndex = index),
+              onTap: () {
+                setState(() => _selectedPeriodIndex = index);
+                _loadFlightHoursSummary();
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -240,7 +390,10 @@ class _AlertsPageState extends State<AlertsPage> {
         children: List.generate(_months.length, (index) {
           final isSelected = _selectedMonthIndex == index;
           return GestureDetector(
-            onTap: () => setState(() => _selectedMonthIndex = index),
+            onTap: () {
+              setState(() => _selectedMonthIndex = index);
+              _loadFlightHoursSummary();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
@@ -274,6 +427,14 @@ class _AlertsPageState extends State<AlertsPage> {
 
   // ==================== STAT CARDS GRID ====================
   Widget _buildStatCardsGrid() {
+    // Extract values from summary data
+    final totalHours = _summaryData?.totalHours ?? '0:00';
+    final breakdown = _summaryData?.breakdown ?? {};
+    final pfHours = breakdown['PF'] ?? '0:00';
+    final pmHours = breakdown['PM'] ?? '0:00';
+    final pftoHours = breakdown['PFTO'] ?? '0:00';
+    final pflHours = breakdown['PFL'] ?? '0:00';
+
     return Column(
       children: [
         // Row 1: Total Hours + PF
@@ -282,7 +443,7 @@ class _AlertsPageState extends State<AlertsPage> {
             Expanded(
               child: _buildStatCard(
                 label: 'Total Hours',
-                value: '120',
+                value: totalHours,
                 icon: Icons.schedule,
               ),
             ),
@@ -290,7 +451,7 @@ class _AlertsPageState extends State<AlertsPage> {
             Expanded(
               child: _buildStatCard(
                 label: 'Pilot Flying (PF)',
-                value: '48',
+                value: pfHours,
                 icon: Icons.flight_takeoff,
               ),
             ),
@@ -303,7 +464,7 @@ class _AlertsPageState extends State<AlertsPage> {
             Expanded(
               child: _buildStatCard(
                 label: 'Pilot Monitoring (PM)',
-                value: '18',
+                value: pmHours,
                 icon: Icons.visibility,
               ),
             ),
@@ -311,7 +472,7 @@ class _AlertsPageState extends State<AlertsPage> {
             Expanded(
               child: _buildStatCard(
                 label: 'PF Take-Off (PFTO)',
-                value: '24',
+                value: pftoHours,
                 icon: Icons.north_east,
               ),
             ),
@@ -321,7 +482,7 @@ class _AlertsPageState extends State<AlertsPage> {
         // Full-width: PFL
         _buildStatCard(
           label: 'Pilot For Landing (PFL)',
-          value: '30',
+          value: pflHours,
           icon: Icons.flight_land,
           fullWidth: true,
         ),

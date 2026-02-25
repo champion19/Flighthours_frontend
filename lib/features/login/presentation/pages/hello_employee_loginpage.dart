@@ -6,6 +6,13 @@ import 'package:flight_hours_app/features/airline_route/domain/entities/airline_
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_event.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_state.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_hours_summary_model.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/flight_alerts_model.dart';
+import 'package:flight_hours_app/features/flight_summary/data/models/recent_flights_model.dart';
+import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,11 +30,25 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // Flight summary data from backend
+  FlightHoursSummaryData? _summaryData;
+  List<FlightAlertData> _alerts = [];
+  List<RecentFlightData> _recentFlights = [];
+
   @override
   void initState() {
     super.initState();
     context.read<EmployeeBloc>().add(LoadCurrentEmployee());
     context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+    // Load flight data — overall summary is always annual (donut)
+    _refreshFlightSummary();
+  }
+
+  /// Re-fetch all flight summary data (donut, alerts, recent flights)
+  void _refreshFlightSummary() {
+    context.read<FlightSummaryBloc>().add(LoadOverallSummary());
+    context.read<FlightSummaryBloc>().add(LoadFlightAlerts());
+    context.read<FlightSummaryBloc>().add(LoadRecentFlights());
   }
 
   @override
@@ -46,16 +67,31 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   }
 
   Widget _buildBody() {
-    return BlocListener<EmployeeBloc, EmployeeState>(
-      listener: (context, state) {
-        if (state is EmployeeDetailSuccess && state.response.data != null) {
-          setState(() {
-            final data = state.response.data!;
-            _pilotName = data.name;
-            _currentAirline = data.airline ?? '';
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EmployeeBloc, EmployeeState>(
+          listener: (context, state) {
+            if (state is EmployeeDetailSuccess && state.response.data != null) {
+              setState(() {
+                final data = state.response.data!;
+                _pilotName = data.name;
+                _currentAirline = data.airline ?? '';
+              });
+            }
+          },
+        ),
+        BlocListener<FlightSummaryBloc, FlightSummaryState>(
+          listener: (context, state) {
+            if (state is OverallSummarySuccess) {
+              setState(() => _summaryData = state.data);
+            } else if (state is FlightAlertsSuccess) {
+              setState(() => _alerts = state.alerts);
+            } else if (state is RecentFlightsSuccess) {
+              setState(() => _recentFlights = state.flights);
+            }
+          },
+        ),
+      ],
       child: _buildCurrentPage(),
     );
   }
@@ -67,8 +103,10 @@ class _HelloEmployeeState extends State<HelloEmployee> {
       case 1:
         // Logbook - Navigate to logbook page
         _selectedIndex = 0;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.pushNamed(context, '/logbook');
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await Navigator.pushNamed(context, '/logbook');
+          // Refresh home data when returning from logbook
+          if (mounted) _refreshFlightSummary();
         });
         return _buildHomePage();
       case 2:
@@ -148,18 +186,31 @@ class _HelloEmployeeState extends State<HelloEmployee> {
                 size: 26,
               ),
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFe17055),
-                  shape: BoxShape.circle,
+            if (_alerts.isNotEmpty)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFe17055),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${_alerts.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
         PopupMenuButton<String>(
@@ -249,15 +300,34 @@ class _HelloEmployeeState extends State<HelloEmployee> {
     return 'Good evening';
   }
 
+  // Role colors for donut chart
+  static const _roleColors = {
+    'PF': Color(0xFF36A2EB),
+    'PFL': Color(0xFFFF9F40),
+    'PFTO': Color(0xFF4BC0C0),
+    'PM': Color(0xFF9966FF),
+  };
+
   // ==================== OPERATIONAL BREAKDOWN ====================
   Widget _buildOperationalBreakdown() {
-    // Mockup data
-    final segments = [
-      _ChartSegment('PF', 0.40, const Color(0xFF36A2EB)),
-      _ChartSegment('PFL', 0.25, const Color(0xFFFF9F40)),
-      _ChartSegment('PFTO', 0.20, const Color(0xFF4BC0C0)),
-      _ChartSegment('PM', 0.15, const Color(0xFF9966FF)),
-    ];
+    // Build segments from real data or show empty state
+    final List<_ChartSegment> segments;
+    final String totalLabel;
+
+    if (_summaryData != null && _summaryData!.totalMinutes > 0) {
+      final breakdownMinutes = _summaryData!.breakdownMinutes;
+      final total = _summaryData!.totalMinutes;
+      segments =
+          breakdownMinutes.entries.map((e) {
+            final pct = e.value / total;
+            final color = _roleColors[e.key] ?? const Color(0xFF6c757d);
+            return _ChartSegment(e.key, pct, color);
+          }).toList();
+      totalLabel = _summaryData!.totalHours;
+    } else {
+      segments = [_ChartSegment('No data', 1.0, const Color(0xFFe9ecef))];
+      totalLabel = '0:00';
+    }
 
     return Container(
       width: double.infinity,
@@ -293,10 +363,10 @@ class _HelloEmployeeState extends State<HelloEmployee> {
               height: 180,
               child: CustomPaint(
                 painter: _DonutChartPainter(segments),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    '120h',
-                    style: TextStyle(
+                    totalLabel,
+                    style: const TextStyle(
                       color: Color(0xFF1a1a2e),
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -308,35 +378,36 @@ class _HelloEmployeeState extends State<HelloEmployee> {
           ),
           const SizedBox(height: 20),
           // Legend
-          Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children:
-                segments.map((s) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: s.color,
-                          shape: BoxShape.circle,
+          if (_summaryData != null && _summaryData!.totalMinutes > 0)
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children:
+                  segments.map((s) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: s.color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${s.label} (${(s.percentage * 100).toInt()}%)',
-                        style: const TextStyle(
-                          color: Color(0xFF6c757d),
-                          fontSize: 13,
+                        const SizedBox(width: 6),
+                        Text(
+                          '${s.label} (${(s.percentage * 100).toInt()}%)',
+                          style: const TextStyle(
+                            color: Color(0xFF6c757d),
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-          ),
+                      ],
+                    );
+                  }).toList(),
+            ),
         ],
       ),
     );
@@ -344,12 +415,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
 
   // ==================== RECENT FLIGHTS ====================
   Widget _buildRecentFlights() {
-    final flights = [
-      {'date': 'Jan 22, 2024', 'aircraft': 'Boeing 737', 'hours': '4.5h'},
-      {'date': 'Jan 19, 2024', 'aircraft': 'Airbus A320', 'hours': '5.2h'},
-      {'date': 'Jan 15, 2024', 'aircraft': 'Boeing 737', 'hours': '3.8h'},
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,80 +427,140 @@ class _HelloEmployeeState extends State<HelloEmployee> {
           ),
         ),
         const SizedBox(height: 12),
-        ...flights.map(
-          (f) => _buildFlightCard(
-            date: f['date']!,
-            aircraft: f['aircraft']!,
-            hours: f['hours']!,
-          ),
-        ),
+        if (_recentFlights.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFe9ecef)),
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.flight_outlined, color: Color(0xFF6c757d), size: 40),
+                SizedBox(height: 8),
+                Text(
+                  'No recent flights',
+                  style: TextStyle(color: Color(0xFF6c757d), fontSize: 14),
+                ),
+              ],
+            ),
+          )
+        else
+          ..._recentFlights.map((f) => _buildFlightCard(flight: f)),
       ],
     );
   }
 
-  Widget _buildFlightCard({
-    required String date,
-    required String aircraft,
-    required String hours,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFe9ecef)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+  Widget _buildFlightCard({required RecentFlightData flight}) {
+    return GestureDetector(
+      onTap: () async {
+        // Convert RecentFlightData to LogbookDetailEntity with ALL fields
+        final entity = LogbookDetailEntity(
+          id: flight.id,
+          dailyLogbookId: flight.dailyLogbookId,
+          flightNumber: flight.flightNumber,
+          flightRealDate: DateTime.tryParse(flight.flightRealDate),
+          logDate:
+              flight.logDate != null
+                  ? DateTime.tryParse(flight.logDate!)
+                  : null,
+          airlineRouteId: flight.airlineRouteId,
+          routeCode: flight.routeCode,
+          originIataCode: flight.originIataCode,
+          destinationIataCode: flight.destinationIataCode,
+          airlineCode: flight.airlineCode,
+          tailNumberId: flight.tailNumberId,
+          tailNumber: flight.tailNumber,
+          modelName: flight.modelName,
+          outTime: flight.outTime,
+          takeoffTime: flight.takeoffTime,
+          landingTime: flight.landingTime,
+          inTime: flight.inTime,
+          airTime: flight.airTime,
+          blockTime: flight.blockTime,
+          pilotRole: flight.pilotRole,
+          companionName: flight.companionName,
+          passengers: flight.passengers,
+          approachType: flight.approachType,
+          flightType: flight.flightType,
+        );
+        await Navigator.pushNamed(
+          context,
+          '/daily-logbook-detail-form',
+          arguments: {'detail': entity},
+        );
+        // Refresh home data when returning from flight detail
+        if (mounted) _refreshFlightSummary();
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFe9ecef)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: const Icon(Icons.flight, color: Color(0xFF4facfe), size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  date,
-                  style: const TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4facfe).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.flight,
+                color: Color(0xFF4facfe),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    flight.displayDate,
+                    style: const TextStyle(
+                      color: Color(0xFF1a1a2e),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  aircraft,
-                  style: const TextStyle(
-                    color: Color(0xFF6c757d),
-                    fontSize: 13,
+                  const SizedBox(height: 4),
+                  Text(
+                    flight.modelName.isNotEmpty
+                        ? flight.modelName
+                        : flight.displayRoute,
+                    style: const TextStyle(
+                      color: Color(0xFF6c757d),
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Text(
-            hours,
-            style: const TextStyle(
-              color: Color(0xFF4facfe),
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            Text(
+              flight.airTime ?? '--',
+              style: const TextStyle(
+                color: Color(0xFF4facfe),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, color: Color(0xFF6c757d), size: 20),
+          ],
+        ),
       ),
     );
   }

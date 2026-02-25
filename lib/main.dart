@@ -1,4 +1,5 @@
 import 'package:flight_hours_app/features/alerts/presentation/pages/alerts_page.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_list_page.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
@@ -83,6 +84,7 @@ void main() async {
         BlocProvider(create: (_) => TailNumberBloc()),
         BlocProvider(create: (_) => FlightBloc()),
         BlocProvider(create: (_) => CrewMemberTypeBloc()),
+        BlocProvider(create: (_) => FlightSummaryBloc()),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,

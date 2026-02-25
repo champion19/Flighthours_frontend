@@ -4,6 +4,7 @@ import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Detail page for a daily logbook entry.
@@ -35,16 +36,20 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   String _calculatedAirTime = '--:--';
   String _calculatedBlockTime = '--:--';
 
-  final List<String> _crewRoles = ['captain', 'first_officer'];
+  final List<String> _crewRoles = ['captain', 'first officer'];
   final List<String> _pilotRoles = ['PF', 'PM', 'PFTO', 'PFL'];
   final List<String> _approachTypes = ['APV', 'VISUAL'];
   final List<String> _flightTypes = [
     'COMMERCIAL',
-    'Comercial',
-    'Ferry',
-    'Training',
-    'Charter',
+    'TRAINING',
+    'FERRY',
+    'CHECK',
+    'POSITIONING',
   ];
+
+  /// Companion name regex — matches backend pattern: letters (incl. accented) and spaces only
+  static final _companionNameRegex = RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]+$');
+  static const _companionNameMaxLength = 100;
 
   // Route arguments
   DailyLogbookEntity? _logbook;
@@ -53,15 +58,23 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   bool _initialized = false;
   bool _hasChanges = false; // Tracks if user modified any field
 
+  /// Per-field validation errors — keys match field labels (OUT, OFF, ON, IN,
+  /// PAX, Companion, CrewRole, PilotRole, ApproachType, FlightType, AirTime, BlockTime)
+  Map<String, String> _fieldErrors = {};
+
   @override
   void initState() {
     super.initState();
     // Recalculate air & block times whenever time inputs change
     void recalc() => setState(() => _recalculateTimes());
-    // Mark dirty on any text input change
+    // Mark dirty on any text input change and clear field errors
     void markDirty() {
       if (_initialized && !_hasChanges) {
         setState(() => _hasChanges = true);
+      }
+      // Clear field errors when user starts editing
+      if (_fieldErrors.isNotEmpty) {
+        setState(() => _fieldErrors = {});
       }
     }
 
@@ -322,6 +335,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               _buildSectionLabel('Crew Role'),
               const SizedBox(height: 8),
               _buildDropdownCard(
+                fieldKey: 'CrewRole',
                 icon: Icons.person,
                 label: 'Captain / Copilot',
                 value: _selectedCrewRole,
@@ -330,6 +344,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                     (v) => setState(() {
                       _selectedCrewRole = v;
                       _hasChanges = true;
+                      _fieldErrors.remove('CrewRole');
                     }),
               ),
               const SizedBox(height: 16),
@@ -338,6 +353,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               _buildSectionLabel('Pilot Flying Role'),
               const SizedBox(height: 8),
               _buildDropdownCard(
+                fieldKey: 'PilotRole',
                 icon: Icons.flight,
                 label: 'PF / PNF',
                 value: _selectedPilotRole,
@@ -346,6 +362,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                     (v) => setState(() {
                       _selectedPilotRole = v;
                       _hasChanges = true;
+                      _fieldErrors.remove('PilotRole');
                     }),
               ),
               const SizedBox(height: 24),
@@ -354,10 +371,12 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               _buildSectionLabel('Companion'),
               const SizedBox(height: 8),
               _buildInputField(
+                fieldKey: 'Companion',
                 label: 'Companion Name',
                 hint: 'e.g. John Smith',
                 controller: _companionNameController,
                 icon: Icons.people_outline,
+                maxLength: _companionNameMaxLength,
               ),
               const SizedBox(height: 24),
 
@@ -365,6 +384,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               _buildSectionLabel('Approach Type'),
               const SizedBox(height: 8),
               _buildDropdownCard(
+                fieldKey: 'ApproachType',
                 icon: Icons.flight_land,
                 label: 'Select approach',
                 value: _selectedApproachType,
@@ -373,6 +393,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                     (v) => setState(() {
                       _selectedApproachType = v;
                       _hasChanges = true;
+                      _fieldErrors.remove('ApproachType');
                     }),
               ),
               const SizedBox(height: 24),
@@ -381,6 +402,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               _buildSectionLabel('Flight Type'),
               const SizedBox(height: 8),
               _buildDropdownCard(
+                fieldKey: 'FlightType',
                 icon: Icons.category_outlined,
                 label: 'Select flight type',
                 value: _selectedFlightType,
@@ -389,6 +411,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                     (v) => setState(() {
                       _selectedFlightType = v;
                       _hasChanges = true;
+                      _fieldErrors.remove('FlightType');
                     }),
               ),
               const SizedBox(height: 24),
@@ -435,7 +458,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             arguments: editArgs,
           );
 
-          // If edit returned data Map, merge flight-level fields into _detail
+          // If edit returned data Map, update ONLY flight-level fields in _detail.
+          // Do NOT call _prefillFields() — the controllers already hold the
+          // user's edits (times, PAX, companion, etc.) and must be preserved.
           if (result is Map<String, dynamic> && mounted && _detail != null) {
             setState(() {
               _detail = LogbookDetailEntity(
@@ -460,7 +485,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 tailNumber:
                     result['tail_number_name']?.toString() ??
                     _detail!.tailNumber,
-                // Preserved existing fields
+                // Preserve current controller values (user's edits) — NOT the old _detail fields
                 logDate: _detail!.logDate,
                 routeCode: _detail!.routeCode,
                 originIataCode: _detail!.originIataCode,
@@ -480,7 +505,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 flightType: _detail!.flightType,
               );
               _isEditMode = true;
-              _prefillFields();
+              // Controllers are NOT reset — user's typed values stay intact
               _hasChanges = true; // Edit flow returned changes
             });
           }
@@ -738,19 +763,37 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   }
 
   Widget _buildInputField({
+    String? fieldKey,
     required String label,
     required String hint,
     required TextEditingController controller,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    int? maxLength,
   }) {
+    // Auto-detect time fields and add the time input formatter
+    final isTimeField = ['OUT', 'OFF', 'ON', 'IN'].contains(label);
+    final effectiveFormatters =
+        inputFormatters ??
+        (isTimeField ? <TextInputFormatter>[TimeInputFormatter()] : null);
+    final effectiveKeyboard = isTimeField ? TextInputType.number : keyboardType;
+
+    // Resolve field key: explicit > label (for time fields like OUT/OFF/ON/IN)
+    final key = fieldKey ?? (isTimeField ? label : null);
+    final hasError = key != null && _fieldErrors.containsKey(key);
+    final errorMsg = hasError ? _fieldErrors[key] : null;
+
+    final borderColor = hasError ? Colors.redAccent : const Color(0xFFe9ecef);
+    final iconColor = hasError ? Colors.redAccent : const Color(0xFF4facfe);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Color(0xFF1a1a2e),
+          style: TextStyle(
+            color: hasError ? Colors.redAccent : const Color(0xFF1a1a2e),
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -758,13 +801,18 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFf8f9fa),
+            color:
+                hasError
+                    ? Colors.red.withValues(alpha: 0.04)
+                    : const Color(0xFFf8f9fa),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFe9ecef)),
+            border: Border.all(color: borderColor, width: hasError ? 1.5 : 1.0),
           ),
           child: TextField(
             controller: controller,
-            keyboardType: keyboardType,
+            keyboardType: effectiveKeyboard,
+            inputFormatters: effectiveFormatters,
+            maxLength: maxLength,
             style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 14),
             decoration: InputDecoration(
               hintText: hint,
@@ -772,8 +820,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 color: Color(0xFFadb5bd),
                 fontSize: 14,
               ),
-              prefixIcon: Icon(icon, color: const Color(0xFF4facfe), size: 20),
+              prefixIcon: Icon(icon, color: iconColor, size: 20),
               border: InputBorder.none,
+              counterText: '', // hide maxLength counter
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 12,
@@ -781,6 +830,29 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             ),
           ),
         ),
+        if (errorMsg != null) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 14,
+                color: Colors.redAccent,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  errorMsg,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -789,71 +861,107 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   //  DROPDOWN CARDS — Captain/Copilot, PF/PNF
   // ══════════════════════════════════════════════════════════════
   Widget _buildDropdownCard({
+    String? fieldKey,
     required IconData icon,
     required String label,
     required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFe9ecef)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    final hasError = fieldKey != null && _fieldErrors.containsKey(fieldKey);
+    final errorMsg = hasError ? _fieldErrors[fieldKey] : null;
+    final borderColor = hasError ? Colors.redAccent : const Color(0xFFe9ecef);
+    final iconColor = hasError ? Colors.redAccent : const Color(0xFF4facfe);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: hasError ? Colors.red.withValues(alpha: 0.04) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: hasError ? 1.5 : 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: const Color(0xFF4facfe), size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                hint: Text(
-                  label,
-                  style: const TextStyle(
-                    color: Color(0xFFadb5bd),
-                    fontSize: 14,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: value,
+                    hint: Text(
+                      label,
+                      style: const TextStyle(
+                        color: Color(0xFFadb5bd),
+                        fontSize: 14,
+                      ),
+                    ),
+                    isExpanded: true,
+                    icon: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                    style: const TextStyle(
+                      color: Color(0xFF1a1a2e),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    items:
+                        items
+                            .map(
+                              (item) => DropdownMenuItem(
+                                value: item,
+                                child: Text(item),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: onChanged,
                   ),
                 ),
-                isExpanded: true,
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Color(0xFF4facfe),
-                ),
-                style: const TextStyle(
-                  color: Color(0xFF1a1a2e),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                items:
-                    items
-                        .map(
-                          (item) =>
-                              DropdownMenuItem(value: item, child: Text(item)),
-                        )
-                        .toList(),
-                onChanged: onChanged,
               ),
+            ],
+          ),
+        ),
+        if (errorMsg != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 14,
+                  color: Colors.redAccent,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorMsg,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 
@@ -986,83 +1094,132 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   //  FORM VALIDATION (mirrors backend rules)
   // ══════════════════════════════════════════════════════════════
 
-  /// HH:MM format regex — supports aviation 24+ hours (e.g., 24:20 = next day)
-  /// Allows 00:00 to 47:59
-  static final _timeFormatRegex = RegExp(r'^([0-3]\d|4[0-7]):[0-5]\d$');
+  /// HH:MM format regex — matches backend time.Parse("15:04"): hours 00-23 only
+  static final _timeFormatRegex = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
 
-  /// Parses "HH:MM" into total minutes for comparison (supports hours 00-47)
+  /// Parses "HH:MM" into total minutes for comparison
   int? _parseMinutes(String time) {
     if (!_timeFormatRegex.hasMatch(time)) return null;
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
 
-  /// Validates the form and returns null if valid, or an error message string.
-  String? _validateForm() {
-    // 1. Required time fields
+  /// Validates the form and returns a map of field→error.
+  /// Returns an empty map if everything is valid.
+  /// Collects ALL errors at once so the user sees every issue.
+  Map<String, String> _validateForm() {
+    final errors = <String, String>{};
+
     final out = _outController.text.trim();
     final off = _offController.text.trim();
     final on = _onController.text.trim();
     final inT = _inController.text.trim();
 
-    if (out.isEmpty) return 'OUT time is required';
-    if (off.isEmpty) return 'OFF (takeoff) time is required';
-    if (on.isEmpty) return 'ON (landing) time is required';
-    if (inT.isEmpty) return 'IN time is required';
+    // 1. Required time fields
+    if (out.isEmpty) errors['OUT'] = 'OUT time is required';
+    if (off.isEmpty) errors['OFF'] = 'OFF time is required';
+    if (on.isEmpty) errors['ON'] = 'ON time is required';
+    if (inT.isEmpty) errors['IN'] = 'IN time is required';
 
-    // 2. Time format (HH:MM)
-    if (!_timeFormatRegex.hasMatch(out)) return 'OUT time must be HH:MM format';
-    if (!_timeFormatRegex.hasMatch(off)) return 'OFF time must be HH:MM format';
-    if (!_timeFormatRegex.hasMatch(on)) return 'ON time must be HH:MM format';
-    if (!_timeFormatRegex.hasMatch(inT)) return 'IN time must be HH:MM format';
-
-    // 3. Time sequence: OUT < OFF < ON < IN (supports midnight crossings)
-    // For overnight flights (e.g., OUT 23:13 → OFF 23:30 → ON 00:10 → IN 00:20),
-    // if a subsequent time is smaller, it means midnight was crossed.
-    int outMin = _parseMinutes(out)!;
-    int offMin = _parseMinutes(off)!;
-    int onMin = _parseMinutes(on)!;
-    int inMin = _parseMinutes(inT)!;
-
-    // Adjust for midnight crossings: if next time < previous, add 24h (1440 min)
-    if (offMin <= outMin) offMin += 1440;
-    if (onMin <= offMin) onMin += 1440;
-    if (inMin <= onMin) inMin += 1440;
-
-    if (outMin >= offMin) return 'OUT time must be before OFF (takeoff) time';
-    if (offMin >= onMin) {
-      return 'OFF (takeoff) time must be before ON (landing) time';
+    // 2. Time format — backend: 00:00 – 23:59
+    if (out.isNotEmpty && !_timeFormatRegex.hasMatch(out)) {
+      errors['OUT'] = 'Must be HH:MM (00:00 – 23:59)';
     }
-    if (onMin >= inMin) return 'ON (landing) time must be before IN time';
+    if (off.isNotEmpty && !_timeFormatRegex.hasMatch(off)) {
+      errors['OFF'] = 'Must be HH:MM (00:00 – 23:59)';
+    }
+    if (on.isNotEmpty && !_timeFormatRegex.hasMatch(on)) {
+      errors['ON'] = 'Must be HH:MM (00:00 – 23:59)';
+    }
+    if (inT.isNotEmpty && !_timeFormatRegex.hasMatch(inT)) {
+      errors['IN'] = 'Must be HH:MM (00:00 – 23:59)';
+    }
+
+    // 3. Time sequence — only if all 4 times are valid format
+    if (!errors.containsKey('OUT') &&
+        !errors.containsKey('OFF') &&
+        !errors.containsKey('ON') &&
+        !errors.containsKey('IN') &&
+        out.isNotEmpty &&
+        off.isNotEmpty &&
+        on.isNotEmpty &&
+        inT.isNotEmpty) {
+      int outMin = _parseMinutes(out)!;
+      int offMin = _parseMinutes(off)!;
+      int onMin = _parseMinutes(on)!;
+      int inMin = _parseMinutes(inT)!;
+
+      const day = 1440;
+      const halfDay = 720;
+
+      // 12h gap heuristic for midnight crossing
+      if (offMin < outMin && (outMin - offMin) > halfDay) offMin += day;
+      if (onMin < offMin && (offMin - onMin) > halfDay) onMin += day;
+      if (inMin < onMin && (onMin - inMin) > halfDay) inMin += day;
+
+      if (outMin > offMin) {
+        errors['OUT'] = 'Must be ≤ OFF time';
+        errors['OFF'] = 'Must be ≥ OUT time';
+      }
+      if (offMin >= onMin) {
+        errors['OFF'] = 'Must be strictly before ON';
+        errors['ON'] = 'Must be strictly after OFF';
+      }
+      if (onMin > inMin) {
+        errors['ON'] = 'Must be ≤ IN time';
+        errors['IN'] = 'Must be ≥ ON time';
+      }
+    }
 
     // 4. Pilot role required
     if (_selectedPilotRole == null || _selectedPilotRole!.isEmpty) {
-      return 'Pilot role is required';
-    }
-    if (!_pilotRoles.contains(_selectedPilotRole)) {
-      return 'Invalid pilot role. Must be: ${_pilotRoles.join(", ")}';
+      errors['PilotRole'] = 'Pilot role is required';
+    } else if (!_pilotRoles.contains(_selectedPilotRole)) {
+      errors['PilotRole'] = 'Invalid: ${_pilotRoles.join(", ")}';
     }
 
     // 5. Crew role required
     if (_selectedCrewRole == null || _selectedCrewRole!.isEmpty) {
-      return 'Crew role is required';
+      errors['CrewRole'] = 'Crew role is required';
+    } else if (!_crewRoles.contains(_selectedCrewRole)) {
+      errors['CrewRole'] = 'Invalid: ${_crewRoles.join(", ")}';
     }
 
-    // 6. Calculated times must be valid
-    if (_calculatedAirTime == '--:--') {
-      return 'Air time could not be calculated. Check OFF and ON times';
+    // 6. Calculated times
+    if (_calculatedAirTime == '--:--' &&
+        !errors.containsKey('OFF') &&
+        !errors.containsKey('ON')) {
+      errors['AirTime'] = 'Cannot calculate — check OFF / ON';
     }
-    if (_calculatedBlockTime == '--:--') {
-      return 'Block time could not be calculated. Check OUT and IN times';
+    if (_calculatedBlockTime == '--:--' &&
+        !errors.containsKey('OUT') &&
+        !errors.containsKey('IN')) {
+      errors['BlockTime'] = 'Cannot calculate — check OUT / IN';
     }
 
-    // 7. Approach type (optional, but if selected must be valid)
+    // 7. Companion name (optional)
+    final companion = _companionNameController.text.trim();
+    if (companion.isNotEmpty) {
+      if (!_companionNameRegex.hasMatch(companion)) {
+        errors['Companion'] = 'Only letters and spaces allowed';
+      } else if (companion.length > _companionNameMaxLength) {
+        errors['Companion'] = 'Max $_companionNameMaxLength characters';
+      }
+    }
+
+    // 8. Approach type (optional)
     if (_selectedApproachType != null &&
         !_approachTypes.contains(_selectedApproachType)) {
-      return 'Invalid approach type. Must be: ${_approachTypes.join(", ")}';
+      errors['ApproachType'] = 'Invalid: ${_approachTypes.join(", ")}';
     }
 
-    return null; // All validations passed
+    // 9. Flight type (optional)
+    if (_selectedFlightType != null &&
+        !_flightTypes.contains(_selectedFlightType)) {
+      errors['FlightType'] = 'Invalid: ${_flightTypes.join(", ")}';
+    }
+
+    return errors;
   }
 
   void _onSave() {
@@ -1071,18 +1228,58 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     // Recalculate before validating
     _recalculateTimes();
 
-    // Validate form (mirrors backend validations)
-    final error = _validateForm();
-    if (error != null) {
+    // Validate form — collects ALL errors
+    final errors = _validateForm();
+    if (errors.isNotEmpty) {
+      setState(() => _fieldErrors = errors);
+      // Build multi-line error snackbar
+      final errorLines = errors.values.toSet().toList(); // deduplicate
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Please fix the following:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ...errorLines.map(
+                (msg) => Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('• ', style: TextStyle(fontSize: 13)),
+                      Expanded(
+                        child: Text(msg, style: const TextStyle(fontSize: 13)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
     }
+
+    // Clear errors on successful validation
+    setState(() => _fieldErrors = {});
 
     final pax = int.tryParse(_paxController.text) ?? _detail!.passengers ?? 0;
 
@@ -1202,6 +1399,54 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
               ),
             ],
           ),
+    );
+  }
+}
+
+/// TextInputFormatter that enforces HH:MM time format (00:00 – 23:59).
+/// Auto-inserts ':' after typing 2 digits, restricts to digits only,
+/// and clamps hours (0-23) and minutes (0-59).
+class TimeInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Strip everything except digits
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Max 4 digits (HH MM)
+    final capped =
+        digitsOnly.length > 4 ? digitsOnly.substring(0, 4) : digitsOnly;
+
+    final buf = StringBuffer();
+    for (int i = 0; i < capped.length; i++) {
+      buf.write(capped[i]);
+      // Insert ':' after the 2nd digit
+      if (i == 1 && capped.length > 2) buf.write(':');
+    }
+
+    var formatted = buf.toString();
+
+    // Clamp hours to 0-23
+    if (capped.length >= 2) {
+      final hh = int.tryParse(capped.substring(0, 2)) ?? 0;
+      if (hh > 23) {
+        formatted = '23${capped.length > 2 ? ':${capped.substring(2)}' : ''}';
+      }
+    }
+
+    // Clamp minutes to 0-59
+    if (capped.length >= 4) {
+      final mm = int.tryParse(capped.substring(2, 4)) ?? 0;
+      if (mm > 59) {
+        formatted = '${formatted.substring(0, 3)}59';
+      }
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
