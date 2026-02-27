@@ -1,3 +1,4 @@
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
@@ -170,35 +171,42 @@ class _NewFlightPageState extends State<NewFlightPage> {
         backgroundColor: Colors.white,
         appBar: _buildAppBar(),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInputField(
-                    label: 'Flight',
-                    hint: 'Enter flight number (1-4 digits)',
-                    controller: _flightController,
-                    prefixIcon: Icons.flight,
-                    isRequired: true,
-                    keyboardType: TextInputType.number,
-                    maxLength: 4,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: ResponsivePadding.maxContentWidth,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInputField(
+                        label: 'Flight',
+                        hint: 'Enter flight number (1-4 digits)',
+                        controller: _flightController,
+                        prefixIcon: Icons.flight,
+                        isRequired: true,
+                        keyboardType: TextInputType.number,
+                        maxLength: 4,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(4),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildDateField(),
+                      const SizedBox(height: 20),
+                      _buildRouteSearchField(),
+                      const SizedBox(height: 20),
+                      _buildRouteResultsArea(),
+                      const SizedBox(height: 32),
+                      _buildContinueButton(),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildDateField(),
-                  const SizedBox(height: 20),
-                  _buildRouteSearchField(),
-                  const SizedBox(height: 20),
-                  _buildRouteResultsArea(),
-                  const SizedBox(height: 32),
-                  _buildContinueButton(),
-                ],
+                ),
               ),
             ),
           ),

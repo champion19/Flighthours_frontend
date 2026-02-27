@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flight_hours_app/core/responsive/adaptive_scaffold.dart';
+import 'package:flight_hours_app/core/responsive/responsive_breakpoints.dart';
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/core/services/token_refresh_service.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
@@ -59,10 +62,27 @@ class _HelloEmployeeState extends State<HelloEmployee> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return AdaptiveScaffold(
+      selectedIndex: _selectedIndex,
+      onIndexChanged: (index) => setState(() => _selectedIndex = index),
+      destinations: const [
+        AdaptiveDestination(
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home,
+          label: 'Home',
+        ),
+        AdaptiveDestination(
+          icon: Icons.book_outlined,
+          activeIcon: Icons.book,
+          label: 'Logbook',
+        ),
+        AdaptiveDestination(
+          icon: Icons.settings_outlined,
+          activeIcon: Icons.settings,
+          label: 'Settings',
+        ),
+      ],
       body: SafeArea(child: _buildBody()),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -117,19 +137,43 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   }
 
   Widget _buildHomePage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 24),
-          const SizedBox(height: 24),
-          _buildOperationalBreakdown(),
-          const SizedBox(height: 24),
-          _buildRecentFlights(),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = ResponsiveBreakpoints.isDesktop(constraints.maxWidth);
+        final padding = ResponsivePadding.page(constraints.maxWidth);
+
+        return SingleChildScrollView(
+          padding: padding,
+          child: ResponsivePadding.constrainedContent(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 24),
+                if (isWide)
+                  // Desktop: side-by-side layout
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 5, child: _buildOperationalBreakdown()),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 4, child: _buildRecentFlights()),
+                      ],
+                    ),
+                  )
+                else ...[
+                  // Mobile/Tablet: vertical stack
+                  const SizedBox(height: 0),
+                  _buildOperationalBreakdown(),
+                  const SizedBox(height: 24),
+                  _buildRecentFlights(),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -831,85 +875,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
           const Text(
             'Coming soon...',
             style: TextStyle(color: Color(0xFF6c757d), fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==================== BOTTOM NAV BAR ====================
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: 'Home',
-                index: 0,
-              ),
-              _buildNavItem(
-                icon: Icons.book_outlined,
-                activeIcon: Icons.book,
-                label: 'Logbook',
-                index: 1,
-              ),
-              _buildNavItem(
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings,
-                label: 'Settings',
-                index: 2,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isSelected ? activeIcon : icon,
-            color:
-                isSelected ? const Color(0xFF4facfe) : const Color(0xFF6c757d),
-            size: 26,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color:
-                  isSelected
-                      ? const Color(0xFF4facfe)
-                      : const Color(0xFF6c757d),
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
           ),
         ],
       ),

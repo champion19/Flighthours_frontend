@@ -1,3 +1,6 @@
+import 'package:flight_hours_app/core/widgets/app_page_header.dart';
+import 'package:flight_hours_app/core/widgets/gradient_icon_box.dart';
+import 'package:flight_hours_app/core/widgets/responsive_body.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
@@ -92,10 +95,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           },
           child: Column(
             children: [
-              _buildHeader(),
+              AppPageHeader(
+                title: 'Change Password',
+                subtitle: 'Update your account security',
+                trailing: const GradientIconBox(icon: Icons.lock_outline),
+              ),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                child: ResponsiveBody(
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -116,77 +122,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFf8f9fa),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF212529)),
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF1a1a2e),
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Change Password',
-                  style: TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Update your account security',
-                  style: TextStyle(
-                    color: const Color(0xFF6c757d),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.lock_outline,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-        ],
       ),
     );
   }

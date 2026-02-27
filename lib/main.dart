@@ -38,6 +38,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/authpage.dart';
+import 'package:flight_hours_app/features/splash/presentation/pages/splash_page.dart';
 import 'package:flight_hours_app/features/login/presentation/bloc/login_bloc.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
@@ -88,9 +89,11 @@ void main() async {
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
-        initialRoute: '/',
+        initialRoute: '/splash',
         title: 'Flight Hours',
         routes: {
+          '/splash': (context) => const SplashPage(),
+          '/': (context) => const AuthPage(),
           '/home': (context) => const HelloEmployee(),
           '/alerts': (context) => const AlertsPage(),
           '/login': (context) => const LoginPage(),
@@ -116,7 +119,6 @@ void main() async {
               (context) => const DailyLogbookDetailPage(),
         },
         debugShowCheckedModeBanner: false,
-        home: const AuthPage(),
       ),
     ),
   );
