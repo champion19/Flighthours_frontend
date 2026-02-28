@@ -113,6 +113,14 @@ void main() {
           (data) => fail('Expected Left'),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getAirlineById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getAirlineById('id');
+        expect(result, isA<Left>());
+      });
     });
 
     group('activateAirline', () {
@@ -138,6 +146,14 @@ void main() {
           verify(() => mockDataSource.activateAirline('a1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.activateAirline(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.activateAirline('a1');
+        expect(result, isA<Left>());
+      });
     });
 
     group('deactivateAirline', () {
@@ -163,6 +179,14 @@ void main() {
           verify(() => mockDataSource.deactivateAirline('a1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deactivateAirline(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.deactivateAirline('a1');
+        expect(result, isA<Left>());
+      });
     });
   });
 }

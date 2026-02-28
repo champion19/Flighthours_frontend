@@ -131,6 +131,14 @@ void main() {
           (data) => fail('Expected Left'),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getAirlineRouteById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getAirlineRouteById('id');
+        expect(result, isA<Left>());
+      });
     });
   });
 }

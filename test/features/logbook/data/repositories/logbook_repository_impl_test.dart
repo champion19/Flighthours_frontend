@@ -199,6 +199,14 @@ void main() {
           (data) => expect(data, isFalse),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deleteDailyLogbook(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.deleteDailyLogbook('lb1');
+        expect(result, isA<Left>());
+      });
     });
 
     group('activateDailyLogbook', () {
@@ -329,6 +337,14 @@ void main() {
 
         final result = await repository.getLogbookDetailById('notfound');
 
+        expect(result, isA<Left>());
+      });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getLogbookDetailById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getLogbookDetailById('det1');
         expect(result, isA<Left>());
       });
     });

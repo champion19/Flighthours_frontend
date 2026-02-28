@@ -97,6 +97,38 @@ void main() {
         expect(result.length, 1);
         expect(result[0].name, 'Embraer');
       });
+
+      test(
+        'should parse when data key contains non-empty list directly',
+        () async {
+          when(() => mockDio.get('/manufacturers')).thenAnswer(
+            (_) async => Response(
+              requestOptions: RequestOptions(path: '/manufacturers'),
+              data: {
+                'data': [
+                  {'id': '1', 'name': 'Cessna', 'status': '1'},
+                ],
+              },
+              statusCode: 200,
+            ),
+          );
+          final result = await dataSource.getManufacturers();
+          expect(result.length, 1);
+          expect(result.first.name, 'Cessna');
+        },
+      );
+
+      test('should return empty list for unrecognized format', () async {
+        when(() => mockDio.get('/manufacturers')).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/manufacturers'),
+            data: 42,
+            statusCode: 200,
+          ),
+        );
+        final result = await dataSource.getManufacturers();
+        expect(result, isEmpty);
+      });
     });
 
     group('getManufacturerById', () {

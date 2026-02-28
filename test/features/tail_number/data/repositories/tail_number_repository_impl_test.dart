@@ -136,5 +136,13 @@ void main() {
         (_) => fail('Should be Left'),
       );
     });
+
+    test('should return Left on general exception', () async {
+      when(
+        () => mockDataSource.getTailNumberByPlate('ERR'),
+      ).thenThrow(Exception('unexpected'));
+      final result = await repository.getTailNumberByPlate('ERR');
+      expect(result, isA<Left>());
+    });
   });
 }
