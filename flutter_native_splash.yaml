@@ -1,0 +1,17 @@
+flutter_native_splash:
+  # Background color matches the logo's black background
+  color: "#000000"
+
+  # Centered logo image
+  image: assets/images/flight_hours_logo.png
+
+  # Android 12+ specific settings
+  android_12:
+    color: "#000000"
+    image: assets/images/flight_hours_logo.png
+
+  # iOS settings
+  ios: true
+
+  # Web settings
+  web: true

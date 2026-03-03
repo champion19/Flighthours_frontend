@@ -1,3 +1,5 @@
+import 'package:flight_hours_app/core/responsive/responsive_breakpoints.dart';
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
@@ -105,18 +107,42 @@ class _AlertsPageState extends State<AlertsPage> {
             setState(() => _alerts = state.alerts);
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAlertCards(),
-              const SizedBox(height: 28),
-              const Divider(color: Color(0xFFe9ecef)),
-              const SizedBox(height: 20),
-              _buildFlightHoursSummary(),
-            ],
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = ResponsiveBreakpoints.isDesktop(
+              constraints.maxWidth,
+            );
+            final padding = ResponsivePadding.page(constraints.maxWidth);
+
+            return SingleChildScrollView(
+              padding: padding,
+              child: ResponsivePadding.constrainedContent(
+                child:
+                    isWide
+                        ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 5, child: _buildAlertCards()),
+                            const SizedBox(width: 28),
+                            Expanded(
+                              flex: 5,
+                              child: _buildFlightHoursSummary(),
+                            ),
+                          ],
+                        )
+                        : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildAlertCards(),
+                            const SizedBox(height: 28),
+                            const Divider(color: Color(0xFFe9ecef)),
+                            const SizedBox(height: 20),
+                            _buildFlightHoursSummary(),
+                          ],
+                        ),
+              ),
+            );
+          },
         ),
       ),
     );

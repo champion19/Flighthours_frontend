@@ -48,6 +48,14 @@ void main() {
       expect(result.success, isFalse);
       expect(result.data, isNull);
     });
+
+    test('fromJson should parse JSON string', () {
+      final result = EmployeeAirlineResponseModel.fromJson(
+        '{"success":true,"code":"OK","message":"ok","data":{"airline_id":"a1","airline_code":"AV"}}',
+      );
+      expect(result.success, isTrue);
+      expect(result.data!.airlineCode, 'AV');
+    });
   });
 
   group('EmployeeAirlineData', () {

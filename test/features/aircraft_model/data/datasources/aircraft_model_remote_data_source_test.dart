@@ -231,6 +231,35 @@ void main() {
         throwsA(isA<DioException>()),
       );
     });
+
+    test('should return empty list for unrecognized format', () async {
+      when(() => mockDio.get('/aircraft-families/X')).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/aircraft-families/X'),
+          statusCode: 200,
+          data: 42,
+        ),
+      );
+      final result = await dataSource.getAircraftModelsByFamily('X');
+      expect(result, isEmpty);
+    });
+
+    test(
+      'should return empty for data with non-list aircraft_families',
+      () async {
+        when(() => mockDio.get('/aircraft-families/X')).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/aircraft-families/X'),
+            statusCode: 200,
+            data: {
+              'data': {'aircraft_families': 'not a list'},
+            },
+          ),
+        );
+        final result = await dataSource.getAircraftModelsByFamily('X');
+        expect(result, isEmpty);
+      },
+    );
   });
 
   group('activateAircraftModel', () {

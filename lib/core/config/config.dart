@@ -13,9 +13,9 @@ class Config {
   // ============================================================
 
   // CAMBIA ESTA LÍNEA según tu entorno de desarrollo:
-  // - Para iOS Simulator: usa 127.0.0.1
+  // - Para iOS Simulator / Web: usa localhost
   // - Para Android Emulator: usa 10.0.2.2
-  static const String baseUrl = "http://127.0.0.1:8081/flighthours/api/v1";
+  static const String baseUrl = "http://localhost:8081/flighthours/api/v1";
 }
 
 // La base URL es el dominio hasta v1, lo demás se agrega en los endpoints de cada datasource

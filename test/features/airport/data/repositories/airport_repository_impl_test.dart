@@ -137,6 +137,14 @@ void main() {
           (data) => fail('Expected Left'),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getAirportById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getAirportById('id');
+        expect(result, isA<Left>());
+      });
     });
 
     group('activateAirport', () {
@@ -162,6 +170,14 @@ void main() {
           verify(() => mockDataSource.activateAirport('ap1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.activateAirport(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.activateAirport('ap1');
+        expect(result, isA<Left>());
+      });
     });
 
     group('deactivateAirport', () {
@@ -187,6 +203,14 @@ void main() {
           verify(() => mockDataSource.deactivateAirport('ap1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deactivateAirport(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.deactivateAirport('ap1');
+        expect(result, isA<Left>());
+      });
     });
   });
 }

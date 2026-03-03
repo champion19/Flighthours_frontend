@@ -2,6 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flight_hours_app/core/config/config.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/core/services/token_refresh_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flight_hours_app/core/network/dio_web_stub.dart'
+    if (dart.library.html) 'package:flight_hours_app/core/network/dio_web_impl.dart'
+    as web_adapter;
 
 /// Cliente Dio centralizado para todas las llamadas HTTP
 /// Proporciona configuración base, interceptores y manejo de autenticación con refresh token
@@ -48,6 +52,12 @@ class DioClient {
         },
       ),
     );
+
+    // Configure BrowserHttpClientAdapter for web (httpOnly cookies)
+    if (kIsWeb) {
+      web_adapter.configureWebCredentials(dio);
+      web_adapter.configureWebCredentials(_refreshDio);
+    }
 
     // Agregar interceptores
     dio.interceptors.addAll([_AuthInterceptor(this), _LoggingInterceptor()]);

@@ -11,6 +11,11 @@ import 'package:flight_hours_app/features/tail_number/domain/usecases/get_tail_n
 import 'package:flight_hours_app/features/aircraft_model/domain/entities/aircraft_model_entity.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/repositories/aircraft_model_repository.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/usecases/list_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_model_by_id_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_models_by_family_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/activate_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/domain/usecases/deactivate_aircraft_model_use_case.dart';
+import 'package:flight_hours_app/features/aircraft_model/data/models/aircraft_model_status_response_model.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/create_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/activate_daily_logbook_use_case.dart';
 import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_daily_logbook_use_case.dart';
@@ -182,5 +187,89 @@ void main() {
         expect(result, isA<Right>());
       },
     );
+  });
+
+  group('GetAircraftModelByIdUseCase', () {
+    late MockAircraftModelRepository mockRepo;
+    late GetAircraftModelByIdUseCase useCase;
+
+    setUp(() {
+      mockRepo = MockAircraftModelRepository();
+      useCase = GetAircraftModelByIdUseCase(repository: mockRepo);
+    });
+
+    test('should call repository.getAircraftModelById', () async {
+      when(() => mockRepo.getAircraftModelById(any())).thenAnswer(
+        (_) async => const Right(AircraftModelEntity(id: '1', name: 'A320')),
+      );
+      final result = await useCase('1');
+      expect(result, isA<Right>());
+    });
+  });
+
+  group('GetAircraftModelsByFamilyUseCase', () {
+    late MockAircraftModelRepository mockRepo;
+    late GetAircraftModelsByFamilyUseCase useCase;
+
+    setUp(() {
+      mockRepo = MockAircraftModelRepository();
+      useCase = GetAircraftModelsByFamilyUseCase(repository: mockRepo);
+    });
+
+    test('should call repository.getAircraftModelsByFamily', () async {
+      when(
+        () => mockRepo.getAircraftModelsByFamily(any()),
+      ).thenAnswer((_) async => const Right(<AircraftModelEntity>[]));
+      final result = await useCase('A320');
+      expect(result, isA<Right>());
+    });
+  });
+
+  group('ActivateAircraftModelUseCase', () {
+    late MockAircraftModelRepository mockRepo;
+    late ActivateAircraftModelUseCase useCase;
+
+    setUp(() {
+      mockRepo = MockAircraftModelRepository();
+      useCase = ActivateAircraftModelUseCase(repository: mockRepo);
+    });
+
+    test('should call repository.activateAircraftModel', () async {
+      when(() => mockRepo.activateAircraftModel(any())).thenAnswer(
+        (_) async => const Right(
+          AircraftModelStatusResponseModel(
+            success: true,
+            code: 'OK',
+            message: 'Activated',
+          ),
+        ),
+      );
+      final result = await useCase('1');
+      expect(result, isA<Right>());
+    });
+  });
+
+  group('DeactivateAircraftModelUseCase', () {
+    late MockAircraftModelRepository mockRepo;
+    late DeactivateAircraftModelUseCase useCase;
+
+    setUp(() {
+      mockRepo = MockAircraftModelRepository();
+      useCase = DeactivateAircraftModelUseCase(repository: mockRepo);
+    });
+
+    test('should call repository.deactivateAircraftModel', () async {
+      when(() => mockRepo.deactivateAircraftModel(any())).thenAnswer(
+        (_) async => const Right(
+          AircraftModelStatusResponseModel(
+            success: true,
+            code: 'OK',
+            message: 'Deactivated',
+          ),
+        ),
+      );
+      final result = await useCase('1');
+      expect(result, isA<Right>());
+    });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
@@ -310,122 +311,132 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Action Buttons ──
-              _buildActionButtons(),
-              const SizedBox(height: 20),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: ResponsivePadding.maxContentWidth,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Action Buttons ──
+                  _buildActionButtons(),
+                  const SizedBox(height: 20),
 
-              // ── Flight Summary Card ──
-              _buildSectionLabel('Flight Information'),
-              const SizedBox(height: 8),
-              _buildFlightSummaryCard(),
-              const SizedBox(height: 24),
+                  // ── Flight Summary Card ──
+                  _buildSectionLabel('Flight Information'),
+                  const SizedBox(height: 8),
+                  _buildFlightSummaryCard(),
+                  const SizedBox(height: 24),
 
-              // ── PAX, In, On, Out, Off inputs ──
-              _buildSectionLabel('Times & Passengers'),
-              const SizedBox(height: 8),
-              _buildPaxTimesInputs(),
-              const SizedBox(height: 24),
+                  // ── PAX, In, On, Out, Off inputs ──
+                  _buildSectionLabel('Times & Passengers'),
+                  const SizedBox(height: 8),
+                  _buildPaxTimesInputs(),
+                  const SizedBox(height: 24),
 
-              // ── Captain / Copilot select ──
-              _buildSectionLabel('Crew Role'),
-              const SizedBox(height: 8),
-              _buildDropdownCard(
-                fieldKey: 'CrewRole',
-                icon: Icons.person,
-                label: 'Captain / Copilot',
-                value: _selectedCrewRole,
-                items: _crewRoles,
-                onChanged:
-                    (v) => setState(() {
-                      _selectedCrewRole = v;
-                      _hasChanges = true;
-                      _fieldErrors.remove('CrewRole');
-                    }),
+                  // ── Captain / Copilot select ──
+                  _buildSectionLabel('Crew Role'),
+                  const SizedBox(height: 8),
+                  _buildDropdownCard(
+                    fieldKey: 'CrewRole',
+                    icon: Icons.person,
+                    label: 'Captain / Copilot',
+                    value: _selectedCrewRole,
+                    items: _crewRoles,
+                    onChanged:
+                        (v) => setState(() {
+                          _selectedCrewRole = v;
+                          _hasChanges = true;
+                          _fieldErrors.remove('CrewRole');
+                        }),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── PF / PNF select ──
+                  _buildSectionLabel('Pilot Flying Role'),
+                  const SizedBox(height: 8),
+                  _buildDropdownCard(
+                    fieldKey: 'PilotRole',
+                    icon: Icons.flight,
+                    label: 'PF / PNF',
+                    value: _selectedPilotRole,
+                    items: _pilotRoles,
+                    onChanged:
+                        (v) => setState(() {
+                          _selectedPilotRole = v;
+                          _hasChanges = true;
+                          _fieldErrors.remove('PilotRole');
+                        }),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Companion Name ──
+                  _buildSectionLabel('Companion'),
+                  const SizedBox(height: 8),
+                  _buildInputField(
+                    fieldKey: 'Companion',
+                    label: 'Companion Name',
+                    hint: 'e.g. John Smith',
+                    controller: _companionNameController,
+                    icon: Icons.people_outline,
+                    maxLength: _companionNameMaxLength,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Approach Type ──
+                  _buildSectionLabel('Approach Type'),
+                  const SizedBox(height: 8),
+                  _buildDropdownCard(
+                    fieldKey: 'ApproachType',
+                    icon: Icons.flight_land,
+                    label: 'Select approach',
+                    value: _selectedApproachType,
+                    items: _approachTypes,
+                    onChanged:
+                        (v) => setState(() {
+                          _selectedApproachType = v;
+                          _hasChanges = true;
+                          _fieldErrors.remove('ApproachType');
+                        }),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Flight Type ──
+                  _buildSectionLabel('Flight Type'),
+                  const SizedBox(height: 8),
+                  _buildDropdownCard(
+                    fieldKey: 'FlightType',
+                    icon: Icons.category_outlined,
+                    label: 'Select flight type',
+                    value: _selectedFlightType,
+                    items: _flightTypes,
+                    onChanged:
+                        (v) => setState(() {
+                          _selectedFlightType = v;
+                          _hasChanges = true;
+                          _fieldErrors.remove('FlightType');
+                        }),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Air & Block calculated ──
+                  _buildSectionLabel('Calculated Times'),
+                  const SizedBox(height: 8),
+                  _buildAirBlockDisplay(),
+                  const SizedBox(height: 32),
+
+                  // ── Save / Finalize Button ──
+                  if (_isEditMode)
+                    _buildSaveButton()
+                  else
+                    _buildFinalizeButton(),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 16),
-
-              // ── PF / PNF select ──
-              _buildSectionLabel('Pilot Flying Role'),
-              const SizedBox(height: 8),
-              _buildDropdownCard(
-                fieldKey: 'PilotRole',
-                icon: Icons.flight,
-                label: 'PF / PNF',
-                value: _selectedPilotRole,
-                items: _pilotRoles,
-                onChanged:
-                    (v) => setState(() {
-                      _selectedPilotRole = v;
-                      _hasChanges = true;
-                      _fieldErrors.remove('PilotRole');
-                    }),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Companion Name ──
-              _buildSectionLabel('Companion'),
-              const SizedBox(height: 8),
-              _buildInputField(
-                fieldKey: 'Companion',
-                label: 'Companion Name',
-                hint: 'e.g. John Smith',
-                controller: _companionNameController,
-                icon: Icons.people_outline,
-                maxLength: _companionNameMaxLength,
-              ),
-              const SizedBox(height: 24),
-
-              // ── Approach Type ──
-              _buildSectionLabel('Approach Type'),
-              const SizedBox(height: 8),
-              _buildDropdownCard(
-                fieldKey: 'ApproachType',
-                icon: Icons.flight_land,
-                label: 'Select approach',
-                value: _selectedApproachType,
-                items: _approachTypes,
-                onChanged:
-                    (v) => setState(() {
-                      _selectedApproachType = v;
-                      _hasChanges = true;
-                      _fieldErrors.remove('ApproachType');
-                    }),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Flight Type ──
-              _buildSectionLabel('Flight Type'),
-              const SizedBox(height: 8),
-              _buildDropdownCard(
-                fieldKey: 'FlightType',
-                icon: Icons.category_outlined,
-                label: 'Select flight type',
-                value: _selectedFlightType,
-                items: _flightTypes,
-                onChanged:
-                    (v) => setState(() {
-                      _selectedFlightType = v;
-                      _hasChanges = true;
-                      _fieldErrors.remove('FlightType');
-                    }),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Air & Block calculated ──
-              _buildSectionLabel('Calculated Times'),
-              const SizedBox(height: 8),
-              _buildAirBlockDisplay(),
-              const SizedBox(height: 32),
-
-              // ── Save / Finalize Button ──
-              if (_isEditMode) _buildSaveButton() else _buildFinalizeButton(),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
         ),
       ),

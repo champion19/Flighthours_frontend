@@ -1,3 +1,5 @@
+import 'package:flight_hours_app/core/responsive/responsive_breakpoints.dart';
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/features/airline/domain/entities/airline_entity.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
@@ -469,27 +471,50 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            _buildProfileCard(),
-            const SizedBox(height: 24),
-            _buildInfoCard(),
-            const SizedBox(height: 24),
-            _buildDatesCard(),
-            if (_isEditing) ...[
-              const SizedBox(height: 32),
-              _buildActionButtons(),
-            ],
-            const SizedBox(height: 32),
-            _buildDangerZone(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = ResponsiveBreakpoints.isDesktop(constraints.maxWidth);
+        final padding = ResponsivePadding.page(constraints.maxWidth);
+
+        return SingleChildScrollView(
+          padding: padding,
+          child: ResponsivePadding.constrainedContent(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  if (isWide)
+                    // Desktop: profile + info side-by-side
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 4, child: _buildProfileCard()),
+                          const SizedBox(width: 24),
+                          Expanded(flex: 6, child: _buildInfoCard()),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    _buildProfileCard(),
+                    const SizedBox(height: 24),
+                    _buildInfoCard(),
+                  ],
+                  const SizedBox(height: 24),
+                  _buildDatesCard(),
+                  if (_isEditing) ...[
+                    const SizedBox(height: 32),
+                    _buildActionButtons(),
+                  ],
+                  const SizedBox(height: 32),
+                  _buildDangerZone(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -146,6 +146,36 @@ void main() {
         },
       );
 
+      test(
+        'should throw LoginException on DioException with non-map response data',
+        () async {
+          const email = 'test@example.com';
+          const password = 'password123';
+          when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
+            DioException(
+              type: DioExceptionType.badResponse,
+              response: Response(
+                data: 'not a map',
+                statusCode: 500,
+                requestOptions: RequestOptions(path: '/login'),
+              ),
+              requestOptions: RequestOptions(path: '/login'),
+            ),
+          );
+
+          expect(
+            () => datasource.loginEmployee(email, password),
+            throwsA(
+              isA<LoginException>().having(
+                (e) => e.code,
+                'code',
+                equals('SERVER_ERROR'),
+              ),
+            ),
+          );
+        },
+      );
+
       test('should throw LoginException on connection timeout', () async {
         // Arrange
         const email = 'test@example.com';

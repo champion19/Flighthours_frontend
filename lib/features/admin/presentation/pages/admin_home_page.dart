@@ -1,4 +1,6 @@
 import 'package:flight_hours_app/core/constants/admin_messages.dart';
+import 'package:flight_hours_app/core/responsive/responsive_breakpoints.dart';
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flutter/material.dart';
 
@@ -14,116 +16,288 @@ class AdminHomePage extends StatelessWidget {
           children: [
             _buildHeader(context),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Section
-                    _buildWelcomeCard(),
-                    const SizedBox(height: 24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = ResponsiveBreakpoints.isDesktop(
+                    constraints.maxWidth,
+                  );
+                  final padding = ResponsivePadding.page(constraints.maxWidth);
 
-                    // Management Section
-                    _buildSectionTitle(AdminMessages.routeManagement),
-                    const SizedBox(height: 12),
-                    _buildManagementCard(
-                      context,
-                      icon: Icons.flight,
-                      title: AdminMessages.airlinesTitle,
-                      subtitle: AdminMessages.airlinesSubtitle,
-                      gradientColors: [
-                        const Color(0xFF4facfe),
-                        const Color(0xFF00f2fe),
-                      ],
-                      onTap: () {
-                        Navigator.pushNamed(context, '/airlines');
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildManagementCard(
-                      context,
-                      icon: Icons.route,
-                      title: AdminMessages.routesTitle,
-                      subtitle: AdminMessages.routesSubtitle,
-                      gradientColors: [
-                        const Color(0xFF11998e),
-                        const Color(0xFF38ef7d),
-                      ],
-                      onTap: () {
-                        Navigator.pushNamed(context, '/flight-routes');
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildManagementCard(
-                      context,
-                      icon: Icons.alt_route,
-                      title: AdminMessages.airlineRoutesTitle,
-                      subtitle: AdminMessages.airlineRoutesSubtitle,
-                      gradientColors: [
-                        const Color(0xFFf093fb),
-                        const Color(0xFFf5576c),
-                      ],
-                      onTap: () {
-                        Navigator.pushNamed(context, '/airline-routes');
-                      },
-                    ),
-                    const SizedBox(height: 24),
+                  return SingleChildScrollView(
+                    padding: padding,
+                    child: ResponsivePadding.constrainedContent(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildWelcomeCard(),
+                          const SizedBox(height: 24),
 
-                    // System Section
-                    _buildSectionTitle(AdminMessages.systemConfiguration),
-                    const SizedBox(height: 12),
-                    _buildSecondaryCard(
-                      context,
-                      icon: Icons.local_airport,
-                      title: AdminMessages.airportsTitle,
-                      color: const Color(0xFFf093fb),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/airports');
-                      },
+                          // Route Management Section
+                          _buildSectionTitle(AdminMessages.routeManagement),
+                          const SizedBox(height: 12),
+                          if (isWide)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildManagementCard(
+                                    context,
+                                    icon: Icons.flight,
+                                    title: AdminMessages.airlinesTitle,
+                                    subtitle: AdminMessages.airlinesSubtitle,
+                                    gradientColors: [
+                                      const Color(0xFF4facfe),
+                                      const Color(0xFF00f2fe),
+                                    ],
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          '/airlines',
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildManagementCard(
+                                    context,
+                                    icon: Icons.route,
+                                    title: AdminMessages.routesTitle,
+                                    subtitle: AdminMessages.routesSubtitle,
+                                    gradientColors: [
+                                      const Color(0xFF11998e),
+                                      const Color(0xFF38ef7d),
+                                    ],
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          '/flight-routes',
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildManagementCard(
+                                    context,
+                                    icon: Icons.alt_route,
+                                    title: AdminMessages.airlineRoutesTitle,
+                                    subtitle:
+                                        AdminMessages.airlineRoutesSubtitle,
+                                    gradientColors: [
+                                      const Color(0xFFf093fb),
+                                      const Color(0xFFf5576c),
+                                    ],
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          '/airline-routes',
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else ...[
+                            _buildManagementCard(
+                              context,
+                              icon: Icons.flight,
+                              title: AdminMessages.airlinesTitle,
+                              subtitle: AdminMessages.airlinesSubtitle,
+                              gradientColors: [
+                                const Color(0xFF4facfe),
+                                const Color(0xFF00f2fe),
+                              ],
+                              onTap:
+                                  () =>
+                                      Navigator.pushNamed(context, '/airlines'),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildManagementCard(
+                              context,
+                              icon: Icons.route,
+                              title: AdminMessages.routesTitle,
+                              subtitle: AdminMessages.routesSubtitle,
+                              gradientColors: [
+                                const Color(0xFF11998e),
+                                const Color(0xFF38ef7d),
+                              ],
+                              onTap:
+                                  () => Navigator.pushNamed(
+                                    context,
+                                    '/flight-routes',
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildManagementCard(
+                              context,
+                              icon: Icons.alt_route,
+                              title: AdminMessages.airlineRoutesTitle,
+                              subtitle: AdminMessages.airlineRoutesSubtitle,
+                              gradientColors: [
+                                const Color(0xFFf093fb),
+                                const Color(0xFFf5576c),
+                              ],
+                              onTap:
+                                  () => Navigator.pushNamed(
+                                    context,
+                                    '/airline-routes',
+                                  ),
+                            ),
+                          ],
+                          const SizedBox(height: 24),
+
+                          // System Configuration Section
+                          _buildSectionTitle(AdminMessages.systemConfiguration),
+                          const SizedBox(height: 12),
+                          if (isWide)
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                _buildSecondaryCardSized(
+                                  context,
+                                  width:
+                                      (constraints.maxWidth.clamp(0, 1200) -
+                                          padding.horizontal -
+                                          36) /
+                                      3,
+                                  icon: Icons.local_airport,
+                                  title: AdminMessages.airportsTitle,
+                                  color: const Color(0xFFf093fb),
+                                  onTap:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/airports',
+                                      ),
+                                ),
+                                _buildSecondaryCardSized(
+                                  context,
+                                  width:
+                                      (constraints.maxWidth.clamp(0, 1200) -
+                                          padding.horizontal -
+                                          36) /
+                                      3,
+                                  icon: Icons.airplanemode_active,
+                                  title: AdminMessages.aircraftModelsTitle,
+                                  color: const Color(0xFF667eea),
+                                  onTap:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/aircraft-models',
+                                      ),
+                                ),
+                                _buildSecondaryCardSized(
+                                  context,
+                                  width:
+                                      (constraints.maxWidth.clamp(0, 1200) -
+                                          padding.horizontal -
+                                          36) /
+                                      3,
+                                  icon: Icons.flight_takeoff,
+                                  title: AdminMessages.aircraftFamiliesTitle,
+                                  color: const Color(0xFF764ba2),
+                                  onTap:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/aircraft-families',
+                                      ),
+                                ),
+                                _buildSecondaryCardSized(
+                                  context,
+                                  width:
+                                      (constraints.maxWidth.clamp(0, 1200) -
+                                          padding.horizontal -
+                                          36) /
+                                      3,
+                                  icon: Icons.precision_manufacturing,
+                                  title: 'Manufacturers',
+                                  color: const Color(0xFFf5576c),
+                                  onTap:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/manufacturers',
+                                      ),
+                                ),
+                                _buildSecondaryCardSized(
+                                  context,
+                                  width:
+                                      (constraints.maxWidth.clamp(0, 1200) -
+                                          padding.horizontal -
+                                          36) /
+                                      3,
+                                  icon: Icons.settings,
+                                  title: AdminMessages.systemSettingsTitle,
+                                  color: const Color(0xFF6c757d),
+                                  onTap:
+                                      () => _showComingSoon(
+                                        context,
+                                        'System Settings',
+                                      ),
+                                ),
+                              ],
+                            )
+                          else ...[
+                            _buildSecondaryCard(
+                              context,
+                              icon: Icons.local_airport,
+                              title: AdminMessages.airportsTitle,
+                              color: const Color(0xFFf093fb),
+                              onTap:
+                                  () =>
+                                      Navigator.pushNamed(context, '/airports'),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSecondaryCard(
+                              context,
+                              icon: Icons.airplanemode_active,
+                              title: AdminMessages.aircraftModelsTitle,
+                              color: const Color(0xFF667eea),
+                              onTap:
+                                  () => Navigator.pushNamed(
+                                    context,
+                                    '/aircraft-models',
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSecondaryCard(
+                              context,
+                              icon: Icons.flight_takeoff,
+                              title: AdminMessages.aircraftFamiliesTitle,
+                              color: const Color(0xFF764ba2),
+                              onTap:
+                                  () => Navigator.pushNamed(
+                                    context,
+                                    '/aircraft-families',
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSecondaryCard(
+                              context,
+                              icon: Icons.precision_manufacturing,
+                              title: 'Manufacturers',
+                              color: const Color(0xFFf5576c),
+                              onTap:
+                                  () => Navigator.pushNamed(
+                                    context,
+                                    '/manufacturers',
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSecondaryCard(
+                              context,
+                              icon: Icons.settings,
+                              title: AdminMessages.systemSettingsTitle,
+                              color: const Color(0xFF6c757d),
+                              onTap:
+                                  () => _showComingSoon(
+                                    context,
+                                    'System Settings',
+                                  ),
+                            ),
+                          ],
+                          const SizedBox(height: 32),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _buildSecondaryCard(
-                      context,
-                      icon: Icons.airplanemode_active,
-                      title: AdminMessages.aircraftModelsTitle,
-                      color: const Color(0xFF667eea),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/aircraft-models');
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSecondaryCard(
-                      context,
-                      icon: Icons.flight_takeoff,
-                      title: AdminMessages.aircraftFamiliesTitle,
-                      color: const Color(0xFF764ba2),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/aircraft-families');
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSecondaryCard(
-                      context,
-                      icon: Icons.precision_manufacturing,
-                      title: 'Manufacturers',
-                      color: const Color(0xFFf5576c),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/manufacturers');
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSecondaryCard(
-                      context,
-                      icon: Icons.settings,
-                      title: AdminMessages.systemSettingsTitle,
-                      color: const Color(0xFF6c757d),
-                      onTap: () {
-                        _showComingSoon(context, 'System Settings');
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -406,6 +580,26 @@ class AdminHomePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryCardSized(
+    BuildContext context, {
+    required double width,
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: width,
+      child: _buildSecondaryCard(
+        context,
+        icon: icon,
+        title: title,
+        color: color,
+        onTap: onTap,
       ),
     );
   }
