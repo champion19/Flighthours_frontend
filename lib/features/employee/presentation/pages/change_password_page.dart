@@ -215,7 +215,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               });
             },
             validator: (value) {
-              if (value == null || value.isEmpty) {
+              if (value == null || value.trim().isEmpty) {
                 return 'Current password is required';
               }
               return null;
@@ -235,7 +235,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               });
             },
             validator: (value) {
-              if (value == null || value.isEmpty) {
+              if (value == null || value.trim().isEmpty) {
                 return 'New password is required';
               }
               if (value.length < 8) {
@@ -256,7 +256,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               });
             },
             validator: (value) {
-              if (value == null || value.isEmpty) {
+              if (value == null || value.trim().isEmpty) {
                 return 'Please confirm your new password';
               }
               if (value != _newPasswordController.text) {
@@ -326,7 +326,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         ),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Email is required';
         }
         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {

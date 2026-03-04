@@ -142,6 +142,35 @@ void main() {
         },
       );
 
+      test(
+        'should throw RegisterException on DioException with non-map data',
+        () async {
+          final employee = createTestEmployee();
+          when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
+            DioException(
+              type: DioExceptionType.badResponse,
+              response: Response(
+                data: 'not a map',
+                statusCode: 500,
+                requestOptions: RequestOptions(path: '/register'),
+              ),
+              requestOptions: RequestOptions(path: '/register'),
+            ),
+          );
+
+          expect(
+            () => datasource.registerEmployee(employee),
+            throwsA(
+              isA<RegisterException>().having(
+                (e) => e.code,
+                'code',
+                equals('SERVER_ERROR'),
+              ),
+            ),
+          );
+        },
+      );
+
       test('should throw RegisterException on connection timeout', () async {
         // Arrange
         final employee = createTestEmployee();
