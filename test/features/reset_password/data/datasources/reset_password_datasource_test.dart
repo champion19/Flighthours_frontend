@@ -96,6 +96,35 @@ void main() {
       );
 
       test(
+        'should throw ResetPasswordException on DioException with non-map data',
+        () async {
+          const email = 'test@example.com';
+          when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
+            DioException(
+              type: DioExceptionType.badResponse,
+              response: Response(
+                data: 'not a map',
+                statusCode: 500,
+                requestOptions: RequestOptions(path: '/auth/password-reset'),
+              ),
+              requestOptions: RequestOptions(path: '/auth/password-reset'),
+            ),
+          );
+
+          expect(
+            () => datasource.requestPasswordReset(email),
+            throwsA(
+              isA<ResetPasswordException>().having(
+                (e) => e.code,
+                'code',
+                equals('SERVER_ERROR'),
+              ),
+            ),
+          );
+        },
+      );
+
+      test(
         'should throw ResetPasswordException on connection timeout',
         () async {
           // Arrange
