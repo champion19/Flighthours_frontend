@@ -284,7 +284,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
             validator:
                 isRequired
                     ? (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'This field is required';
                       }
                       return null;

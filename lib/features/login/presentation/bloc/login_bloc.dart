@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
@@ -80,8 +81,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           final employeeResponse =
               await employeeDataSource.getCurrentEmployee();
 
+          debugPrint(
+            '🔍 Employee response success: ${employeeResponse.success}',
+          );
+          debugPrint('🔍 Employee data: ${employeeResponse.data?.toMap()}');
+          debugPrint(
+            '🔍 Employee role from API: "${employeeResponse.data?.role}"',
+          );
+
           if (employeeResponse.success && employeeResponse.data != null) {
             userRole = employeeResponse.data!.role ?? 'pilot';
+            debugPrint('🔍 Final userRole: "$userRole"');
 
             // Update session with role
             await SessionService().setSession(
@@ -94,7 +104,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
               expiresIn: loginResult.expiresIn,
             );
           }
-        } catch (_) {
+        } catch (e) {
+          debugPrint('🔍 ❌ Error fetching employee role: $e');
           // Could not fetch role, proceed with default
         }
 
