@@ -33,11 +33,7 @@ class EmailVerificationBloc
         if (entity.emailconfirmed) {
           emit(EmailVerificationSuccess(result: entity));
         } else {
-          emit(
-            const EmailVerificationError(
-              message: 'El correo no está verificado',
-            ),
-          );
+          emit(const EmailVerificationError(message: 'Email is not verified'));
         }
       },
     );

@@ -18,8 +18,8 @@ class FlightEntity extends Equatable {
   final String? airlineCode;
 
   // Aircraft info
-  final String? licensePlateId;
-  final String? licensePlate;
+  final String? tailNumberId;
+  final String? tailNumber;
   final String? modelName;
 
   // Times
@@ -50,8 +50,8 @@ class FlightEntity extends Equatable {
     this.originIataCode,
     this.destinationIataCode,
     this.airlineCode,
-    this.licensePlateId,
-    this.licensePlate,
+    this.tailNumberId,
+    this.tailNumber,
     this.modelName,
     this.outTime,
     this.takeoffTime,
@@ -95,12 +95,12 @@ class FlightEntity extends Equatable {
 
   /// Aircraft display: "CC-BAQ (A320)" or fallback
   String get aircraftDisplay {
-    if (licensePlate != null && modelName != null) {
+    if (tailNumber != null && modelName != null) {
       final shortModel =
           modelName!.contains('-') ? modelName!.split('-').first : modelName!;
-      return '$licensePlate ($shortModel)';
+      return '$tailNumber ($shortModel)';
     }
-    if (licensePlate != null) return licensePlate!;
+    if (tailNumber != null) return tailNumber!;
     if (modelName != null) return modelName!;
     return 'Unknown Aircraft';
   }
@@ -127,8 +127,8 @@ class FlightEntity extends Equatable {
     originIataCode,
     destinationIataCode,
     airlineCode,
-    licensePlateId,
-    licensePlate,
+    tailNumberId,
+    tailNumber,
     modelName,
     outTime,
     takeoffTime,

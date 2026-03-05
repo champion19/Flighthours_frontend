@@ -1,3 +1,4 @@
+import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
@@ -31,71 +32,73 @@ class _LogbookPageState extends State<LogbookPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FF),
       body: SafeArea(
-        child: BlocConsumer<LogbookBloc, LogbookState>(
-          listener: (context, state) {
-            // Show success messages for CRUD operations
-            if (state is LogbookDetailDeleted ||
-                state is DailyLogbookCreated ||
-                state is DailyLogbookStatusChanged ||
-                state is DailyLogbookDeleted) {
-              String message = '';
-              if (state is LogbookDetailDeleted) message = state.message;
-              if (state is DailyLogbookCreated) message = state.message;
-              if (state is DailyLogbookStatusChanged) message = state.message;
-              if (state is DailyLogbookDeleted) message = state.message;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                  backgroundColor: const Color(0xFF28a745),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+        child: ResponsivePadding.constrainedContent(
+          child: BlocConsumer<LogbookBloc, LogbookState>(
+            listener: (context, state) {
+              // Show success messages for CRUD operations
+              if (state is LogbookDetailDeleted ||
+                  state is DailyLogbookCreated ||
+                  state is DailyLogbookStatusChanged ||
+                  state is DailyLogbookDeleted) {
+                String message = '';
+                if (state is LogbookDetailDeleted) message = state.message;
+                if (state is DailyLogbookCreated) message = state.message;
+                if (state is DailyLogbookStatusChanged) message = state.message;
+                if (state is DailyLogbookDeleted) message = state.message;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    backgroundColor: const Color(0xFF28a745),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-              );
-            }
-            // Show error messages
-            if (state is LogbookError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                );
+              }
+              // Show error messages
+              if (state is LogbookError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is LogbookLoading) {
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is LogbookLoading) {
+                return _buildLoadingState();
+              }
+
+              if (state is DailyLogbooksLoaded) {
+                return _buildLogbookListView(state.logbooks);
+              }
+
+              if (state is LogbookDetailsLoaded ||
+                  state is LogbookDetailDeleted) {
+                final details =
+                    state is LogbookDetailsLoaded
+                        ? state.details
+                        : (state as LogbookDetailDeleted).details;
+                final selectedLogbook =
+                    state is LogbookDetailsLoaded
+                        ? state.selectedLogbook
+                        : (state as LogbookDetailDeleted).selectedLogbook;
+                return _buildDetailsView(selectedLogbook, details);
+              }
+
+              if (state is LogbookError) {
+                return _buildErrorState(state.message);
+              }
+
               return _buildLoadingState();
-            }
-
-            if (state is DailyLogbooksLoaded) {
-              return _buildLogbookListView(state.logbooks);
-            }
-
-            if (state is LogbookDetailsLoaded ||
-                state is LogbookDetailDeleted) {
-              final details =
-                  state is LogbookDetailsLoaded
-                      ? state.details
-                      : (state as LogbookDetailDeleted).details;
-              final selectedLogbook =
-                  state is LogbookDetailsLoaded
-                      ? state.selectedLogbook
-                      : (state as LogbookDetailDeleted).selectedLogbook;
-              return _buildDetailsView(selectedLogbook, details);
-            }
-
-            if (state is LogbookError) {
-              return _buildErrorState(state.message);
-            }
-
-            return _buildLoadingState();
-          },
+            },
+          ),
         ),
       ),
     );
@@ -599,7 +602,7 @@ class _LogbookPageState extends State<LogbookPage> {
                       child: _buildInfoItem(
                         Icons.airplanemode_active,
                         'Aircraft',
-                        detail.licensePlate ?? '--',
+                        detail.tailNumber ?? '--',
                       ),
                     ),
                   ],
@@ -920,7 +923,6 @@ class _LogbookPageState extends State<LogbookPage> {
             _buildDetailRow('Block In', _formatTimeDisplay(detail.inTime)),
             _buildDetailRow('Air Time', _formatTimeDisplay(detail.airTime)),
             _buildDetailRow('Block Time', _formatTimeDisplay(detail.blockTime)),
-            _buildDetailRow('Duty Time', _formatTimeDisplay(detail.dutyTime)),
 
             if (detail.companionName != null) ...[
               const SizedBox(height: 16),
@@ -1387,6 +1389,18 @@ class _LogbookPageState extends State<LogbookPage> {
     final bookPageController = TextEditingController();
     DateTime? selectedDate;
 
+    // Auto-increment: find max book_page from existing logbooks
+    final state = context.read<LogbookBloc>().state;
+    if (state is DailyLogbooksLoaded) {
+      int maxPage = 0;
+      for (final lb in state.logbooks) {
+        if (lb.bookPage != null && lb.bookPage! > maxPage) {
+          maxPage = lb.bookPage!;
+        }
+      }
+      bookPageController.text = (maxPage + 1).toString();
+    }
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -1563,6 +1577,21 @@ class _LogbookPageState extends State<LogbookPage> {
                       return;
                     }
                     final bookPage = int.tryParse(bookPageController.text);
+                    // Backend schema: book_page minimum: 1
+                    if (bookPageController.text.isNotEmpty &&
+                        (bookPage == null || bookPage < 1)) {
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Book page must be a number ≥ 1'),
+                          backgroundColor: Colors.orange,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
 
                     this.context.read<LogbookBloc>().add(

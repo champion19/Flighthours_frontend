@@ -16,8 +16,8 @@ void main() {
         'origin_iata_code': 'MDE',
         'destination_iata_code': 'BOG',
         'airline_code': 'AV',
-        'actual_aircraft_registration_id': 'RrydfpW2u8QGhKYoH8LptV3JcJ5NCGQ5',
-        'license_plate': 'CC-BAQ',
+        'tail_number_id': 'RrydfpW2u8QGhKYoH8LptV3JcJ5NCGQ5',
+        'tail_number': 'CC-BAQ',
         'model_name': 'A320-112',
         'passengers': 174,
         'out_time': '21:17:00',
@@ -46,7 +46,7 @@ void main() {
       expect(result.originIataCode, equals('MDE'));
       expect(result.destinationIataCode, equals('BOG'));
       expect(result.airlineCode, equals('AV'));
-      expect(result.licensePlate, equals('CC-BAQ'));
+      expect(result.tailNumber, equals('CC-BAQ'));
       expect(result.modelName, equals('A320-112'));
       expect(result.passengers, equals(174));
       expect(result.outTime, equals('21:17:00'));
@@ -177,7 +177,7 @@ void main() {
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
         airlineRouteId: 'route123',
-        licensePlateId: 'aircraft123',
+        tailNumberId: 'aircraft123',
         passengers: 150,
         outTime: '21:17:00',
         takeoffTime: '21:35:00',
@@ -198,6 +198,36 @@ void main() {
       expect(result['airline_route_id'], equals('route123'));
       expect(result['passengers'], equals(150));
       expect(result['pilot_role'], equals('PM'));
+    });
+    test('toJson should include formatted flight_real_date', () {
+      final model = LogbookDetailModel(
+        id: 'test123',
+        flightRealDate: DateTime(2025, 12, 14),
+      );
+      final result = model.toJson();
+      expect(result['flight_real_date'], equals('2025-12-14'));
+    });
+
+    test('updateRequest should include crewRole when provided', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        airlineRouteId: 'r1',
+        tailNumberId: 't1',
+        crewRole: 'captain',
+      );
+      expect(result['crew_role'], equals('captain'));
+    });
+
+    test('updateRequest should exclude crewRole when empty', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        airlineRouteId: 'r1',
+        tailNumberId: 't1',
+        crewRole: '',
+      );
+      expect(result.containsKey('crew_role'), isFalse);
     });
   });
 }

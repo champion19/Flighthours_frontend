@@ -83,25 +83,41 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
             child: Container(height: 1, color: const Color(0xFFe9ecef)),
           ),
         ),
-        body: BlocBuilder<LogbookBloc, LogbookState>(
-          builder: (context, state) {
-            if (state is LogbookLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF4facfe)),
-              );
+        body: BlocListener<LogbookBloc, LogbookState>(
+          listener: (context, state) {
+            // When a detail is updated or created, auto-re-fetch to refresh the list
+            if ((state is LogbookDetailUpdated ||
+                    state is LogbookDetailByIdLoaded ||
+                    state is DailyLogbookCreated) &&
+                _logbook != null) {
+              context.read<LogbookBloc>().add(SelectDailyLogbook(_logbook!));
             }
-
-            if (state is LogbookError) {
-              return _buildErrorState(state.message);
-            }
-
-            if (state is LogbookDetailsLoaded) {
-              return _buildContent(state.details);
-            }
-
-            // Initial or unexpected state — show empty
-            return _buildContent([]);
           },
+          child: BlocBuilder<LogbookBloc, LogbookState>(
+            builder: (context, state) {
+              if (state is LogbookLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF4facfe)),
+                );
+              }
+
+              if (state is LogbookError) {
+                return _buildErrorState(state.message);
+              }
+
+              if (state is LogbookDetailsLoaded) {
+                return _buildContent(state.details);
+              }
+
+              // Also handle LogbookDetailDeleted (it carries the refreshed list)
+              if (state is LogbookDetailDeleted) {
+                return _buildContent(state.details);
+              }
+
+              // Initial or unexpected state — show empty
+              return _buildContent([]);
+            },
+          ),
         ),
       ),
     );
@@ -138,8 +154,15 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
               ),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/new-flight');
+                onPressed: () async {
+                  await Navigator.pushNamed(context, '/new-flight');
+                  // Re-fetch details after returning from add flight flow
+                  if (mounted && _logbook != null) {
+                    // ignore: use_build_context_synchronously
+                    context.read<LogbookBloc>().add(
+                      SelectDailyLogbook(_logbook!),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Add Flight'),
@@ -185,13 +208,18 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
     LogbookDetailEntity detail,
   ) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         // Navigate to the detail form passing both logbook and flight detail
-        Navigator.pushNamed(
+        await Navigator.pushNamed(
           context,
           '/daily-logbook-detail-form',
           arguments: {'logbook': _logbook, 'detail': detail},
         );
+        // Re-fetch details after returning from detail form
+        if (mounted && _logbook != null) {
+          // ignore: use_build_context_synchronously
+          this.context.read<LogbookBloc>().add(SelectDailyLogbook(_logbook!));
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
@@ -269,7 +297,7 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
                       const SizedBox(width: 10),
                       _buildInfoChip(
                         Icons.airplanemode_active,
-                        detail.licensePlate ?? '—',
+                        detail.tailNumber ?? '--',
                       ),
                     ],
                   ),

@@ -1,3 +1,5 @@
+import 'package:flight_hours_app/features/alerts/presentation/pages/alerts_page.dart';
+import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/bloc/airline_bloc.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_list_page.dart';
 import 'package:flight_hours_app/features/airline/presentation/pages/airline_selection_page.dart';
@@ -23,8 +25,8 @@ import 'package:flight_hours_app/features/manufacturer/presentation/bloc/manufac
 import 'package:flight_hours_app/features/manufacturer/presentation/pages/manufacturer_list_page.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/bloc/aircraft_model_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_model_list_page.dart';
-import 'package:flight_hours_app/features/license_plate/presentation/bloc/license_plate_bloc.dart';
-import 'package:flight_hours_app/features/license_plate/presentation/pages/license_plate_lookup_page.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_bloc.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/pages/tail_number_lookup_page.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
 import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_bloc.dart';
@@ -36,6 +38,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/authpage.dart';
+import 'package:flight_hours_app/features/splash/presentation/pages/splash_page.dart';
 import 'package:flight_hours_app/features/login/presentation/bloc/login_bloc.dart';
 import 'package:flight_hours_app/features/register/presentation/bloc/register_bloc.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
@@ -79,16 +82,20 @@ void main() async {
         BlocProvider(create: (_) => AirportBloc()),
         BlocProvider(create: (_) => ManufacturerBloc()),
         BlocProvider(create: (_) => AircraftModelBloc()),
-        BlocProvider(create: (_) => LicensePlateBloc()),
+        BlocProvider(create: (_) => TailNumberBloc()),
         BlocProvider(create: (_) => FlightBloc()),
         BlocProvider(create: (_) => CrewMemberTypeBloc()),
+        BlocProvider(create: (_) => FlightSummaryBloc()),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
-        initialRoute: '/',
+        initialRoute: '/splash',
         title: 'Flight Hours',
         routes: {
+          '/splash': (context) => const SplashPage(),
+          '/': (context) => const AuthPage(),
           '/home': (context) => const HelloEmployee(),
+          '/alerts': (context) => const AlertsPage(),
           '/login': (context) => const LoginPage(),
           '/airlines': (context) => const AirlineListPage(),
           '/airline-selection': (context) => const AirlineSelectionPage(),
@@ -105,14 +112,13 @@ void main() async {
           '/manufacturers': (context) => const ManufacturerListPage(),
           '/aircraft-models': (context) => const AircraftModelListPage(),
           '/aircraft-families': (context) => const AircraftFamiliesPage(),
-          '/license-plate': (context) => const LicensePlateLookupPage(),
+          '/tail-number': (context) => const TailNumberLookupPage(),
           '/crew-member-types': (context) => const CrewMemberTypeListPage(),
           '/daily-logbook-detail': (context) => const FlightRecordsListPage(),
           '/daily-logbook-detail-form':
               (context) => const DailyLogbookDetailPage(),
         },
         debugShowCheckedModeBanner: false,
-        home: const AuthPage(),
       ),
     ),
   );

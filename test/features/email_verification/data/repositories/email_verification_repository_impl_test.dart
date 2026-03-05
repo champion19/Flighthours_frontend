@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/email_verification/data/datasource/email_verifcation_datasource.dart';
@@ -52,6 +53,24 @@ void main() {
 
         // Assert
         expect(result, isA<Left>());
+      });
+
+      test('should return Left on DioException with response', () async {
+        when(() => mockDatasource.verifyEmail(any())).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 400,
+              data: {'message': 'Invalid email', 'code': 'INVALID'},
+            ),
+          ),
+        );
+        final result = await repository.verifyEmail('bad@email.com');
+        result.fold(
+          (f) => expect(f.message, 'Invalid email'),
+          (_) => fail('Left'),
+        );
       });
     });
   });

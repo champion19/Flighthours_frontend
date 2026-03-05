@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flight_hours_app/features/airport/data/datasources/airport_remote_data_source.dart';
@@ -59,6 +60,45 @@ void main() {
 
         expect(result, isA<Left>());
       });
+
+      test(
+        'should return Left with message on DioException with map data',
+        () async {
+          when(() => mockDataSource.getAirports()).thenThrow(
+            DioException(
+              requestOptions: RequestOptions(),
+              response: Response(
+                requestOptions: RequestOptions(),
+                statusCode: 500,
+                data: {'message': 'Internal', 'code': 'ERR_500'},
+              ),
+            ),
+          );
+          final result = await repository.getAirports();
+          result.fold((f) {
+            expect(f.message, 'Internal');
+            expect(f.statusCode, 500);
+          }, (_) => fail('Left'));
+        },
+      );
+
+      test('should return Left on DioException with non-map data', () async {
+        when(() => mockDataSource.getAirports()).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(),
+            response: Response(
+              requestOptions: RequestOptions(),
+              statusCode: 503,
+              data: 'Service Unavailable',
+            ),
+          ),
+        );
+        final result = await repository.getAirports();
+        result.fold(
+          (f) => expect(f.message, 'Server error'),
+          (_) => fail('Left'),
+        );
+      });
     });
 
     group('getAirportById', () {
@@ -97,6 +137,14 @@ void main() {
           (data) => fail('Expected Left'),
         );
       });
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.getAirportById(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.getAirportById('id');
+        expect(result, isA<Left>());
+      });
     });
 
     group('activateAirport', () {
@@ -122,6 +170,14 @@ void main() {
           verify(() => mockDataSource.activateAirport('ap1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.activateAirport(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.activateAirport('ap1');
+        expect(result, isA<Left>());
+      });
     });
 
     group('deactivateAirport', () {
@@ -147,6 +203,14 @@ void main() {
           verify(() => mockDataSource.deactivateAirport('ap1')).called(1);
         },
       );
+
+      test('should return Left on exception', () async {
+        when(
+          () => mockDataSource.deactivateAirport(any()),
+        ).thenThrow(Exception('err'));
+        final result = await repository.deactivateAirport('ap1');
+        expect(result, isA<Left>());
+      });
     });
   });
 }

@@ -135,23 +135,23 @@ void main() {
     });
 
     group('aircraftDisplay', () {
-      test('should show license plate and short model', () {
+      test('should show tail number and short model', () {
         const entity = LogbookDetailEntity(
           id: 'test',
-          licensePlate: 'CC-BAQ',
+          tailNumber: 'CC-BAQ',
           modelName: 'A320-112',
         );
 
         expect(entity.aircraftDisplay, equals('CC-BAQ (A320)'));
       });
 
-      test('should return licensePlate when modelName is null', () {
-        const entity = LogbookDetailEntity(id: 'test', licensePlate: 'CC-XYZ');
+      test('should return tailNumber when modelName is null', () {
+        const entity = LogbookDetailEntity(id: 'test', tailNumber: 'CC-XYZ');
 
         expect(entity.aircraftDisplay, equals('CC-XYZ'));
       });
 
-      test('should return modelName when licensePlate is null', () {
+      test('should return modelName when tailNumber is null', () {
         const entity = LogbookDetailEntity(id: 'test', modelName: 'B737-800');
 
         expect(entity.aircraftDisplay, equals('B737-800'));

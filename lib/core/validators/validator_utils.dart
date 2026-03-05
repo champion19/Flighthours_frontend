@@ -1,4 +1,3 @@
-
 import 'validators.dart';
 
 /// Clase de utilidades para validaciones comunes.
@@ -126,8 +125,8 @@ class ValidatorUtils {
   }
 
   /// Matrícula de aeronave: max 7, pattern ^[A-Z0-9-]+$
-  static BaseValidator licensePlate({String? customMessage}) {
-    return LicensePlateValidator(customMessage: customMessage);
+  static BaseValidator tailNumber({String? customMessage}) {
+    return TailNumberValidator(customMessage: customMessage);
   }
 
   /// Número de vuelo: required, max 20

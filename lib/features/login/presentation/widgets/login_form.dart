@@ -71,7 +71,8 @@ class _LoginFormState extends State<LoginForm> {
             style: const TextStyle(color: Color(0xFF1a1a2e), fontSize: 16),
             keyboardType: TextInputType.emailAddress,
             onSaved: (value) => _email = value!.trim(),
-            validator: (value) => value!.isEmpty ? 'Email is required' : null,
+            validator:
+                (value) => value!.trim().isEmpty ? 'Email is required' : null,
           ),
           const SizedBox(height: 20),
           TextFormField(
@@ -84,7 +85,7 @@ class _LoginFormState extends State<LoginForm> {
             onSaved: (value) => _password = value!,
             validator:
                 (value) =>
-                    value!.isEmpty
+                    value!.trim().isEmpty
                         ? 'Password must be at least 6 characters'
                         : null,
           ),
