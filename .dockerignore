@@ -1,0 +1,27 @@
+# Build artifacts
+.dart_tool/
+build/
+coverage/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.iml
+
+# Platform-specific (no needed for web build)
+android/
+ios/
+macos/
+linux/
+windows/
+
+# Git
+.git/
+
+# Docs
+docs/
+documents/
+*.md
+
+# OS
+.DS_Store
