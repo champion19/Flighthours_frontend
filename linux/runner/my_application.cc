@@ -113,9 +113,10 @@ static void my_application_class_init(MyApplicationClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = my_application_dispose;
 }
 
-// No additional initialization is needed; GObject base initialization
-// is handled by the parent class via G_DEFINE_TYPE.
-static void my_application_init([[maybe_unused]] MyApplication* self) {}
+static void my_application_init([[maybe_unused]] MyApplication* self) {
+  // No additional initialization is needed; GObject base initialization
+  // is handled by the parent class via G_DEFINE_TYPE.
+}
 
 MyApplication* my_application_new() {
   // Set the program name to the application ID, which helps various systems
