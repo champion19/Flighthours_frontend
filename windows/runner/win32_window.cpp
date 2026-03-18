@@ -13,7 +13,7 @@ namespace {
 /// version 10.0.22000.0.
 /// See: https://docs.microsoft.com/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
-#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
 #endif
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
@@ -27,7 +27,7 @@ constexpr const wchar_t kGetPreferredBrightnessRegKey[] =
 constexpr const wchar_t kGetPreferredBrightnessRegValue[] = L"AppsUseLightTheme";
 
 // The number of Win32Window objects that currently exist.
-static int g_active_window_count = 0;
+int g_active_window_count = 0;  // NOSONAR: mutable counter for active windows
 
 using EnableNonClientDpiScaling = BOOL __stdcall(HWND hwnd);
 
@@ -44,10 +44,10 @@ void EnableFullDpiSupportIfAvailable(HWND hwnd) {
   if (!user32_module) {
     return;
   }
-  auto enable_non_client_dpi_scaling =
-      reinterpret_cast<EnableNonClientDpiScaling*>(
-          GetProcAddress(user32_module, "EnableNonClientDpiScaling"));
-  if (enable_non_client_dpi_scaling != nullptr) {
+  if (auto enable_non_client_dpi_scaling =
+          reinterpret_cast<EnableNonClientDpiScaling*>(  // NOSONAR: required for Win32 GetProcAddress
+              GetProcAddress(user32_module, "EnableNonClientDpiScaling"));
+      enable_non_client_dpi_scaling != nullptr) {
     enable_non_client_dpi_scaling(hwnd);
   }
   FreeLibrary(user32_module);
@@ -62,10 +62,8 @@ class WindowClassRegistrar {
 
   // Returns the singleton registrar instance.
   static WindowClassRegistrar* GetInstance() {
-    if (!instance_) {
-      instance_ = new WindowClassRegistrar();
-    }
-    return instance_;
+    static WindowClassRegistrar instance;
+    return &instance;
   }
 
   // Returns the name of the window class, registering the class if it hasn't
@@ -79,12 +77,8 @@ class WindowClassRegistrar {
  private:
   WindowClassRegistrar() = default;
 
-  static WindowClassRegistrar* instance_;
-
   bool class_registered_ = false;
 };
-
-WindowClassRegistrar* WindowClassRegistrar::instance_ = nullptr;
 
 const wchar_t* WindowClassRegistrar::GetWindowClass() {
   if (!class_registered_) {
@@ -97,7 +91,7 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     window_class.hInstance = GetModuleHandle(nullptr);
     window_class.hIcon =
         LoadIcon(window_class.hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
-    window_class.hbrBackground = 0;
+    window_class.hbrBackground = nullptr;
     window_class.lpszMenuName = nullptr;
     window_class.lpfnWndProc = Win32Window::WndProc;
     RegisterClass(&window_class);
@@ -117,7 +111,15 @@ Win32Window::Win32Window() {
 
 Win32Window::~Win32Window() {
   --g_active_window_count;
-  Destroy();
+  // Inline cleanup instead of calling Destroy() to avoid virtual dispatch
+  // in destructor (OnDestroy is virtual).
+  if (window_handle_) {
+    DestroyWindow(window_handle_);
+    window_handle_ = nullptr;
+  }
+  if (g_active_window_count == 0) {
+    WindowClassRegistrar::GetInstance()->UnregisterWindowClass();
+  }
 }
 
 bool Win32Window::Create(const std::wstring& title,
@@ -159,7 +161,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND const window,
                                       WPARAM const wparam,
                                       LPARAM const lparam) noexcept {
   if (message == WM_NCCREATE) {
-    auto window_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
+    auto window_struct = reinterpret_cast<CREATESTRUCT*>(lparam);  // NOSONAR: required for Win32 LPARAM handling
     SetWindowLongPtr(window, GWLP_USERDATA,
                      reinterpret_cast<LONG_PTR>(window_struct->lpCreateParams));
 
@@ -188,7 +190,7 @@ Win32Window::MessageHandler(HWND hwnd,
       return 0;
 
     case WM_DPICHANGED: {
-      auto newRectSize = reinterpret_cast<RECT*>(lparam);
+      auto newRectSize = reinterpret_cast<RECT*>(lparam);  // NOSONAR: required for Win32 LPARAM handling
       LONG newWidth = newRectSize->right - newRectSize->left;
       LONG newHeight = newRectSize->bottom - newRectSize->top;
 
@@ -234,7 +236,7 @@ void Win32Window::Destroy() {
 }
 
 Win32Window* Win32Window::GetThisFromHandle(HWND const window) noexcept {
-  return reinterpret_cast<Win32Window*>(
+  return reinterpret_cast<Win32Window*>(  // NOSONAR: required for Win32 GetWindowLongPtr
       GetWindowLongPtr(window, GWLP_USERDATA));
 }
 
