@@ -13,7 +13,9 @@ namespace {
 /// version 10.0.22000.0.
 /// See: https://docs.microsoft.com/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
-constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+constexpr DWORD kDwmwaUseImmersiveDarkMode = 20;
+#else
+constexpr DWORD kDwmwaUseImmersiveDarkMode = DWMWA_USE_IMMERSIVE_DARK_MODE;
 #endif
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
@@ -62,7 +64,7 @@ class WindowClassRegistrar {
 
   // Returns the singleton registrar instance.
   static WindowClassRegistrar* GetInstance() {
-    static WindowClassRegistrar instance;
+    static WindowClassRegistrar instance;  // NOSONAR: Meyers' singleton, inline not valid in block scope
     return &instance;
   }
 
