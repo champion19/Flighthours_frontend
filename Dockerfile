@@ -16,6 +16,7 @@ COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
 # Copiar todo el proyecto y compilar para web
+# Safe: .dockerignore excludes sensitive files (.git, .env, etc.)
 COPY . .
 
 # Build Args para configurar la URL del backend en producción
@@ -36,6 +37,16 @@ COPY --from=builder /app/build/web /usr/share/nginx/html
 
 # Configuración de Nginx para SPA (Single Page App)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Run as non-root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
+    && chown -R appuser:appgroup /usr/share/nginx/html \
+    && chown -R appuser:appgroup /var/cache/nginx \
+    && chown -R appuser:appgroup /var/log/nginx \
+    && touch /var/run/nginx.pid \
+    && chown -R appuser:appgroup /var/run/nginx.pid
+
+USER appuser
 
 EXPOSE 80
 
