@@ -665,7 +665,9 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                     ),
                   ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -696,7 +698,6 @@ class _EmployeeProfilePageState extends State<EmployeeProfilePage> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

@@ -288,7 +288,7 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
   // ────────────────────────────────────────────────
 
   Widget _buildHint() {
-    return Center(
+    return SingleChildScrollView(
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
