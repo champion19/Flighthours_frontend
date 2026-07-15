@@ -60,9 +60,18 @@ class _NewFlightPageState extends State<NewFlightPage> {
   void _parseEditArguments() {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic> && args.isNotEmpty) {
-      _editArgs = args;
-      _isEditMode = true;
-      _prefillFromArgs();
+      // Only enter edit mode if actual flight data is present
+      final hasFlightData = args.containsKey('flight_number') ||
+          args.containsKey('detail_id') ||
+          args.containsKey('flight_real_date');
+      if (hasFlightData) {
+        _editArgs = args;
+        _isEditMode = true;
+        _prefillFromArgs();
+      } else if (args['daily_logbook_id'] != null) {
+        // Logbook context only — set the ID without entering edit mode
+        _logbookId = args['daily_logbook_id'].toString();
+      }
     }
   }
 
