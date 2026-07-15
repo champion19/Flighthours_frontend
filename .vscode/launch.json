@@ -26,6 +26,20 @@
       ]
     },
     {
+      "name": "Flutter Web (Chrome) - VPS",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-port=8087",
+        "--dart-define=API_HOST=flighthours-api.rbsuport.com",
+        "--dart-define=API_PROTOCOL=https",
+        "--dart-define=API_PORT=443"
+      ]
+    },
+    {
       "name": "Flutter Android",
       "type": "dart",
       "request": "launch",
@@ -36,6 +50,19 @@
       ]
     },
     {
+      "name": "Flutter Android - VPS",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "android",
+        "--dart-define=API_HOST=flighthours-api.rbsuport.com",
+        "--dart-define=API_PROTOCOL=https",
+        "--dart-define=API_PORT=443"
+      ]
+    },
+    {
       "name": "Flutter iOS",
       "type": "dart",
       "request": "launch",
@@ -43,6 +70,19 @@
       "args": [
         "-d",
         "ios"
+      ]
+    },
+    {
+      "name": "Flutter iOS - VPS",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "ios",
+        "--dart-define=API_HOST=flighthours-api.rbsuport.com",
+        "--dart-define=API_PROTOCOL=https",
+        "--dart-define=API_PORT=443"
       ]
     }
   ]
