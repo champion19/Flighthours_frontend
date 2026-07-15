@@ -159,7 +159,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
         ),
         BlocListener<FlightBloc, FlightState>(
           listener: (context, state) {
-            if (state is LogbookIdLoaded) {
+            if (state is LogbookIdLoaded && _logbookId == null) {
               setState(() {
                 _logbookId = state.logbookId;
               });
