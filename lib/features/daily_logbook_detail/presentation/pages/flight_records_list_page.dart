@@ -155,7 +155,11 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
               const Spacer(),
               ElevatedButton.icon(
                 onPressed: () async {
-                  await Navigator.pushNamed(context, '/new-flight');
+                  await Navigator.pushNamed(
+                    context,
+                    '/new-flight',
+                    arguments: {'daily_logbook_id': _logbook?.id},
+                  );
                   // Re-fetch details after returning from add flight flow
                   if (mounted && _logbook != null) {
                     // ignore: use_build_context_synchronously
