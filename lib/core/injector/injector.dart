@@ -73,6 +73,7 @@ import 'package:flight_hours_app/features/logbook/domain/usecases/deactivate_dai
 import 'package:flight_hours_app/features/tail_number/data/datasources/tail_number_remote_data_source.dart';
 import 'package:flight_hours_app/features/tail_number/data/repositories/tail_number_repository_impl.dart';
 import 'package:flight_hours_app/features/tail_number/domain/repositories/tail_number_repository.dart';
+import 'package:flight_hours_app/features/tail_number/domain/usecases/create_tail_number_use_case.dart';
 import 'package:flight_hours_app/features/tail_number/domain/usecases/get_tail_number_by_plate_use_case.dart';
 import 'package:flight_hours_app/features/tail_number/domain/usecases/list_tail_numbers_use_case.dart';
 import 'package:flight_hours_app/features/crew_member_type/data/datasources/crew_member_type_remote_data_source.dart';
@@ -189,6 +190,7 @@ abstract class InjectorApp {
   // Tail Number
   @Register.factory(ListTailNumbersUseCase)
   @Register.factory(GetTailNumberByPlateUseCase)
+  @Register.factory(CreateTailNumberUseCase)
   @Register.factory(TailNumberRepository, from: TailNumberRepositoryImpl)
   @Register.factory(
     TailNumberRemoteDataSource,

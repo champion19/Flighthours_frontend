@@ -2,6 +2,7 @@ import 'package:flight_hours_app/features/aircraft_model/domain/entities/aircraf
 import 'package:flight_hours_app/features/flight/domain/entities/flight_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/tail_number/domain/entities/tail_number_entity.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/pages/add_tail_number_page.dart';
 import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_bloc.dart';
 import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_event.dart';
 import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_state.dart';
@@ -110,9 +111,10 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
                           controller: _controller,
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
-                            // Only allow letters (A-Z, a-z) and hyphens
+                            // Allow letters, digits and hyphens (plates like
+                            // HK-1333 need digits; backend requires ^[A-Z0-9-]+$)
                             FilteringTextInputFormatter.allow(
-                              RegExp(r'[a-zA-Z\-]'),
+                              RegExp(r'[a-zA-Z0-9\-]'),
                             ),
                             // Force uppercase
                             TextInputFormatter.withFunction(
@@ -486,47 +488,97 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
 
   Widget _buildError(String message) {
     return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFe17055).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFe17055),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                message,
+                style: const TextStyle(
+                  color: Color(0xFF495057),
+                  fontSize: 13.5,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              // ── Add tail number button ──
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton.icon(
+                  onPressed: _openAddTailNumber,
+                  icon: const Icon(
+                    Icons.add,
+                    color: Color(0xFF4facfe),
+                    size: 20,
+                  ),
+                  label: const Text(
+                    'Agregar matrícula',
+                    style: TextStyle(
+                      color: Color(0xFF4facfe),
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(
+                      0xFF4facfe,
+                    ).withValues(alpha: 0.1),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFFe17055).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(
-                Icons.error_outline_rounded,
-                color: Color(0xFFe17055),
-                size: 32,
-              ),
+      ),
+    );
+  }
+
+  /// Opens the form to register a new tail number, sharing the current
+  /// TailNumberBloc so a successful creation lands back here as
+  /// TailNumberSuccess (which shows the result + "Save Flight" button).
+  void _openAddTailNumber() {
+    final bloc = context.read<TailNumberBloc>();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (_) => BlocProvider.value(
+              value: bloc,
+              child: AddTailNumberPage(initialPlate: _controller.text.trim()),
             ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: const TextStyle(
-                color: Color(0xFF495057),
-                fontSize: 14,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

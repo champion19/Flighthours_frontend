@@ -31,5 +31,21 @@ class SelectTailNumber extends TailNumberEvent {
   List<Object?> get props => [id];
 }
 
+/// Event to create a new tail number (aircraft registration)
+class CreateTailNumber extends TailNumberEvent {
+  final String tailNumber;
+  final String aircraftModelId;
+  final String airlineId;
+
+  const CreateTailNumber({
+    required this.tailNumber,
+    required this.aircraftModelId,
+    required this.airlineId,
+  });
+
+  @override
+  List<Object?> get props => [tailNumber, aircraftModelId, airlineId];
+}
+
 /// Event to reset the tail number state
 class ResetTailNumber extends TailNumberEvent {}
