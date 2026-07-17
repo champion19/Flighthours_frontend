@@ -42,4 +42,38 @@ class TailNumberRepositoryImpl implements TailNumberRepository {
       return Left(Failure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, TailNumberEntity>> createTailNumber({
+    required String tailNumber,
+    required String aircraftModelId,
+    required String airlineId,
+  }) async {
+    try {
+      final result = await remoteDataSource.createTailNumber(
+        tailNumber: tailNumber,
+        aircraftModelId: aircraftModelId,
+        airlineId: airlineId,
+      );
+      return Right(result);
+    } on DioException catch (e) {
+      debugPrint('❌ createTailNumber error: ${e.message}');
+      // 409 Conflict → tail number already exists (backend MAT_AGR_ERR_03403)
+      if (e.response?.statusCode == 409) {
+        return Left(
+          Failure(
+            message: 'Esa matrícula ya existe. Búscala de nuevo para usarla.',
+          ),
+        );
+      }
+      final msg =
+          e.response?.data?['message']?.toString() ??
+          e.message ??
+          'No se pudo guardar la matrícula';
+      return Left(Failure(message: msg));
+    } catch (e) {
+      debugPrint('❌ createTailNumber unexpected: $e');
+      return Left(Failure(message: e.toString()));
+    }
+  }
 }

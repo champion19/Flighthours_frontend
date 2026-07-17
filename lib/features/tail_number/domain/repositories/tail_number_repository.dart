@@ -6,4 +6,9 @@ import 'package:flight_hours_app/features/tail_number/domain/entities/tail_numbe
 abstract class TailNumberRepository {
   Future<Either<Failure, List<TailNumberEntity>>> listTailNumbers();
   Future<Either<Failure, TailNumberEntity>> getTailNumberByPlate(String plate);
+  Future<Either<Failure, TailNumberEntity>> createTailNumber({
+    required String tailNumber,
+    required String aircraftModelId,
+    required String airlineId,
+  });
 }

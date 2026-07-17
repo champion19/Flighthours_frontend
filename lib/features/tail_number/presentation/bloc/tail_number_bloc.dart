@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/features/aircraft_model/domain/usecases/get_aircraft_model_by_id_use_case.dart';
+import 'package:flight_hours_app/features/tail_number/domain/usecases/create_tail_number_use_case.dart';
 import 'package:flight_hours_app/features/tail_number/domain/usecases/get_tail_number_by_plate_use_case.dart';
 import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_event.dart';
 import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_state.dart';
@@ -16,14 +17,18 @@ import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_num
 class TailNumberBloc extends Bloc<TailNumberEvent, TailNumberState> {
   final GetTailNumberByPlateUseCase _getTailNumberByPlateUseCase;
   final GetAircraftModelByIdUseCase _getAircraftModelByIdUseCase;
+  final CreateTailNumberUseCase _createTailNumberUseCase;
 
   TailNumberBloc()
     : _getTailNumberByPlateUseCase =
           InjectorApp.resolve<GetTailNumberByPlateUseCase>(),
       _getAircraftModelByIdUseCase =
           InjectorApp.resolve<GetAircraftModelByIdUseCase>(),
+      _createTailNumberUseCase =
+          InjectorApp.resolve<CreateTailNumberUseCase>(),
       super(TailNumberInitial()) {
     on<SearchTailNumber>(_onSearch);
+    on<CreateTailNumber>(_onCreate);
     on<ResetTailNumber>(_onReset);
   }
 
@@ -50,6 +55,42 @@ class TailNumberBloc extends Bloc<TailNumberEvent, TailNumberState> {
             (_) => emit(
               TailNumberSuccess(plate),
             ), // Show plate even if model fails
+            (aircraftModel) =>
+                emit(TailNumberSuccess(plate, aircraftModel: aircraftModel)),
+          );
+        } else {
+          emit(TailNumberSuccess(plate));
+        }
+      },
+    );
+  }
+
+  /// Create a new tail number → on success behave like a successful search
+  /// (emit TailNumberSuccess with plate + aircraft model) so the lookup page
+  /// shows the result and the "Save Flight" button appears.
+  Future<void> _onCreate(
+    CreateTailNumber event,
+    Emitter<TailNumberState> emit,
+  ) async {
+    emit(TailNumberLoading());
+
+    final createResult = await _createTailNumberUseCase.call(
+      tailNumber: event.tailNumber,
+      aircraftModelId: event.aircraftModelId,
+      airlineId: event.airlineId,
+    );
+
+    await createResult.fold(
+      (failure) async => emit(TailNumberError(failure.message)),
+      (plate) async {
+        // Chain aircraft model fetch to show full info (same as search)
+        if (plate.aircraftModelId != null &&
+            plate.aircraftModelId!.isNotEmpty) {
+          final modelResult = await _getAircraftModelByIdUseCase.call(
+            plate.aircraftModelId!,
+          );
+          modelResult.fold(
+            (_) => emit(TailNumberSuccess(plate)),
             (aircraftModel) =>
                 emit(TailNumberSuccess(plate, aircraftModel: aircraftModel)),
           );
