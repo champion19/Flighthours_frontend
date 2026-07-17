@@ -123,6 +123,8 @@ class _$InjectorApp extends InjectorApp {
           (c) => ListTailNumbersUseCase(c.resolve<TailNumberRepository>()))
       ..registerFactory(
           (c) => GetTailNumberByPlateUseCase(c.resolve<TailNumberRepository>()))
+      ..registerFactory(
+          (c) => CreateTailNumberUseCase(c.resolve<TailNumberRepository>()))
       ..registerFactory<TailNumberRepository>((c) =>
           TailNumberRepositoryImpl(c.resolve<TailNumberRemoteDataSource>()))
       ..registerFactory<TailNumberRemoteDataSource>(

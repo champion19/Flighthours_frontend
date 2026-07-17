@@ -7,6 +7,11 @@ import 'package:flight_hours_app/features/tail_number/data/models/tail_number_mo
 abstract class TailNumberRemoteDataSource {
   Future<List<TailNumberModel>> listTailNumbers();
   Future<TailNumberModel> getTailNumberByPlate(String plate);
+  Future<TailNumberModel> createTailNumber({
+    required String tailNumber,
+    required String aircraftModelId,
+    required String airlineId,
+  });
 }
 
 /// Implementation of [TailNumberRemoteDataSource] using Dio
@@ -41,6 +46,40 @@ class TailNumberRemoteDataSourceImpl implements TailNumberRemoteDataSource {
     final decoded = response.data;
 
     debugPrint('🔍 getTailNumberByPlate response: $decoded');
+
+    if (decoded is Map<String, dynamic>) {
+      if (decoded.containsKey('data') &&
+          decoded['data'] is Map<String, dynamic>) {
+        return TailNumberModel.fromJson(
+          decoded['data'] as Map<String, dynamic>,
+        );
+      }
+      return TailNumberModel.fromJson(decoded);
+    }
+
+    throw Exception('Unexpected response format');
+  }
+
+  @override
+  Future<TailNumberModel> createTailNumber({
+    required String tailNumber,
+    required String aircraftModelId,
+    required String airlineId,
+  }) async {
+    // POST /tail-numbers — creates a new aircraft registration.
+    // aircraft_model_id / airline_id are the obfuscated IDs from the
+    // /aircraft-models and /airlines listings, sent as-is.
+    final response = await _dio.post(
+      '/tail-numbers',
+      data: {
+        'tail_number': tailNumber,
+        'aircraft_model_id': aircraftModelId,
+        'airline_id': airlineId,
+      },
+    );
+    final decoded = response.data;
+
+    debugPrint('✅ createTailNumber response: $decoded');
 
     if (decoded is Map<String, dynamic>) {
       if (decoded.containsKey('data') &&

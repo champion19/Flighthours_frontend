@@ -61,7 +61,8 @@ class _NewFlightPageState extends State<NewFlightPage> {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic> && args.isNotEmpty) {
       // Only enter edit mode if actual flight data is present
-      final hasFlightData = args.containsKey('flight_number') ||
+      final hasFlightData =
+          args.containsKey('flight_number') ||
           args.containsKey('detail_id') ||
           args.containsKey('flight_real_date');
       if (hasFlightData) {
