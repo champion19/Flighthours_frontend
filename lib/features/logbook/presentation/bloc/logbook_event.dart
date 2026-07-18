@@ -126,7 +126,9 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   final String? airTime;
   final String? blockTime;
   final String? dutyTime;
-  final String? approachType;
+  final String? approachCategory;
+  final String? approachSubtype;
+  final bool? autoland;
   final String? flightType;
 
   const UpdateLogbookDetailEvent({
@@ -143,7 +145,9 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     this.airTime,
     this.blockTime,
     this.dutyTime,
-    this.approachType,
+    this.approachCategory,
+    this.approachSubtype,
+    this.autoland,
     this.flightType,
   });
 
@@ -162,7 +166,9 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     airTime,
     blockTime,
     dutyTime,
-    approachType,
+    approachCategory,
+    approachSubtype,
+    autoland,
     flightType,
   ];
 }

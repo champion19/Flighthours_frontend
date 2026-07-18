@@ -393,7 +393,9 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       airTime: event.airTime,
       blockTime: event.blockTime,
       dutyTime: event.dutyTime,
-      approachType: event.approachType,
+      approachCategory: event.approachCategory,
+      approachSubtype: event.approachSubtype,
+      autoland: event.autoland,
       flightType: event.flightType,
     );
 

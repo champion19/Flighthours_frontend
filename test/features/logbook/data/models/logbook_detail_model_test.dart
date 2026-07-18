@@ -29,7 +29,9 @@ void main() {
         'air_time': '00:29:00',
         'block_time': '00:50:00',
         'duty_time': '10:14:00',
-        'approach_type': 'VISUAL',
+        'approach_category': 'ILS',
+        'approach_subtype': 'CAT I',
+        'autoland': true,
         'flight_type': 'Comercial',
         'log_date': '2026-01-07T00:00:00-05:00',
       };
@@ -58,7 +60,9 @@ void main() {
       expect(result.airTime, equals('00:29:00'));
       expect(result.blockTime, equals('00:50:00'));
       expect(result.dutyTime, equals('10:14:00'));
-      expect(result.approachType, equals('VISUAL'));
+      expect(result.approachCategory, equals('ILS'));
+      expect(result.approachSubtype, equals('CAT I'));
+      expect(result.autoland, isTrue);
       expect(result.flightType, equals('Comercial'));
     });
 
@@ -143,7 +147,8 @@ void main() {
         airTime: '00:29:00',
         blockTime: '00:50:00',
         dutyTime: '10:14:00',
-        approachType: 'VISUAL',
+        approachCategory: 'ILS',
+        approachSubtype: 'CAT I',
         flightType: 'Comercial',
       );
 
@@ -188,7 +193,7 @@ void main() {
         airTime: '00:29:00',
         blockTime: '00:50:00',
         dutyTime: '10:14:00',
-        approachType: 'VISUAL',
+        approachCategory: 'VISUAL',
         flightType: 'Comercial',
       );
 

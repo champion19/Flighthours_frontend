@@ -48,8 +48,10 @@ abstract class LogbookRepository {
     required String airTime,
     required String blockTime,
     required String dutyTime,
-    required String approachType,
+    required String approachCategory,
     required String flightType,
+    String? approachSubtype,
+    bool? autoland,
   });
 
   Future<Either<Failure, LogbookDetailEntity>> updateLogbookDetail({
@@ -69,7 +71,9 @@ abstract class LogbookRepository {
     String? airTime,
     String? blockTime,
     String? dutyTime,
-    String? approachType,
+    String? approachCategory,
+    String? approachSubtype,
+    bool? autoland,
     String? flightType,
   });
 
