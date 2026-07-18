@@ -527,7 +527,7 @@ class _HelloEmployeeState extends State<HelloEmployee> {
           pilotRole: flight.pilotRole,
           companionName: flight.companionName,
           passengers: flight.passengers,
-          approachType: flight.approachType,
+          approachCategory: flight.approachType,
           flightType: flight.flightType,
         );
         await Navigator.pushNamed(

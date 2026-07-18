@@ -375,7 +375,7 @@ void main() {
           airTime: '00:45',
           blockTime: '01:10',
           dutyTime: '08:00',
-          approachType: 'ILS',
+          approachCategory: 'ILS',
           flightType: 'Commercial',
         );
 
@@ -415,7 +415,7 @@ void main() {
           airTime: '00:45',
           blockTime: '01:10',
           dutyTime: '08:00',
-          approachType: 'ILS',
+          approachCategory: 'ILS',
           flightType: 'C',
         );
         expect(result, isA<Left>());
@@ -444,7 +444,7 @@ void main() {
           airTime: '00:45',
           blockTime: '01:10',
           dutyTime: '08:00',
-          approachType: 'ILS',
+          approachCategory: 'ILS',
           flightType: 'C',
         );
         expect(result, isA<Left>());
@@ -477,7 +477,7 @@ void main() {
           airTime: '00:45',
           blockTime: '01:10',
           dutyTime: '08:00',
-          approachType: 'VISUAL',
+          approachCategory: 'VISUAL',
           flightType: 'Commercial',
         );
 

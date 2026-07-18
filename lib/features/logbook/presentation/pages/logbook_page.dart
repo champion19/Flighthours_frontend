@@ -904,7 +904,7 @@ class _LogbookPageState extends State<LogbookPage> {
             _buildDetailRow('Aircraft', detail.aircraftDisplay),
             _buildDetailRow('Passengers', '${detail.passengers ?? 0}'),
             _buildDetailRow('Flight Type', detail.flightType ?? 'N/A'),
-            _buildDetailRow('Approach', detail.approachType ?? 'N/A'),
+            _buildDetailRow('Approach', detail.approachDisplay),
 
             const SizedBox(height: 16),
             const Text(

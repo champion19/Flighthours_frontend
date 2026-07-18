@@ -27,7 +27,9 @@ class UpdateLogbookDetailUseCase {
     String? airTime,
     String? blockTime,
     String? dutyTime,
-    String? approachType,
+    String? approachCategory,
+    String? approachSubtype,
+    bool? autoland,
     String? flightType,
   }) async {
     return await _repository.updateLogbookDetail(
@@ -47,7 +49,9 @@ class UpdateLogbookDetailUseCase {
       airTime: airTime,
       blockTime: blockTime,
       dutyTime: dutyTime,
-      approachType: approachType,
+      approachCategory: approachCategory,
+      approachSubtype: approachSubtype,
+      autoland: autoland,
       flightType: flightType,
     );
   }

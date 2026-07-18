@@ -693,7 +693,7 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
       pilotRole: flight.pilotRole,
       companionName: flight.companionName,
       passengers: flight.passengers,
-      approachType: flight.approachType,
+      approachCategory: flight.approachType,
       flightType: flight.flightType,
     );
 

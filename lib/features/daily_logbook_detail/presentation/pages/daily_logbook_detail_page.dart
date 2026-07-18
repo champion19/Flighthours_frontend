@@ -30,7 +30,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   // Dropdown selections
   String? _selectedCrewRole; // Captain / Copilot
   String? _selectedPilotRole; // PF / PNF / PFL / PFTO
-  String? _selectedApproachType;
+  String? _selectedApproachCategory;
+  String? _selectedApproachSubtype;
+  bool _autoland = false;
   String? _selectedFlightType;
 
   // Auto-calculated times
@@ -39,7 +41,11 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
 
   final List<String> _crewRoles = ['captain', 'first officer'];
   final List<String> _pilotRoles = ['PF', 'PM', 'PFTO', 'PFL'];
-  final List<String> _approachTypes = ['APV', 'VISUAL'];
+  final List<String> _approachCategories = ['RNP', 'ILS', 'VISUAL'];
+  final Map<String, List<String>> _approachSubtypesByCategory = {
+    'RNP': ['LNAV', 'LNAV/VNAV', 'RNP AR = 0.3', 'RNP AR < 0.3'],
+    'ILS': ['CAT I', 'CAT II', 'CAT III > 175', 'CAT III < 175'],
+  };
   final List<String> _flightTypes = [
     'COMMERCIAL',
     'TRAINING',
@@ -60,7 +66,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   bool _hasChanges = false; // Tracks if user modified any field
 
   /// Per-field validation errors — keys match field labels (OUT, OFF, ON, IN,
-  /// PAX, Companion, CrewRole, PilotRole, ApproachType, FlightType, AirTime, BlockTime)
+  /// PAX, Companion, CrewRole, PilotRole, ApproachCategory, ApproachSubtype, FlightType, AirTime, BlockTime)
   Map<String, String> _fieldErrors = {};
 
   @override
@@ -140,9 +146,19 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       _selectedCrewRole = 'captain';
     }
 
-    // Approach type
-    if (d.approachType != null && _approachTypes.contains(d.approachType)) {
-      _selectedApproachType = d.approachType;
+    // Approach category + subtype
+    if (d.approachCategory != null &&
+        _approachCategories.contains(d.approachCategory)) {
+      _selectedApproachCategory = d.approachCategory;
+      final allowedSubtypes = _approachSubtypesByCategory[d.approachCategory];
+      if (allowedSubtypes != null &&
+          d.approachSubtype != null &&
+          allowedSubtypes.contains(d.approachSubtype)) {
+        _selectedApproachSubtype = d.approachSubtype;
+      }
+      if (d.approachCategory == 'ILS') {
+        _autoland = d.autoland ?? false;
+      }
     }
 
     // Flight type
@@ -386,22 +402,53 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Approach Type ──
+                  // ── Approach Category ──
                   _buildSectionLabel('Approach Type'),
                   const SizedBox(height: 8),
                   _buildDropdownCard(
-                    fieldKey: 'ApproachType',
+                    fieldKey: 'ApproachCategory',
                     icon: Icons.flight_land,
                     label: 'Select approach',
-                    value: _selectedApproachType,
-                    items: _approachTypes,
+                    value: _selectedApproachCategory,
+                    items: _approachCategories,
                     onChanged:
                         (v) => setState(() {
-                          _selectedApproachType = v;
+                          _selectedApproachCategory = v;
+                          _selectedApproachSubtype = null;
+                          if (v != 'ILS') _autoland = false;
                           _hasChanges = true;
-                          _fieldErrors.remove('ApproachType');
+                          _fieldErrors.remove('ApproachCategory');
+                          _fieldErrors.remove('ApproachSubtype');
                         }),
                   ),
+
+                  // ── Approach Subtype (only for RNP / ILS) ──
+                  if (_selectedApproachCategory != null &&
+                      _approachSubtypesByCategory.containsKey(
+                        _selectedApproachCategory,
+                      )) ...[
+                    const SizedBox(height: 12),
+                    _buildDropdownCard(
+                      fieldKey: 'ApproachSubtype',
+                      icon: Icons.rule,
+                      label: 'Select specific procedure',
+                      value: _selectedApproachSubtype,
+                      items:
+                          _approachSubtypesByCategory[_selectedApproachCategory]!,
+                      onChanged:
+                          (v) => setState(() {
+                            _selectedApproachSubtype = v;
+                            _hasChanges = true;
+                            _fieldErrors.remove('ApproachSubtype');
+                          }),
+                    ),
+                  ],
+
+                  // ── Autoland (only for ILS) ──
+                  if (_selectedApproachCategory == 'ILS') ...[
+                    const SizedBox(height: 12),
+                    _buildAutolandCheckbox(),
+                  ],
                   const SizedBox(height: 24),
 
                   // ── Flight Type ──
@@ -512,7 +559,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 pilotRole: _detail!.pilotRole,
                 companionName: _detail!.companionName,
                 passengers: _detail!.passengers,
-                approachType: _detail!.approachType,
+                approachCategory: _detail!.approachCategory,
+                approachSubtype: _detail!.approachSubtype,
+                autoland: _detail!.autoland,
                 flightType: _detail!.flightType,
               );
               _isEditMode = true;
@@ -869,6 +918,46 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   }
 
   // ══════════════════════════════════════════════════════════════
+  //  AUTOLAND CHECKBOX — only shown when Approach Category is ILS
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildAutolandCheckbox() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFe9ecef)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: CheckboxListTile(
+        value: _autoland,
+        onChanged:
+            (v) => setState(() {
+              _autoland = v ?? false;
+              _hasChanges = true;
+            }),
+        title: const Text(
+          'Autoland',
+          style: TextStyle(
+            color: Color(0xFF1a1a2e),
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        activeColor: const Color(0xFF4facfe),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
   //  DROPDOWN CARDS — Captain/Copilot, PF/PNF
   // ══════════════════════════════════════════════════════════════
   Widget _buildDropdownCard({
@@ -1218,10 +1307,28 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       }
     }
 
-    // 8. Approach type (optional)
-    if (_selectedApproachType != null &&
-        !_approachTypes.contains(_selectedApproachType)) {
-      errors['ApproachType'] = 'Invalid: ${_approachTypes.join(", ")}';
+    // 8. Approach category + subtype + autoland (optional)
+    if (_selectedApproachCategory != null &&
+        !_approachCategories.contains(_selectedApproachCategory)) {
+      errors['ApproachCategory'] =
+          'Invalid: ${_approachCategories.join(", ")}';
+    } else {
+      final allowedSubtypes =
+          _approachSubtypesByCategory[_selectedApproachCategory];
+      if (allowedSubtypes != null) {
+        // RNP / ILS require a subtype
+        if (_selectedApproachSubtype == null ||
+            !allowedSubtypes.contains(_selectedApproachSubtype)) {
+          errors['ApproachSubtype'] =
+              'Select one of: ${allowedSubtypes.join(", ")}';
+        }
+      } else if (_selectedApproachSubtype != null) {
+        // VISUAL (or no category) must not carry a subtype
+        errors['ApproachSubtype'] = 'Not applicable for this approach type';
+      }
+    }
+    if (_autoland && _selectedApproachCategory != 'ILS') {
+      errors['ApproachCategory'] = 'Autoland only applies to ILS approaches';
     }
 
     // 9. Flight type (optional)
@@ -1312,7 +1419,9 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         airTime: _calculatedAirTime != '--:--' ? _calculatedAirTime : null,
         blockTime:
             _calculatedBlockTime != '--:--' ? _calculatedBlockTime : null,
-        approachType: _selectedApproachType,
+        approachCategory: _selectedApproachCategory,
+        approachSubtype: _selectedApproachSubtype,
+        autoland: _selectedApproachCategory == 'ILS' ? _autoland : null,
         flightType: _selectedFlightType,
       ),
     );
