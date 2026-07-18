@@ -157,7 +157,7 @@ void main() {
         crewRole: 'Captain',
       );
       expect(event, isA<LogbookEvent>());
-      expect(event.props.length, equals(15));
+      expect(event.props.length, equals(17));
       expect(event.originalDetail.id, 'd1');
       expect(event.passengers, 150);
     });
@@ -950,7 +950,9 @@ void main() {
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
             dutyTime: any(named: 'dutyTime'),
-            approachType: any(named: 'approachType'),
+            approachCategory: any(named: 'approachCategory'),
+            approachSubtype: any(named: 'approachSubtype'),
+            autoland: any(named: 'autoland'),
             flightType: any(named: 'flightType'),
           ),
         ).thenAnswer((_) async => const Right(LogbookDetailEntity(id: 'd1')));
@@ -994,7 +996,9 @@ void main() {
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
             dutyTime: any(named: 'dutyTime'),
-            approachType: any(named: 'approachType'),
+            approachCategory: any(named: 'approachCategory'),
+            approachSubtype: any(named: 'approachSubtype'),
+            autoland: any(named: 'autoland'),
             flightType: any(named: 'flightType'),
           ),
         ).thenAnswer(

@@ -158,8 +158,10 @@ class LogbookRepositoryImpl implements LogbookRepository {
     required String airTime,
     required String blockTime,
     required String dutyTime,
-    required String approachType,
+    required String approachCategory,
     required String flightType,
+    String? approachSubtype,
+    bool? autoland,
   }) async {
     try {
       final data = LogbookDetailModel.createRequest(
@@ -177,7 +179,9 @@ class LogbookRepositoryImpl implements LogbookRepository {
         airTime: airTime,
         blockTime: blockTime,
         dutyTime: dutyTime,
-        approachType: approachType,
+        approachCategory: approachCategory,
+        approachSubtype: approachSubtype,
+        autoland: autoland,
         flightType: flightType,
       );
 
@@ -212,7 +216,9 @@ class LogbookRepositoryImpl implements LogbookRepository {
     String? airTime,
     String? blockTime,
     String? dutyTime,
-    String? approachType,
+    String? approachCategory,
+    String? approachSubtype,
+    bool? autoland,
     String? flightType,
   }) async {
     try {
@@ -232,7 +238,9 @@ class LogbookRepositoryImpl implements LogbookRepository {
         airTime: airTime,
         blockTime: blockTime,
         dutyTime: dutyTime,
-        approachType: approachType,
+        approachCategory: approachCategory,
+        approachSubtype: approachSubtype,
+        autoland: autoland,
         flightType: flightType,
       );
 

@@ -39,7 +39,9 @@ class LogbookDetailEntity extends Equatable {
 
   // Flight details
   final int? passengers;
-  final String? approachType; // NPA, PA, APV, VISUAL
+  final String? approachCategory; // RNP, ILS, VISUAL
+  final String? approachSubtype; // e.g. LNAV, CAT I — null for VISUAL
+  final bool? autoland; // only meaningful when approachCategory is ILS
   final String? flightType; // Comercial, Training, etc.
 
   const LogbookDetailEntity({
@@ -67,7 +69,9 @@ class LogbookDetailEntity extends Equatable {
     this.pilotRole,
     this.companionName,
     this.passengers,
-    this.approachType,
+    this.approachCategory,
+    this.approachSubtype,
+    this.autoland,
     this.flightType,
   });
 
@@ -131,6 +135,17 @@ class LogbookDetailEntity extends Equatable {
     return tailNumber ?? modelName ?? 'Unknown Aircraft';
   }
 
+  /// Returns a composed approach display (e.g. "ILS · CAT III < 175 (Autoland)",
+  /// "RNP · LNAV", "VISUAL")
+  String get approachDisplay {
+    if (approachCategory == null || approachCategory!.isEmpty) return 'N/A';
+    if (approachSubtype == null || approachSubtype!.isEmpty) {
+      return approachCategory!;
+    }
+    final autolandSuffix = autoland == true ? ' (Autoland)' : '';
+    return '$approachCategory · $approachSubtype$autolandSuffix';
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -157,7 +172,9 @@ class LogbookDetailEntity extends Equatable {
     pilotRole,
     companionName,
     passengers,
-    approachType,
+    approachCategory,
+    approachSubtype,
+    autoland,
     flightType,
   ];
 }

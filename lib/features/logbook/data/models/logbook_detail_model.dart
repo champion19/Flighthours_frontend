@@ -28,7 +28,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
     super.pilotRole,
     super.companionName,
     super.passengers,
-    super.approachType,
+    super.approachCategory,
+    super.approachSubtype,
+    super.autoland,
     super.flightType,
   });
 
@@ -53,7 +55,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
   ///   "air_time": "00:29:00",
   ///   "block_time": "00:50:00",
   ///   "duty_time": "10:14:00",
-  ///   "approach_type": "VISUAL",
+  ///   "approach_category": "ILS",
+  ///   "approach_subtype": "CAT I",
+  ///   "autoland": false,
   ///   "flight_type": "Comercial",
   ///   "log_date": "2026-01-07T00:00:00-05:00",
   ///   "route_code": "MDE-BOG",
@@ -89,7 +93,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
       pilotRole: json['pilot_role']?.toString(),
       companionName: json['companion_name']?.toString(),
       passengers: _parseInt(json['passengers']),
-      approachType: json['approach_type']?.toString(),
+      approachCategory: json['approach_category']?.toString(),
+      approachSubtype: json['approach_subtype']?.toString(),
+      autoland: json['autoland'] is bool ? json['autoland'] as bool : null,
       flightType: json['flight_type']?.toString(),
     );
   }
@@ -134,7 +140,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (airTime != null) 'air_time': airTime,
       if (blockTime != null) 'block_time': blockTime,
       if (dutyTime != null) 'duty_time': dutyTime,
-      if (approachType != null) 'approach_type': approachType,
+      if (approachCategory != null) 'approach_category': approachCategory,
+      if (approachSubtype != null) 'approach_subtype': approachSubtype,
+      if (autoland != null) 'autoland': autoland,
       if (flightType != null) 'flight_type': flightType,
     };
   }
@@ -160,8 +168,10 @@ class LogbookDetailModel extends LogbookDetailEntity {
     required String airTime,
     required String blockTime,
     required String dutyTime,
-    required String approachType,
+    required String approachCategory,
     required String flightType,
+    String? approachSubtype,
+    bool? autoland,
   }) {
     return {
       'flight_real_date': flightRealDate,
@@ -178,7 +188,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
       'air_time': airTime,
       'block_time': blockTime,
       'duty_time': dutyTime,
-      'approach_type': approachType,
+      'approach_category': approachCategory,
+      if (approachSubtype != null) 'approach_subtype': approachSubtype,
+      if (autoland != null) 'autoland': autoland,
       'flight_type': flightType,
     };
   }
@@ -201,7 +213,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
     String? airTime,
     String? blockTime,
     String? dutyTime,
-    String? approachType,
+    String? approachCategory,
+    String? approachSubtype,
+    bool? autoland,
     String? flightType,
   }) {
     final map = <String, dynamic>{
@@ -244,8 +258,14 @@ class LogbookDetailModel extends LogbookDetailEntity {
     if (dutyTime != null && dutyTime.isNotEmpty) {
       map['duty_time'] = _toHHMM(dutyTime);
     }
-    if (approachType != null && approachType.isNotEmpty) {
-      map['approach_type'] = approachType;
+    if (approachCategory != null && approachCategory.isNotEmpty) {
+      map['approach_category'] = approachCategory;
+    }
+    if (approachSubtype != null && approachSubtype.isNotEmpty) {
+      map['approach_subtype'] = approachSubtype;
+    }
+    if (autoland != null) {
+      map['autoland'] = autoland;
     }
     if (flightType != null && flightType.isNotEmpty) {
       map['flight_type'] = flightType;

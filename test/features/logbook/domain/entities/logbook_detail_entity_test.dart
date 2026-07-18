@@ -174,7 +174,7 @@ void main() {
         pilotRole: 'PM',
       );
 
-      expect(entity.props.length, equals(26));
+      expect(entity.props.length, equals(28));
     });
   });
 }
