@@ -23,6 +23,7 @@ class TailNumberLookupPage extends StatefulWidget {
 class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
   final TextEditingController _controller = TextEditingController();
   bool _isSaving = false;
+  bool _prefillHandled = false;
 
   @override
   void initState() {
@@ -30,6 +31,27 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
     final state = context.read<TailNumberBloc>().state;
     if (state is TailNumberSuccess) {
       _controller.text = state.tailNumber.tailNumber;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_prefillHandled) return;
+    _prefillHandled = true;
+
+    // If this flight belongs to a book page that already has a tail number
+    // (captured once in "New Logbook Entry"), auto-search it so the pilot
+    // doesn't have to type/search it again — they can still change it.
+    if (_controller.text.isEmpty &&
+        context.read<TailNumberBloc>().state is! TailNumberSuccess) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final prefill = args?['prefill_tail_number'] as String?;
+      if (prefill != null && prefill.isNotEmpty) {
+        _controller.text = prefill;
+        context.read<TailNumberBloc>().add(SearchTailNumber(prefill));
+      }
     }
   }
 

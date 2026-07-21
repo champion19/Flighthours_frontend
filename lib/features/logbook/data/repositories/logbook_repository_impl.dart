@@ -64,11 +64,13 @@ class LogbookRepositoryImpl implements LogbookRepository {
   Future<Either<Failure, DailyLogbookEntity>> createDailyLogbook({
     required DateTime logDate,
     required int bookPage,
+    String? tailNumberId,
   }) async {
     try {
       final result = await _remoteDataSource.createDailyLogbook(
         logDate: logDate,
         bookPage: bookPage,
+        tailNumberId: tailNumberId,
       );
       return Right(result!);
     } catch (e) {

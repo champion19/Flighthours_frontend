@@ -60,6 +60,7 @@ class AirportModel extends AirportEntity {
     required super.name,
     super.code,
     super.iataCode,
+    super.oaciCode,
     super.city,
     super.country,
     super.status,
@@ -75,6 +76,7 @@ class AirportModel extends AirportEntity {
       // Support legacy 'code' and new 'iata_code'/'airport_code' field names
       code: json['code'] ?? json['airport_code'] ?? json['iata_code'],
       iataCode: json['iata_code'] ?? json['airport_code'] ?? json['code'],
+      oaciCode: json['oaci_code'],
       city: json['city'],
       country: json['country'],
       status: json['status'],
@@ -89,6 +91,7 @@ class AirportModel extends AirportEntity {
       'name': name,
       'code': code,
       'iata_code': iataCode,
+      'oaci_code': oaciCode,
       'city': city,
       'country': country,
       'status': status,

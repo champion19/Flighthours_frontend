@@ -158,7 +158,12 @@ class _FlightRecordsListPageState extends State<FlightRecordsListPage> {
                   await Navigator.pushNamed(
                     context,
                     '/new-flight',
-                    arguments: {'daily_logbook_id': _logbook?.id},
+                    arguments: {
+                      'daily_logbook_id': _logbook?.id,
+                      // Reuse the tail number already captured for this book
+                      // page (New Logbook Entry) so it isn't asked again.
+                      'prefill_tail_number': _logbook?.tailNumber,
+                    },
                   );
                   // Re-fetch details after returning from add flight flow
                   if (mounted && _logbook != null) {

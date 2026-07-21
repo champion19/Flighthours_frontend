@@ -1,11 +1,17 @@
 import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
+import 'package:flight_hours_app/features/airport/domain/entities/airport_entity.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_bloc.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_event.dart';
+import 'package:flight_hours_app/features/airport/presentation/bloc/airport_state.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
+import 'package:flight_hours_app/features/flight/domain/entities/flight_entity.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_event.dart';
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_state.dart';
+import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,27 +28,45 @@ class NewFlightPage extends StatefulWidget {
 class _NewFlightPageState extends State<NewFlightPage> {
   final _formKey = GlobalKey<FormState>();
   final _flightController = TextEditingController();
-  final _routeSearchController = TextEditingController();
+  final _originSearchController = TextEditingController();
+  final _destinationSearchController = TextEditingController();
   DateTime? _selectedDate;
   AirlineRouteEntity? _selectedRoute;
-  String _routeSearchQuery = '';
   List<AirlineRouteEntity> _airlineRoutes = [];
   bool _isLoadingRoutes = true;
   String? _errorMessage;
 
+  // Origin/destination airport pickers
+  List<AirportEntity> _airports = [];
+  bool _isLoadingAirports = true;
+  AirportEntity? _selectedOrigin;
+  AirportEntity? _selectedDestination;
+  String _originQuery = '';
+  String _destinationQuery = '';
+
   // Logbook ID (fetched automatically)
   String? _logbookId;
+
+  // Tail number already captured for this book page ("New Logbook Entry"),
+  // if any — carried forward so it doesn't need to be asked again.
+  String? _prefillTailNumber;
 
   // Edit mode — data passed from Daily Logbook Detail
   Map<String, dynamic>? _editArgs;
   bool _isEditMode = false;
   bool _initialized = false;
 
+  // True while silently creating the flight with the book page's tail
+  // number, skipping the tail number screen entirely.
+  bool _isSavingWithKnownTailNumber = false;
+
   @override
   void initState() {
     super.initState();
     // Load airline routes for search
     context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+    // Load airports for the origin/destination pickers
+    context.read<AirportBloc>().add(FetchAirports());
     // Fetch logbook ID for the employee
     context.read<FlightBloc>().add(const FetchLogbookId());
   }
@@ -72,6 +96,9 @@ class _NewFlightPageState extends State<NewFlightPage> {
       } else if (args['daily_logbook_id'] != null) {
         // Logbook context only — set the ID without entering edit mode
         _logbookId = args['daily_logbook_id'].toString();
+        if (args['prefill_tail_number'] != null) {
+          _prefillTailNumber = args['prefill_tail_number'].toString();
+        }
       }
     }
   }
@@ -131,10 +158,53 @@ class _NewFlightPageState extends State<NewFlightPage> {
     }
   }
 
+  /// Pre-select origin/destination airports in edit mode once airports are loaded
+  void _tryAutoSelectAirports() {
+    if (_editArgs == null || _airports.isEmpty) return;
+    final origin = _editArgs!['origin_iata_code'];
+    final dest = _editArgs!['destination_iata_code'];
+
+    AirportEntity? matchByIata(dynamic iata) {
+      if (iata == null) return null;
+      return _airports.cast<AirportEntity?>().firstWhere(
+        (a) => a!.iataCode == iata,
+        orElse: () => null,
+      );
+    }
+
+    final matchedOrigin = matchByIata(origin);
+    final matchedDest = matchByIata(dest);
+    if (matchedOrigin != null || matchedDest != null) {
+      setState(() {
+        _selectedOrigin ??= matchedOrigin;
+        _selectedDestination ??= matchedDest;
+      });
+    }
+  }
+
+  /// Resolve the selected origin/destination airport pair against the
+  /// already-loaded airline routes for this employee. Airline routes are
+  /// preconfigured by the admin, so this only picks an existing route —
+  /// it never creates one.
+  void _tryResolveRoute() {
+    if (_selectedOrigin == null || _selectedDestination == null) {
+      setState(() => _selectedRoute = null);
+      return;
+    }
+    final match = _airlineRoutes.cast<AirlineRouteEntity?>().firstWhere(
+      (r) =>
+          r!.originAirportCode == _selectedOrigin!.iataCode &&
+          r.destinationAirportCode == _selectedDestination!.iataCode,
+      orElse: () => null,
+    );
+    setState(() => _selectedRoute = match);
+  }
+
   @override
   void dispose() {
     _flightController.dispose();
-    _routeSearchController.dispose();
+    _originSearchController.dispose();
+    _destinationSearchController.dispose();
     super.dispose();
   }
 
@@ -173,6 +243,40 @@ class _NewFlightPageState extends State<NewFlightPage> {
               setState(() {
                 _logbookId = state.logbookId;
               });
+            } else if (_isSavingWithKnownTailNumber) {
+              if (state is FlightCreated) {
+                setState(() => _isSavingWithKnownTailNumber = false);
+                _navigateToDetailAfterCreate(state.flight);
+              } else if (state is FlightError) {
+                setState(() => _isSavingWithKnownTailNumber = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: const Color(0xFFe17055),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+        BlocListener<AirportBloc, AirportState>(
+          listener: (context, state) {
+            if (state is AirportSuccess) {
+              setState(() {
+                _airports = state.airports;
+                _isLoadingAirports = false;
+              });
+              if (_isEditMode) {
+                _tryAutoSelectAirports();
+              }
+            } else if (state is AirportLoading) {
+              setState(() => _isLoadingAirports = true);
+            } else if (state is AirportError) {
+              setState(() => _isLoadingAirports = false);
             }
           },
         ),
@@ -209,9 +313,9 @@ class _NewFlightPageState extends State<NewFlightPage> {
                       const SizedBox(height: 20),
                       _buildDateField(),
                       const SizedBox(height: 20),
-                      _buildRouteSearchField(),
-                      const SizedBox(height: 20),
-                      _buildRouteResultsArea(),
+                      _buildOriginDestinationFields(),
+                      const SizedBox(height: 16),
+                      _buildRouteResolutionArea(),
                       const SizedBox(height: 32),
                       _buildContinueButton(),
                     ],
@@ -352,7 +456,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
     );
   }
 
-  Widget _buildRouteSearchField() {
+  Widget _buildOriginDestinationFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -366,75 +470,327 @@ class _NewFlightPageState extends State<NewFlightPage> {
         ),
         const SizedBox(height: 8),
         Container(
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFe0e0e0)),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: TextField(
-            controller: _routeSearchController,
-            textCapitalization: TextCapitalization.characters,
-            inputFormatters: [_UpperCaseTextFormatter()],
-            onChanged: (value) {
-              setState(() => _routeSearchQuery = value);
-            },
-            decoration: InputDecoration(
-              hintText: 'Search route...',
-              hintStyle: const TextStyle(color: Color(0xFF6c757d)),
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF6c757d)),
-              suffixIcon:
-                  _routeSearchQuery.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear, color: Color(0xFF6c757d)),
-                        onPressed: () {
-                          _routeSearchController.clear();
-                          setState(() => _routeSearchQuery = '');
-                        },
-                      )
-                      : null,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _buildAirportPicker(
+                  hint: 'Ingrese origen',
+                  controller: _originSearchController,
+                  query: _originQuery,
+                  selected: _selectedOrigin,
+                  onChanged: (value) => setState(() => _originQuery = value),
+                  onSelect: (airport) {
+                    setState(() {
+                      _selectedOrigin = airport;
+                      _originSearchController.clear();
+                      _originQuery = '';
+                    });
+                    _tryResolveRoute();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _selectedOrigin = null;
+                      _selectedRoute = null;
+                    });
+                  },
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildAirportPicker(
+                  hint: 'Ingrese destino',
+                  controller: _destinationSearchController,
+                  query: _destinationQuery,
+                  selected: _selectedDestination,
+                  onChanged:
+                      (value) => setState(() => _destinationQuery = value),
+                  onSelect: (airport) {
+                    setState(() {
+                      _selectedDestination = airport;
+                      _destinationSearchController.clear();
+                      _destinationQuery = '';
+                    });
+                    _tryResolveRoute();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _selectedDestination = null;
+                      _selectedRoute = null;
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRouteResultsArea() {
-    // Filter routes by search query
-    final filteredRoutes =
-        _routeSearchQuery.isEmpty
-            ? _airlineRoutes
-            : _airlineRoutes.where((route) {
-              final origin = (route.originAirportCode ?? '').toLowerCase();
-              final dest = (route.destinationAirportCode ?? '').toLowerCase();
-              final airlineName = (route.airlineName ?? '').toLowerCase();
-              final routeCode =
-                  '${route.originAirportCode ?? ''}-${route.destinationAirportCode ?? ''}'
-                      .toLowerCase();
-              final query = _routeSearchQuery.toLowerCase();
-              return origin.contains(query) ||
-                  dest.contains(query) ||
-                  airlineName.contains(query) ||
-                  routeCode.contains(query);
+  Widget _buildAirportPicker({
+    required String hint,
+    required TextEditingController controller,
+    required String query,
+    required AirportEntity? selected,
+    required ValueChanged<String> onChanged,
+    required ValueChanged<AirportEntity> onSelect,
+    required VoidCallback onClear,
+  }) {
+    if (selected != null) {
+      return _buildSelectedAirportChip(selected, onClear);
+    }
+
+    final filtered =
+        query.isEmpty
+            ? const <AirportEntity>[]
+            : _airports.where((a) {
+              final q = query.toLowerCase();
+              return (a.iataCode ?? '').toLowerCase().contains(q) ||
+                  (a.oaciCode ?? '').toLowerCase().contains(q) ||
+                  a.name.toLowerCase().contains(q) ||
+                  (a.city ?? '').toLowerCase().contains(q);
             }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Show selected route if any
-        if (_selectedRoute != null) ...[
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: controller,
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [_UpperCaseTextFormatter()],
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(
+                color: Color(0xFF6c757d),
+                fontSize: 13,
+              ),
+              prefixIcon: const Icon(
+                Icons.search,
+                size: 18,
+                color: Color(0xFF6c757d),
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ),
+        if (query.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            constraints: const BoxConstraints(maxHeight: 160),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFe0e0e0)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child:
+                _isLoadingAirports
+                    ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Center(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF4facfe),
+                          ),
+                        ),
+                      ),
+                    )
+                    : filtered.isEmpty
+                    ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Text(
+                        'No airports found',
+                        style: TextStyle(
+                          color: Color(0xFF6c757d),
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                    : ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: filtered.length,
+                      itemBuilder:
+                          (context, index) =>
+                              _buildAirportListItem(filtered[index], onSelect),
+                    ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAirportListItem(
+    AirportEntity airport,
+    ValueChanged<AirportEntity> onSelect,
+  ) {
+    return InkWell(
+      onTap: () => onSelect(airport),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFe9ecef))),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _airportLocationLabel(airport),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1a1a2e),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              _airportSecondaryLabel(airport),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF6c757d)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedAirportChip(AirportEntity airport, VoidCallback onClear) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _airportLocationLabel(airport),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Color(0xFF1a1a2e),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  _airportSecondaryLabel(airport),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF6c757d),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: onClear,
+            child: const Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Icon(Icons.close, size: 16, color: Color(0xFF6c757d)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "City, IATA - Country" — falls back to the airport name for whichever
+  /// piece isn't populated yet (e.g. before the city/country migration ran).
+  String _airportLocationLabel(AirportEntity airport) {
+    final city = (airport.city ?? '').isNotEmpty ? airport.city! : airport.name;
+    final iata = airport.iataCode ?? '---';
+    if ((airport.country ?? '').isNotEmpty) {
+      return '$city, $iata - ${airport.country}';
+    }
+    return '$city, $iata';
+  }
+
+  /// Airport name plus OACI code when available, e.g. "El Dorado · OACI SKBO".
+  String _airportSecondaryLabel(AirportEntity airport) {
+    if ((airport.oaciCode ?? '').isNotEmpty) {
+      return '${airport.name} · OACI ${airport.oaciCode}';
+    }
+    return airport.name;
+  }
+
+  Widget _buildRouteResolutionArea() {
+    if (_isLoadingRoutes || _isLoadingAirports) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFF4facfe)),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFe17055).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFe17055), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(color: Color(0xFFe17055), fontSize: 13),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_selectedRoute != null) {
+      return Column(
+        children: [
           _buildSelectedRouteCard(),
-          const SizedBox(height: 16),
-          // Button to change route
+          const SizedBox(height: 8),
           Center(
             child: TextButton.icon(
               onPressed: () {
                 setState(() {
                   _selectedRoute = null;
+                  _selectedOrigin = null;
+                  _selectedDestination = null;
                 });
               },
               icon: const Icon(Icons.swap_horiz, size: 18),
@@ -444,177 +800,34 @@ class _NewFlightPageState extends State<NewFlightPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
         ],
+      );
+    }
 
-        // Routes list with scroll
-        Container(
-          width: double.infinity,
-          height: 250, // Fixed height for scrollable area
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFe0e0e0)),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child:
-              _isLoadingRoutes
-                  ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF4facfe)),
-                  )
-                  : filteredRoutes.isEmpty
-                  ? _buildEmptyRoutesPlaceholder()
-                  : ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: filteredRoutes.length,
-                      itemBuilder: (context, index) {
-                        final route = filteredRoutes[index];
-                        final isSelected = _selectedRoute?.id == route.id;
-                        return _buildRouteListItem(
-                          route,
-                          isSelected: isSelected,
-                        );
-                      },
-                    ),
-                  ),
-        ),
-
-        // Routes count indicator
-        if (!_isLoadingRoutes && filteredRoutes.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              '${filteredRoutes.length} route${filteredRoutes.length != 1 ? 's' : ''} available',
-              style: const TextStyle(color: Color(0xFF6c757d), fontSize: 12),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyRoutesPlaceholder() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _errorMessage != null ? Icons.error_outline : Icons.flight,
-              color:
-                  _errorMessage != null
-                      ? const Color(0xFFe17055)
-                      : const Color(0xFF6c757d),
-              size: 32,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage ??
-                  (_airlineRoutes.isEmpty
-                      ? 'No routes available for your airline'
-                      : 'Search for a route above'),
-              style: TextStyle(
-                color:
-                    _errorMessage != null
-                        ? const Color(0xFFe17055)
-                        : const Color(0xFF6c757d),
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: () {
-                  context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
-                },
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Retry'),
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF4facfe),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRouteListItem(
-    AirlineRouteEntity route, {
-    bool isSelected = false,
-  }) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedRoute = route;
-          _routeSearchController.clear();
-          _routeSearchQuery = '';
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    if (_selectedOrigin != null && _selectedDestination != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF4facfe).withOpacity(0.1) : null,
-          border: const Border(bottom: BorderSide(color: Color(0xFFe9ecef))),
+          color: const Color(0xFFe17055).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.flight,
-              color:
-                  isSelected
-                      ? const Color(0xFF4facfe)
-                      : const Color(0xFF6c757d),
-              size: 20,
-            ),
-            const SizedBox(width: 12),
+            const Icon(Icons.error_outline, color: Color(0xFFe17055), size: 20),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${route.originAirportCode ?? '???'} → ${route.destinationAirportCode ?? '???'}',
-                    style: TextStyle(
-                      color:
-                          isSelected
-                              ? const Color(0xFF4facfe)
-                              : const Color(0xFF1a1a2e),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    route.airlineName ?? 'Unknown Airline',
-                    style: const TextStyle(
-                      color: Color(0xFF6c757d),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color:
-                    isSelected
-                        ? const Color(0xFF4facfe)
-                        : const Color(0xFF4facfe).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                isSelected ? Icons.check : Icons.add,
-                color: isSelected ? Colors.white : const Color(0xFF4facfe),
-                size: 20,
+              child: Text(
+                'No hay ruta configurada para ${_selectedOrigin!.iataCode ?? '???'} → ${_selectedDestination!.iataCode ?? '???'}',
+                style: const TextStyle(color: Color(0xFFe17055), fontSize: 13),
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildSelectedRouteCard() {
@@ -653,12 +866,6 @@ class _NewFlightPageState extends State<NewFlightPage> {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () {
-              setState(() => _selectedRoute = null);
-            },
-          ),
         ],
       ),
     );
@@ -681,7 +888,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
         ],
       ),
       child: ElevatedButton(
-        onPressed: _onContinue,
+        onPressed: _isSavingWithKnownTailNumber ? null : _onContinue,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -690,21 +897,34 @@ class _NewFlightPageState extends State<NewFlightPage> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'CONTINUE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(width: 8),
-            Icon(Icons.arrow_forward, color: Colors.white),
-          ],
-        ),
+        child:
+            _isSavingWithKnownTailNumber
+                ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+                : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isEditMode ? 'SAVE FLIGHT' : 'CONTINUE',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      _isEditMode ? Icons.save : Icons.arrow_forward,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
       ),
     );
   }
@@ -799,6 +1019,40 @@ class _NewFlightPageState extends State<NewFlightPage> {
         flightData['detail_id'] = _editArgs!['detail_id'];
       }
 
+      if (_isEditMode) {
+        // Editing an existing flight: the tail number is fixed at the book
+        // page level (captured once in "New Logbook Entry") and doesn't need
+        // to be looked up/confirmed again — go straight back to Daily
+        // Logbook Detail with the updated flight-level fields. Leaving
+        // tail_number_id/tail_number_name out of this map means
+        // DailyLogbookDetailPage keeps the flight's existing tail number.
+        if (mounted) Navigator.of(context).pop(flightData);
+        return;
+      }
+
+      if (_prefillTailNumber != null) {
+        // The book page already has a tail number (captured once in "New
+        // Logbook Entry") — save the flight directly without showing the
+        // tail number screen at all. A different aircraft would mean a
+        // different book page/logbook, not a per-flight override here.
+        // tail_number_id is intentionally omitted: the backend fills it in
+        // from the parent daily_logbook.
+        setState(() => _isSavingWithKnownTailNumber = true);
+        context.read<FlightBloc>().add(
+          CreateFlight(
+            dailyLogbookId: flightData['daily_logbook_id'] as String,
+            data: {
+              'flight_real_date': flightData['flight_real_date'],
+              'flight_number': flightData['flight_number'],
+              'airline_route_id': flightData['airline_route_id'],
+            },
+          ),
+        );
+        return;
+      }
+
+      // No tail number saved on this book page yet (e.g. an older logbook) —
+      // fall back to the search/create tail number screen.
       final result = await Navigator.pushNamed(
         context,
         '/tail-number',
@@ -810,6 +1064,49 @@ class _NewFlightPageState extends State<NewFlightPage> {
         Navigator.of(context).pop(result);
       }
     }
+  }
+
+  /// Mirrors TailNumberLookupPage._navigateToDetail: after creating the
+  /// flight, replace the navigation stack with the detail form so the pilot
+  /// can fill in times, pilot role, etc.
+  void _navigateToDetailAfterCreate(FlightEntity? flight) {
+    if (flight == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final detail = LogbookDetailEntity(
+      id: flight.id,
+      dailyLogbookId: flight.dailyLogbookId,
+      flightNumber: flight.flightNumber,
+      flightRealDate: flight.flightRealDate,
+      airlineRouteId: flight.airlineRouteId,
+      routeCode: flight.routeCode,
+      originIataCode: flight.originIataCode,
+      destinationIataCode: flight.destinationIataCode,
+      airlineCode: flight.airlineCode,
+      tailNumberId: flight.tailNumberId,
+      tailNumber: flight.tailNumber,
+      modelName: flight.modelName,
+      outTime: flight.outTime,
+      takeoffTime: flight.takeoffTime,
+      landingTime: flight.landingTime,
+      inTime: flight.inTime,
+      airTime: flight.airTime,
+      blockTime: flight.blockTime,
+      pilotRole: flight.pilotRole,
+      companionName: flight.companionName,
+      passengers: flight.passengers,
+      approachCategory: flight.approachType,
+      flightType: flight.flightType,
+    );
+
+    Navigator.of(context).popUntil(
+      (route) => route.isFirst || route.settings.name == '/daily-logbook-detail',
+    );
+    Navigator.of(
+      context,
+    ).pushNamed('/daily-logbook-detail-form', arguments: {'detail': detail});
   }
 }
 

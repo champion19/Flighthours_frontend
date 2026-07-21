@@ -6,6 +6,7 @@ class AirportEntity extends Equatable {
   final String name;
   final String? code; // Legacy field for backwards compatibility
   final String? iataCode; // IATA code (e.g., "MDE", "BOG")
+  final String? oaciCode; // OACI code (e.g., "SKRG", "SKBO")
   final String? city;
   final String? country;
   final String? status; // "active" or "inactive"
@@ -17,6 +18,7 @@ class AirportEntity extends Equatable {
     required this.name,
     this.code,
     this.iataCode,
+    this.oaciCode,
     this.city,
     this.country,
     this.status,
@@ -30,6 +32,7 @@ class AirportEntity extends Equatable {
     name,
     code,
     iataCode,
+    oaciCode,
     city,
     country,
     status,

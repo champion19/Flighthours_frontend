@@ -17,6 +17,7 @@ abstract class LogbookRemoteDataSource {
   Future<DailyLogbookModel?> createDailyLogbook({
     required DateTime logDate,
     required int bookPage,
+    String? tailNumberId,
   });
 
   /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate
@@ -104,6 +105,7 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
   Future<DailyLogbookModel?> createDailyLogbook({
     required DateTime logDate,
     required int bookPage,
+    String? tailNumberId,
   }) async {
     try {
       final response = await _dio.post(
@@ -111,6 +113,7 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
         data: DailyLogbookModel.createRequest(
           logDate: logDate,
           bookPage: bookPage,
+          tailNumberId: tailNumberId,
         ),
       );
       return _parseLogbookFromMap(response.data);

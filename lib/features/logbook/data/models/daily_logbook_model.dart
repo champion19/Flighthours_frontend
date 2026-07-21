@@ -10,6 +10,8 @@ class DailyLogbookModel extends DailyLogbookEntity {
     super.logDate,
     super.bookPage,
     super.status,
+    super.tailNumberId,
+    super.tailNumber,
   });
 
   /// Factory constructor to create DailyLogbookModel from JSON
@@ -31,6 +33,8 @@ class DailyLogbookModel extends DailyLogbookEntity {
       logDate: _parseDate(json['log_date']),
       bookPage: _parseInt(json['book_page']),
       status: _parseBool(json['status']),
+      tailNumberId: json['tail_number_id']?.toString(),
+      tailNumber: json['tail_number']?.toString(),
     );
   }
 
@@ -77,6 +81,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
       if (logDate != null) 'log_date': _formatDate(logDate!),
       if (bookPage != null) 'book_page': bookPage,
       if (status != null) 'status': status,
+      if (tailNumberId != null) 'tail_number_id': tailNumberId,
     };
   }
 
@@ -89,7 +94,12 @@ class DailyLogbookModel extends DailyLogbookEntity {
   static Map<String, dynamic> createRequest({
     required DateTime logDate,
     required int bookPage,
+    String? tailNumberId,
   }) {
-    return {'log_date': _formatDate(logDate), 'book_page': bookPage};
+    return {
+      'log_date': _formatDate(logDate),
+      'book_page': bookPage,
+      if (tailNumberId != null) 'tail_number_id': tailNumberId,
+    };
   }
 }

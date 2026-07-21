@@ -4,7 +4,13 @@ import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
+import 'package:flight_hours_app/features/tail_number/domain/entities/tail_number_entity.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_bloc.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_event.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/bloc/tail_number_state.dart';
+import 'package:flight_hours_app/features/tail_number/presentation/pages/add_tail_number_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -1387,7 +1393,11 @@ class _LogbookPageState extends State<LogbookPage> {
   void _showLogbookFormDialog() {
     final dateController = TextEditingController();
     final bookPageController = TextEditingController();
+    final plateController = TextEditingController();
     DateTime? selectedDate;
+    TailNumberEntity? selectedTailNumber;
+    bool isSearchingTailNumber = false;
+    bool tailNumberNotFound = false;
 
     // Auto-increment: find max book_page from existing logbooks
     final state = context.read<LogbookBloc>().state;
@@ -1401,12 +1411,33 @@ class _LogbookPageState extends State<LogbookPage> {
       bookPageController.text = (maxPage + 1).toString();
     }
 
+    // Start from a clean slate — the TailNumberBloc is a global singleton
+    // also used by the flight-creation flow.
+    context.read<TailNumberBloc>().add(ResetTailNumber());
+
     showDialog(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
+            return BlocListener<TailNumberBloc, TailNumberState>(
+              listener: (context, tailNumberState) {
+                if (tailNumberState is TailNumberSuccess) {
+                  setDialogState(() {
+                    selectedTailNumber = tailNumberState.tailNumber;
+                    isSearchingTailNumber = false;
+                    tailNumberNotFound = false;
+                  });
+                } else if (tailNumberState is TailNumberError) {
+                  setDialogState(() {
+                    isSearchingTailNumber = false;
+                    tailNumberNotFound = true;
+                  });
+                } else if (tailNumberState is TailNumberLoading) {
+                  setDialogState(() => isSearchingTailNumber = true);
+                }
+              },
+              child: AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -1550,6 +1581,201 @@ class _LogbookPageState extends State<LogbookPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    // Tail number field — captured once here and reused for
+                    // every flight added under this book page.
+                    const Text(
+                      'Matrícula (optional)',
+                      style: TextStyle(
+                        color: Color(0xFF6c757d),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (selectedTailNumber != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.airplane_ticket_outlined,
+                              size: 18,
+                              color: Color(0xFF4facfe),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    selectedTailNumber!.tailNumber,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Color(0xFF1a1a2e),
+                                    ),
+                                  ),
+                                  if (selectedTailNumber!.modelName != null)
+                                    Text(
+                                      selectedTailNumber!.modelName!,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF6c757d),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            InkWell(
+                              onTap:
+                                  () => setDialogState(() {
+                                    selectedTailNumber = null;
+                                    tailNumberNotFound = false;
+                                    plateController.clear();
+                                  }),
+                              child: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: Color(0xFF6c757d),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: plateController,
+                              textCapitalization: TextCapitalization.characters,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[a-zA-Z0-9\-]'),
+                                ),
+                                TextInputFormatter.withFunction(
+                                  (oldValue, newValue) => newValue.copyWith(
+                                    text: newValue.text.toUpperCase(),
+                                  ),
+                                ),
+                              ],
+                              decoration: InputDecoration(
+                                hintText: 'e.g. HK-1333',
+                                prefixIcon: const Icon(
+                                  Icons.airplane_ticket_outlined,
+                                  size: 18,
+                                  color: Color(0xFF4facfe),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFe9ecef),
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFe9ecef),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF4facfe),
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              onSubmitted: (_) {
+                                final plate = plateController.text.trim();
+                                if (plate.isNotEmpty) {
+                                  this.context.read<TailNumberBloc>().add(
+                                    SearchTailNumber(plate),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed:
+                                isSearchingTailNumber
+                                    ? null
+                                    : () {
+                                      final plate =
+                                          plateController.text.trim();
+                                      if (plate.isNotEmpty) {
+                                        this.context.read<TailNumberBloc>().add(
+                                          SearchTailNumber(plate),
+                                        );
+                                      }
+                                    },
+                            icon:
+                                isSearchingTailNumber
+                                    ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFF4facfe),
+                                      ),
+                                    )
+                                    : const Icon(
+                                      Icons.search,
+                                      color: Color(0xFF4facfe),
+                                    ),
+                          ),
+                        ],
+                      ),
+                      if (tailNumberNotFound)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Matrícula no encontrada.',
+                                  style: TextStyle(
+                                    color: Color(0xFFe17055),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  final bloc = this.context.read<TailNumberBloc>();
+                                  Navigator.of(this.context).push(
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => BlocProvider.value(
+                                            value: bloc,
+                                            child: AddTailNumberPage(
+                                              initialPlate:
+                                                  plateController.text.trim(),
+                                            ),
+                                          ),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Agregar matrícula'),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               ),
@@ -1598,6 +1824,7 @@ class _LogbookPageState extends State<LogbookPage> {
                       CreateDailyLogbookEvent(
                         logDate: selectedDate!,
                         bookPage: bookPage,
+                        tailNumberId: selectedTailNumber?.id,
                       ),
                     );
                   },
@@ -1618,6 +1845,7 @@ class _LogbookPageState extends State<LogbookPage> {
                   ),
                 ),
               ],
+              ),
             );
           },
         );

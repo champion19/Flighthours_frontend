@@ -238,6 +238,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
     final result = await _createDailyLogbookUseCase.call(
       logDate: event.logDate,
       bookPage: event.bookPage,
+      tailNumberId: event.tailNumberId,
     );
     await result.fold(
       (failure) async {
