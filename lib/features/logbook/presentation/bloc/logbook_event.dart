@@ -73,11 +73,16 @@ class RefreshLogbook extends LogbookEvent {
 class CreateDailyLogbookEvent extends LogbookEvent {
   final DateTime logDate;
   final int? bookPage;
+  final String? tailNumberId;
 
-  const CreateDailyLogbookEvent({required this.logDate, this.bookPage});
+  const CreateDailyLogbookEvent({
+    required this.logDate,
+    this.bookPage,
+    this.tailNumberId,
+  });
 
   @override
-  List<Object?> get props => [logDate, bookPage];
+  List<Object?> get props => [logDate, bookPage, tailNumberId];
 }
 
 /// Event to activate a daily logbook
@@ -115,7 +120,7 @@ class DeleteDailyLogbookEvent extends LogbookEvent {
 class UpdateLogbookDetailEvent extends LogbookEvent {
   final LogbookDetailEntity originalDetail;
   final String dailyLogbookId; // To refresh details after update
-  final int passengers;
+  final int? passengers;
   final String outTime;
   final String takeoffTime;
   final String landingTime;
@@ -134,7 +139,7 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   const UpdateLogbookDetailEvent({
     required this.originalDetail,
     required this.dailyLogbookId,
-    required this.passengers,
+    this.passengers,
     required this.outTime,
     required this.takeoffTime,
     required this.landingTime,
