@@ -767,7 +767,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       child: Column(
         children: [
           _buildInputField(
-            label: 'PAX',
+            label: 'PAX (optional)',
             hint: 'Number of passengers',
             controller: _paxController,
             icon: Icons.people_outline,
@@ -1399,7 +1399,8 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     // Clear errors on successful validation
     setState(() => _fieldErrors = {});
 
-    final pax = int.tryParse(_paxController.text) ?? _detail!.passengers ?? 0;
+    final paxText = _paxController.text.trim();
+    final pax = paxText.isEmpty ? null : int.tryParse(paxText);
 
     context.read<LogbookBloc>().add(
       UpdateLogbookDetailEvent(

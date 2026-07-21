@@ -9,6 +9,8 @@ class DailyLogbookEntity extends Equatable {
   final DateTime? logDate; // Date of the logbook
   final int? bookPage; // Physical page number in the logbook
   final bool? status; // Active/Inactive status
+  final String? tailNumberId; // Tail number used for all flights in this book page
+  final String? tailNumber; // Denormalized plate, for display
 
   const DailyLogbookEntity({
     required this.id,
@@ -17,6 +19,8 @@ class DailyLogbookEntity extends Equatable {
     this.logDate,
     this.bookPage,
     this.status,
+    this.tailNumberId,
+    this.tailNumber,
   });
 
   /// Returns a display-friendly logbook ID
@@ -60,5 +64,14 @@ class DailyLogbookEntity extends Equatable {
   bool get isActive => status ?? true;
 
   @override
-  List<Object?> get props => [id, uuid, employeeId, logDate, bookPage, status];
+  List<Object?> get props => [
+    id,
+    uuid,
+    employeeId,
+    logDate,
+    bookPage,
+    status,
+    tailNumberId,
+    tailNumber,
+  ];
 }

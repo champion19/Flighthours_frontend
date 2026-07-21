@@ -117,7 +117,7 @@ void main() {
         bookPage: 1,
       );
       expect(event, isA<LogbookEvent>());
-      expect(event.props.length, equals(2));
+      expect(event.props.length, equals(3));
       expect(event.logDate, DateTime(2024, 1, 15));
       expect(event.bookPage, 1);
     });

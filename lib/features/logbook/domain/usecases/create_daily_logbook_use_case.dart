@@ -13,10 +13,12 @@ class CreateDailyLogbookUseCase {
   Future<Either<Failure, DailyLogbookEntity>> call({
     required DateTime logDate,
     int? bookPage,
+    String? tailNumberId,
   }) async {
     return await _repository.createDailyLogbook(
       logDate: logDate,
       bookPage: bookPage ?? 1,
+      tailNumberId: tailNumberId,
     );
   }
 }

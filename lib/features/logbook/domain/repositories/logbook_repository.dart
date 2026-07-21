@@ -14,6 +14,7 @@ abstract class LogbookRepository {
   Future<Either<Failure, DailyLogbookEntity>> createDailyLogbook({
     required DateTime logDate,
     required int bookPage,
+    String? tailNumberId,
   });
 
   Future<Either<Failure, bool>> deleteDailyLogbook(String id);
