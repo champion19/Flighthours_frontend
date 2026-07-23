@@ -36,6 +36,12 @@ class _NewFlightPageState extends State<NewFlightPage> {
   bool _isLoadingRoutes = true;
   String? _errorMessage;
 
+  // Set when the origin/destination pair has a physical route but no active
+  // link to the employee's airline yet — the backend auto-creates it as
+  // "pending" and an admin has to approve it before it's usable here.
+  bool _isResolvingRoute = false;
+  AirlineRouteEntity? _pendingRoute;
+
   // Origin/destination airport pickers
   List<AirportEntity> _airports = [];
   bool _isLoadingAirports = true;
@@ -69,6 +75,8 @@ class _NewFlightPageState extends State<NewFlightPage> {
     context.read<AirportBloc>().add(FetchAirports());
     // Fetch logbook ID for the employee
     context.read<FlightBloc>().add(const FetchLogbookId());
+    // Keep the AppBar title (flight number) in sync as the user types
+    _flightController.addListener(() => setState(() {}));
   }
 
   @override
@@ -186,18 +194,60 @@ class _NewFlightPageState extends State<NewFlightPage> {
   /// already-loaded airline routes for this employee. Airline routes are
   /// preconfigured by the admin, so this only picks an existing route —
   /// it never creates one.
+  ///
+  /// Matches by airport ID first — unlike IATA/OACI codes, the ID is always
+  /// present, so this resolves the route regardless of whether the airport
+  /// was searched/selected by its IATA or its OACI code, and even for
+  /// airports that only have an OACI code (no IATA). Falls back to matching
+  /// by IATA code for routes fetched before the airport-ID fields existed.
   void _tryResolveRoute() {
     if (_selectedOrigin == null || _selectedDestination == null) {
-      setState(() => _selectedRoute = null);
+      setState(() {
+        _selectedRoute = null;
+        _pendingRoute = null;
+      });
       return;
     }
-    final match = _airlineRoutes.cast<AirlineRouteEntity?>().firstWhere(
+    final byId = _airlineRoutes.cast<AirlineRouteEntity?>().firstWhere(
       (r) =>
-          r!.originAirportCode == _selectedOrigin!.iataCode &&
-          r.destinationAirportCode == _selectedDestination!.iataCode,
+          r!.originAirportId != null &&
+          r.originAirportId == _selectedOrigin!.id &&
+          r.destinationAirportId == _selectedDestination!.id,
       orElse: () => null,
     );
-    setState(() => _selectedRoute = match);
+    final match =
+        byId ??
+        _airlineRoutes.cast<AirlineRouteEntity?>().firstWhere(
+          (r) =>
+              r!.originAirportCode == _selectedOrigin!.iataCode &&
+              r.destinationAirportCode == _selectedDestination!.iataCode,
+          orElse: () => null,
+        );
+
+    if (match != null) {
+      setState(() {
+        _selectedRoute = match;
+        _pendingRoute = null;
+      });
+      return;
+    }
+
+    // No active link for this airline yet — ask the backend to resolve it.
+    // If a physical route exists for this origin/destination it'll come
+    // back either already usable or freshly auto-created as "pending"; if
+    // no physical route exists at all, this 404s and the UI falls back to
+    // the existing "no route configured" message.
+    setState(() {
+      _selectedRoute = null;
+      _pendingRoute = null;
+      _isResolvingRoute = true;
+    });
+    context.read<EmployeeBloc>().add(
+      ResolveAirlineRoute(
+        originAirportId: _selectedOrigin!.id,
+        destinationAirportId: _selectedDestination!.id,
+      ),
+    );
   }
 
   @override
@@ -229,11 +279,35 @@ class _NewFlightPageState extends State<NewFlightPage> {
                 _isLoadingRoutes = true;
                 _errorMessage = null;
               });
-            } else if (state is EmployeeError) {
+            } else if (state is AirlineRouteResolved) {
               setState(() {
-                _isLoadingRoutes = false;
-                _errorMessage = state.message;
+                _isResolvingRoute = false;
+                if (state.airlineRoute.isActive) {
+                  _selectedRoute = state.airlineRoute;
+                  _pendingRoute = null;
+                } else {
+                  // Pending (just auto-created, or already pending from a
+                  // previous request) — not usable to create a flight yet.
+                  _selectedRoute = null;
+                  _pendingRoute = state.airlineRoute;
+                }
               });
+            } else if (state is EmployeeError) {
+              if (_isResolvingRoute) {
+                // Most commonly a 404 — no physical route configured for
+                // this origin/destination at all. Falls back to the
+                // existing "no route configured" message in that case.
+                setState(() {
+                  _isResolvingRoute = false;
+                  _selectedRoute = null;
+                  _pendingRoute = null;
+                });
+              } else {
+                setState(() {
+                  _isLoadingRoutes = false;
+                  _errorMessage = state.message;
+                });
+              }
             }
           },
         ),
@@ -337,16 +411,42 @@ class _NewFlightPageState extends State<NewFlightPage> {
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1a1a2e)),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Text(
-        _isEditMode ? 'Edit Flight' : 'New Flight',
-        style: const TextStyle(
-          color: Color(0xFF1a1a2e),
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _flightController.text.trim().isNotEmpty
+                ? 'Flight ${_flightController.text.trim()}'
+                : (_isEditMode ? 'Edit Flight' : 'New Flight'),
+            style: const TextStyle(
+              color: Color(0xFF1a1a2e),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (_selectedRoute != null)
+            Text(
+              _routeCodeLabel(_selectedRoute!),
+              style: const TextStyle(color: Color(0xFF6c757d), fontSize: 13),
+            ),
+        ],
       ),
       centerTitle: true,
     );
+  }
+
+  /// Route code for display — prefers IATA (the system's convention) but
+  /// falls back to OACI when an airport in the route has no IATA code.
+  String _routeCodeLabel(AirlineRouteEntity route) {
+    final origin = route.originAirportCode ?? route.originOaciCode ?? '???';
+    final destination =
+        route.destinationAirportCode ?? route.destinationOaciCode ?? '???';
+    return '$origin → $destination';
+  }
+
+  /// Airport code for display — prefers IATA, falls back to OACI.
+  String _airportCodeLabel(AirportEntity airport) {
+    return airport.iataCode ?? airport.oaciCode ?? '???';
   }
 
   Widget _buildInputField({
@@ -497,6 +597,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
                     setState(() {
                       _selectedOrigin = null;
                       _selectedRoute = null;
+                      _pendingRoute = null;
                     });
                   },
                 ),
@@ -522,6 +623,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
                     setState(() {
                       _selectedDestination = null;
                       _selectedRoute = null;
+                      _pendingRoute = null;
                     });
                   },
                 ),
@@ -722,14 +824,15 @@ class _NewFlightPageState extends State<NewFlightPage> {
   }
 
   /// "City, IATA - Country" — falls back to the airport name for whichever
-  /// piece isn't populated yet (e.g. before the city/country migration ran).
+  /// piece isn't populated yet (e.g. before the city/country migration ran),
+  /// and to the OACI code when the airport has no IATA code at all.
   String _airportLocationLabel(AirportEntity airport) {
     final city = (airport.city ?? '').isNotEmpty ? airport.city! : airport.name;
-    final iata = airport.iataCode ?? '---';
+    final code = _airportCodeLabel(airport);
     if ((airport.country ?? '').isNotEmpty) {
-      return '$city, $iata - ${airport.country}';
+      return '$city, $code - ${airport.country}';
     }
-    return '$city, $iata';
+    return '$city, $code';
   }
 
   /// Airport name plus OACI code when available, e.g. "El Dorado · OACI SKBO".
@@ -741,7 +844,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
   }
 
   Widget _buildRouteResolutionArea() {
-    if (_isLoadingRoutes || _isLoadingAirports) {
+    if (_isLoadingRoutes || _isLoadingAirports || _isResolvingRoute) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
         child: Center(
@@ -789,6 +892,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
               onPressed: () {
                 setState(() {
                   _selectedRoute = null;
+                  _pendingRoute = null;
                   _selectedOrigin = null;
                   _selectedDestination = null;
                 });
@@ -801,6 +905,34 @@ class _NewFlightPageState extends State<NewFlightPage> {
             ),
           ),
         ],
+      );
+    }
+
+    if (_pendingRoute != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFf5a623).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.hourglass_top,
+              color: Color(0xFFf5a623),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Ruta ${_routeCodeLabel(_pendingRoute!)} enviada para aprobación del administrador. Podrás usarla una vez sea aprobada.',
+                style: const TextStyle(color: Color(0xFFb8770f), fontSize: 13),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -818,7 +950,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'No hay ruta configurada para ${_selectedOrigin!.iataCode ?? '???'} → ${_selectedDestination!.iataCode ?? '???'}',
+                'No hay ruta configurada para ${_airportCodeLabel(_selectedOrigin!)} → ${_airportCodeLabel(_selectedDestination!)}',
                 style: const TextStyle(color: Color(0xFFe17055), fontSize: 13),
               ),
             ),
@@ -849,7 +981,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_selectedRoute!.originAirportCode ?? '???'} → ${_selectedRoute!.destinationAirportCode ?? '???'}',
+                  _routeCodeLabel(_selectedRoute!),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
