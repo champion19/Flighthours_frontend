@@ -54,4 +54,23 @@ class AirlineRouteRepositoryImpl implements AirlineRouteRepository {
       return Left(_handleError(e));
     }
   }
+
+  @override
+  Future<Either<Failure, AirlineRouteEntity>> resolveAirlineRoute({
+    required String originAirportId,
+    required String destinationAirportId,
+  }) async {
+    try {
+      final result = await remoteDataSource.resolveAirlineRoute(
+        originAirportId: originAirportId,
+        destinationAirportId: destinationAirportId,
+      );
+      if (result == null) {
+        return Left(Failure(message: 'Route not found', statusCode: 404));
+      }
+      return Right(result);
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
 }

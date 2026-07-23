@@ -10,8 +10,12 @@ class AirlineRouteModel extends AirlineRouteEntity {
     super.routeName,
     super.airlineName,
     super.airlineCode,
+    super.originAirportId,
     super.originAirportCode,
+    super.originOaciCode,
+    super.destinationAirportId,
     super.destinationAirportCode,
+    super.destinationOaciCode,
     super.status,
   });
 
@@ -38,11 +42,15 @@ class AirlineRouteModel extends AirlineRouteEntity {
       routeName: json['route_name']?.toString(),
       airlineName: json['airline_name']?.toString(),
       airlineCode: json['airline_code']?.toString(),
+      originAirportId: json['origin_airport_id']?.toString(),
       originAirportCode:
           (json['origin_airport_code'] ?? json['origin_iata_code'])?.toString(),
+      originOaciCode: json['origin_oaci_code']?.toString(),
+      destinationAirportId: json['destination_airport_id']?.toString(),
       destinationAirportCode:
           (json['destination_airport_code'] ?? json['destination_iata_code'])
               ?.toString(),
+      destinationOaciCode: json['destination_oaci_code']?.toString(),
       status: _parseStatus(json['status']),
     );
   }
@@ -66,8 +74,12 @@ class AirlineRouteModel extends AirlineRouteEntity {
       'route_name': routeName,
       'airline_name': airlineName,
       'airline_code': airlineCode,
+      'origin_airport_id': originAirportId,
       'origin_airport_code': originAirportCode,
+      'origin_oaci_code': originOaciCode,
+      'destination_airport_id': destinationAirportId,
       'destination_airport_code': destinationAirportCode,
+      'destination_oaci_code': destinationOaciCode,
       'status': status,
     };
   }

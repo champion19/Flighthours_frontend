@@ -92,6 +92,8 @@ class _$InjectorApp extends InjectorApp {
           repository: c.resolve<AirlineRouteRepository>()))
       ..registerFactory((c) => GetAirlineRouteByIdUseCase(
           repository: c.resolve<AirlineRouteRepository>()))
+      ..registerFactory((c) => ResolveAirlineRouteUseCase(
+          repository: c.resolve<AirlineRouteRepository>()))
       ..registerFactory<AirlineRouteRepository>((c) =>
           AirlineRouteRepositoryImpl(
               remoteDataSource: c.resolve<AirlineRouteRemoteDataSource>()))

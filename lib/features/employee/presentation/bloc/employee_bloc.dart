@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:flight_hours_app/core/injector/injector.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/resolve_airline_route_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';
@@ -19,6 +20,7 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   final GetEmployeeAirlineUseCase _getEmployeeAirlineUseCase;
   final UpdateEmployeeAirlineUseCase _updateEmployeeAirlineUseCase;
   final GetEmployeeAirlineRoutesUseCase _getEmployeeAirlineRoutesUseCase;
+  final ResolveAirlineRouteUseCase _resolveAirlineRouteUseCase;
 
   EmployeeBloc({
     GetEmployeeUseCase? getEmployeeUseCase,
@@ -28,6 +30,7 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
     GetEmployeeAirlineUseCase? getEmployeeAirlineUseCase,
     UpdateEmployeeAirlineUseCase? updateEmployeeAirlineUseCase,
     GetEmployeeAirlineRoutesUseCase? getEmployeeAirlineRoutesUseCase,
+    ResolveAirlineRouteUseCase? resolveAirlineRouteUseCase,
   }) : _getEmployeeUseCase =
            getEmployeeUseCase ?? InjectorApp.resolve<GetEmployeeUseCase>(),
        _updateEmployeeUseCase =
@@ -48,10 +51,14 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
        _getEmployeeAirlineRoutesUseCase =
            getEmployeeAirlineRoutesUseCase ??
            InjectorApp.resolve<GetEmployeeAirlineRoutesUseCase>(),
+       _resolveAirlineRouteUseCase =
+           resolveAirlineRouteUseCase ??
+           InjectorApp.resolve<ResolveAirlineRouteUseCase>(),
        super(EmployeeInitial()) {
     on<LoadCurrentEmployee>(_onLoadCurrentEmployee);
     on<LoadEmployeeAirline>(_onLoadEmployeeAirline);
     on<LoadEmployeeAirlineRoutes>(_onLoadEmployeeAirlineRoutes);
+    on<ResolveAirlineRoute>(_onResolveAirlineRoute);
     on<UpdateEmployee>(_onUpdateEmployee);
     on<UpdateEmployeeAirline>(_onUpdateEmployeeAirline);
     on<ChangePassword>(_onChangePassword);
@@ -131,6 +138,29 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
           );
         }
       },
+    );
+  }
+
+  Future<void> _onResolveAirlineRoute(
+    ResolveAirlineRoute event,
+    Emitter<EmployeeState> emit,
+  ) async {
+    emit(AirlineRouteResolving());
+
+    final result = await _resolveAirlineRouteUseCase.call(
+      originAirportId: event.originAirportId,
+      destinationAirportId: event.destinationAirportId,
+    );
+    result.fold(
+      (failure) => emit(
+        EmployeeError(
+          message: failure.message,
+          code: failure.code,
+          success: false,
+          statusCode: failure.statusCode,
+        ),
+      ),
+      (airlineRoute) => emit(AirlineRouteResolved(airlineRoute)),
     );
   }
 

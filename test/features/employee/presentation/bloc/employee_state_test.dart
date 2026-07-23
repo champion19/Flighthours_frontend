@@ -167,14 +167,15 @@ void main() {
         expect(state.code, isNull);
       });
 
-      test('props should contain message, code and success', () {
+      test('props should contain message, code, success and statusCode', () {
         const state = EmployeeError(
           message: 'msg',
           code: 'code',
           success: true,
+          statusCode: 404,
         );
 
-        expect(state.props.length, equals(3));
+        expect(state.props.length, equals(4));
       });
     });
   });

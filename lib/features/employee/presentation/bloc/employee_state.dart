@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
@@ -105,14 +106,35 @@ class EmployeeAirlineRoutesSuccess extends EmployeeState {
 /// Loading state for airline routes
 class EmployeeAirlineRoutesLoading extends EmployeeState {}
 
+/// Loading state while resolving/auto-requesting an airline route link
+class AirlineRouteResolving extends EmployeeState {}
+
+/// Success state for resolving an airline route link — check
+/// `airlineRoute.isPending` to know whether it was just auto-created and is
+/// awaiting admin approval, versus an existing active link.
+class AirlineRouteResolved extends EmployeeState {
+  final AirlineRouteEntity airlineRoute;
+
+  const AirlineRouteResolved(this.airlineRoute);
+
+  @override
+  List<Object?> get props => [airlineRoute];
+}
+
 /// Error state with error details
 class EmployeeError extends EmployeeState {
   final String message;
   final String? code;
   final bool success;
+  final int? statusCode;
 
-  const EmployeeError({required this.message, this.code, this.success = false});
+  const EmployeeError({
+    required this.message,
+    this.code,
+    this.success = false,
+    this.statusCode,
+  });
 
   @override
-  List<Object?> get props => [message, code, success];
+  List<Object?> get props => [message, code, success, statusCode];
 }
