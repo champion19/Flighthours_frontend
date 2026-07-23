@@ -10,8 +10,13 @@ class AirlineRouteEntity extends Equatable {
   final String? routeName; // Route display name (e.g., "JFK → LAX")
   final String? airlineName; // Airline name (e.g., "Global Air")
   final String? airlineCode; // Airline code (e.g., "AV")
+  final String? originAirportId; // Origin airport ID — robust match key,
+  // unlike codes it's never null even for OACI-only airports
   final String? originAirportCode; // Origin IATA code (e.g., "JFK")
+  final String? originOaciCode; // Origin OACI code (e.g., "KJFK")
+  final String? destinationAirportId; // Destination airport ID
   final String? destinationAirportCode; // Destination IATA code (e.g., "LAX")
+  final String? destinationOaciCode; // Destination OACI code
   final String? status; // "active", "inactive", "pending"
 
   const AirlineRouteEntity({
@@ -22,8 +27,12 @@ class AirlineRouteEntity extends Equatable {
     this.routeName,
     this.airlineName,
     this.airlineCode,
+    this.originAirportId,
     this.originAirportCode,
+    this.originOaciCode,
+    this.destinationAirportId,
     this.destinationAirportCode,
+    this.destinationOaciCode,
     this.status,
   });
 
@@ -79,8 +88,12 @@ class AirlineRouteEntity extends Equatable {
     routeName,
     airlineName,
     airlineCode,
+    originAirportId,
     originAirportCode,
+    originOaciCode,
+    destinationAirportId,
     destinationAirportCode,
+    destinationOaciCode,
     status,
   ];
 }

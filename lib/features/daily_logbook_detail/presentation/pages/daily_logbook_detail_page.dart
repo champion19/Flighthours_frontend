@@ -205,6 +205,30 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     return time;
   }
 
+  /// Date shown under the AppBar title — prefers the flight's own saved date
+  /// (already captured on the New Flight screen) over the parent logbook's
+  /// date, so it's correct even when this page is reached without a
+  /// `logbook` argument (e.g. right after creating a flight).
+  String? get _titleDate {
+    final date = _detail?.flightRealDate ?? _logbook?.logDate;
+    if (date == null) return null;
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
   /// Format HH:MM to HH:MM:SS for API
   /// Converts time for API: normalizes aviation 24+ hours to 00-23 and appends seconds
   String _formatTimeForApi(String time) {
@@ -307,21 +331,33 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             ),
           ),
           title: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                _isEditMode ? 'Daily Logbook Detail' : 'Detail',
+                _isEditMode
+                    ? 'Flight ${_detail?.flightNumber ?? '--'}'
+                    : 'Detail',
                 style: const TextStyle(
                   color: Color(0xFF1a1a2e),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (_logbook != null)
+              if (_isEditMode)
                 Text(
-                  _logbook!.fullFormattedDate,
+                  _detail!.routeDisplay,
+                  style: const TextStyle(
+                    color: Color(0xFF4facfe),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              if (_titleDate != null)
+                Text(
+                  _titleDate!,
                   style: const TextStyle(
                     color: Color(0xFF6c757d),
-                    fontSize: 13,
+                    fontSize: 12,
                   ),
                 ),
             ],
@@ -641,8 +677,17 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     final route = _detail?.routeDisplay ?? '-- → --';
     final aircraft = _detail?.tailNumber ?? '--';
     final date = _detail?.formattedDate ?? '--';
-    final departure = _detail?.startTime ?? '--:--';
-    final arrival = _detail?.endTime ?? '--:--';
+    // Read from the live OUT/IN controllers (like Air/Block time below) so
+    // Departure/Arrival update as the user types, without needing to leave
+    // and re-enter the flight to see the saved values reflected.
+    final departure =
+        _outController.text.isNotEmpty
+            ? _outController.text
+            : (_detail?.startTime ?? '--:--');
+    final arrival =
+        _inController.text.isNotEmpty
+            ? _inController.text
+            : (_detail?.endTime ?? '--:--');
 
     return Container(
       width: double.infinity,
@@ -712,14 +757,14 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           _buildSummaryRow('Route', route),
           _buildSummaryRow('Aircraft', aircraft),
           _buildSummaryRow('Date', date),
-          _buildSummaryRow('Departure', departure),
-          _buildSummaryRow('Arrival', arrival),
+          _buildSummaryRow('Departure', departure, valueKey: const Key('departureValue')),
+          _buildSummaryRow('Arrival', arrival, valueKey: const Key('arrivalValue')),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _buildSummaryRow(String label, String value, {Key? valueKey}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -735,6 +780,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           const Spacer(),
           Text(
             value,
+            key: valueKey,
             style: const TextStyle(
               color: Color(0xFF1a1a2e),
               fontSize: 14,

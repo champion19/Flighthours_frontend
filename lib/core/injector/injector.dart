@@ -57,6 +57,7 @@ import 'package:flight_hours_app/features/airline_route/data/repositories/airlin
 import 'package:flight_hours_app/features/airline_route/domain/repositories/airline_route_repository.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
 import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/resolve_airline_route_use_case.dart';
 import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';
 import 'package:flight_hours_app/features/logbook/data/repositories/logbook_repository_impl.dart';
 import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';
@@ -170,6 +171,7 @@ abstract class InjectorApp {
   // Airline Route
   @Register.factory(ListAirlineRoutesUseCase)
   @Register.factory(GetAirlineRouteByIdUseCase)
+  @Register.factory(ResolveAirlineRouteUseCase)
   @Register.factory(AirlineRouteRepository, from: AirlineRouteRepositoryImpl)
   @Register.factory(
     AirlineRouteRemoteDataSource,

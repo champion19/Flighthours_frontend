@@ -184,12 +184,16 @@ void main() {
         routeName: 'Name',
         airlineName: 'Airline',
         airlineCode: 'AV',
+        originAirportId: 'origin-id',
         originAirportCode: 'BOG',
+        originOaciCode: 'SKBO',
+        destinationAirportId: 'dest-id',
         destinationAirportCode: 'MDE',
+        destinationOaciCode: 'SKRG',
         status: 'active',
       );
 
-      expect(entity.props.length, equals(10));
+      expect(entity.props.length, equals(14));
     });
   });
 }

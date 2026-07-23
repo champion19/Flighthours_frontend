@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:flight_hours_app/features/airline_route/domain/usecases/resolve_airline_route_use_case.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
@@ -36,6 +37,9 @@ class MockUpdateEmployeeAirlineUseCase extends Mock
 
 class MockGetEmployeeAirlineRoutesUseCase extends Mock
     implements GetEmployeeAirlineRoutesUseCase {}
+
+class MockResolveAirlineRouteUseCase extends Mock
+    implements ResolveAirlineRouteUseCase {}
 
 void main() {
   group('EmployeeEvent', () {
@@ -179,7 +183,7 @@ void main() {
           success: false,
         );
 
-        expect(state.props.length, equals(3));
+        expect(state.props.length, equals(4));
         expect(state.props, contains('Error'));
         expect(state.props, contains('CODE'));
       });
@@ -202,6 +206,7 @@ void main() {
     late MockGetEmployeeAirlineUseCase mockGetAirlineUseCase;
     late MockUpdateEmployeeAirlineUseCase mockUpdateAirlineUseCase;
     late MockGetEmployeeAirlineRoutesUseCase mockGetRoutesUseCase;
+    late MockResolveAirlineRouteUseCase mockResolveAirlineRouteUseCase;
 
     setUpAll(() {
       registerFallbackValue(
@@ -233,6 +238,7 @@ void main() {
       mockGetAirlineUseCase = MockGetEmployeeAirlineUseCase();
       mockUpdateAirlineUseCase = MockUpdateEmployeeAirlineUseCase();
       mockGetRoutesUseCase = MockGetEmployeeAirlineRoutesUseCase();
+      mockResolveAirlineRouteUseCase = MockResolveAirlineRouteUseCase();
     });
 
     EmployeeBloc buildBloc() {
@@ -244,6 +250,7 @@ void main() {
         getEmployeeAirlineUseCase: mockGetAirlineUseCase,
         updateEmployeeAirlineUseCase: mockUpdateAirlineUseCase,
         getEmployeeAirlineRoutesUseCase: mockGetRoutesUseCase,
+        resolveAirlineRouteUseCase: mockResolveAirlineRouteUseCase,
       );
     }
 

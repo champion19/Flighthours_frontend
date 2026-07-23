@@ -16,6 +16,19 @@ abstract class AirlineRouteRemoteDataSource {
   /// Fetch a specific airline route by ID (obfuscated or UUID)
   Future<AirlineRouteModel?> getAirlineRouteById(String id);
 
+  /// Resolves the authenticated employee's airline link for an origin/
+  /// destination airport pair. If the physical route exists but isn't
+  /// linked to their airline yet, the backend auto-creates the link with
+  /// status "pending" for an admin to approve — the returned model's
+  /// `status` tells the caller which case happened.
+  ///
+  /// Returns null when no physical route is configured for that pair at all
+  /// (the admin still needs to create the route itself first).
+  Future<AirlineRouteModel?> resolveAirlineRoute({
+    required String originAirportId,
+    required String destinationAirportId,
+  });
+
   /// Activate an airline route by ID
   Future<AirlineRouteStatusResponse> activateAirlineRoute(String id);
 
@@ -106,6 +119,25 @@ class AirlineRouteRemoteDataSourceImpl implements AirlineRouteRemoteDataSource {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<AirlineRouteModel?> resolveAirlineRoute({
+    required String originAirportId,
+    required String destinationAirportId,
+  }) async {
+    // Unlike the other methods here, DioException is deliberately left to
+    // propagate (not swallowed into a null return) — the repository layer
+    // needs the real status code (404 = no route configured, vs a genuine
+    // server error) to build the right Failure for the UI.
+    final response = await _dio.post(
+      '/employees/airline-routes/resolve',
+      data: {
+        'origin_airport_id': originAirportId,
+        'destination_airport_id': destinationAirportId,
+      },
+    );
+    return _parseAirlineRouteFromMap(response.data);
   }
 
   @override

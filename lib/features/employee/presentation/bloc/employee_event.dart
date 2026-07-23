@@ -60,5 +60,21 @@ class DeleteEmployee extends EmployeeEvent {}
 /// Uses GET /employees/airline-routes endpoint
 class LoadEmployeeAirlineRoutes extends EmployeeEvent {}
 
+/// Event to resolve (or auto-request as pending) the employee's airline
+/// link for an origin/destination airport pair.
+/// Uses POST /employees/airline-routes/resolve
+class ResolveAirlineRoute extends EmployeeEvent {
+  final String originAirportId;
+  final String destinationAirportId;
+
+  const ResolveAirlineRoute({
+    required this.originAirportId,
+    required this.destinationAirportId,
+  });
+
+  @override
+  List<Object?> get props => [originAirportId, destinationAirportId];
+}
+
 /// Event to reset the state (clear results)
 class ResetEmployeeState extends EmployeeEvent {}
