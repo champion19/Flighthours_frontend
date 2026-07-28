@@ -22,13 +22,11 @@ void main() {
       expect(find.text('Welcome, Admin!'), findsOneWidget);
     });
 
-    testWidgets('displays route management section', (tester) async {
+    testWidgets('displays airline management section', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      expect(find.text('ROUTE MANAGEMENT'), findsOneWidget);
+      expect(find.text('AIRLINE MANAGEMENT'), findsOneWidget);
       expect(find.text('Airlines'), findsOneWidget);
-      expect(find.text('Routes'), findsOneWidget);
-      expect(find.text('Airline Routes'), findsOneWidget);
     });
 
     testWidgets('displays system configuration section', (tester) async {

@@ -6,7 +6,7 @@ class EmailVerificationModel extends EmailEntity {
   factory EmailVerificationModel.fromMap(Map<String, dynamic> json) =>
       EmailVerificationModel(emailconfirmed: json["emailconfirmed"]);
 
-  EmailVerificationModel({required this.emailconfirmed}) : super(emailconfirmed: false);
+  EmailVerificationModel({required this.emailconfirmed})
+    : super(emailconfirmed: false);
 }
 //dominio es el centro de la apicacion, lo que va a usar el datasource
-

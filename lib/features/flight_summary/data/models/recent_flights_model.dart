@@ -37,7 +37,8 @@ class RecentFlightData {
   final String? dailyLogbookId;
   final String flightRealDate;
   final String flightNumber;
-  final String? airlineRouteId;
+  final String? originAirportId;
+  final String? destinationAirportId;
   final String? tailNumberId;
 
   // Times
@@ -72,7 +73,8 @@ class RecentFlightData {
     this.dailyLogbookId,
     required this.flightRealDate,
     required this.flightNumber,
-    this.airlineRouteId,
+    this.originAirportId,
+    this.destinationAirportId,
     this.tailNumberId,
     this.outTime,
     this.takeoffTime,
@@ -101,7 +103,8 @@ class RecentFlightData {
         dailyLogbookId: json["daily_logbook_id"],
         flightRealDate: json["flight_real_date"] ?? '',
         flightNumber: json["flight_number"] ?? '',
-        airlineRouteId: json["airline_route_id"],
+        originAirportId: json["origin_airport_id"],
+        destinationAirportId: json["destination_airport_id"],
         tailNumberId: json["tail_number_id"],
         outTime: json["out_time"],
         takeoffTime: json["takeoff_time"],

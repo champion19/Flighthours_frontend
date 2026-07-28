@@ -3,7 +3,6 @@ import 'package:flight_hours_app/core/network/dio_client.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -38,10 +37,6 @@ abstract class EmployeeRemoteDataSource {
   Future<EmployeeAirlineResponseModel> updateEmployeeAirline(
     EmployeeAirlineUpdateRequest request,
   );
-
-  /// Fetches the airline routes for the employee's airline
-  /// Uses GET /employees/airline-routes endpoint
-  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes();
 }
 
 /// Implementation of the employee remote data source using Dio
@@ -151,19 +146,6 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
     } on DioException catch (e) {
       if (e.response != null) {
         return EmployeeAirlineResponseModel.fromMap(e.response!.data);
-      }
-      rethrow;
-    }
-  }
-
-  @override
-  Future<EmployeeAirlineRoutesResponseModel> getEmployeeAirlineRoutes() async {
-    try {
-      final response = await _dio.get('/employees/airline-routes');
-      return EmployeeAirlineRoutesResponseModel.fromMap(response.data);
-    } on DioException catch (e) {
-      if (e.response != null) {
-        return EmployeeAirlineRoutesResponseModel.fromMap(e.response!.data);
       }
       rethrow;
     }

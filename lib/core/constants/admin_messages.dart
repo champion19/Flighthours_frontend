@@ -10,18 +10,13 @@ class AdminMessages {
       'Manage your flight hours system from here';
 
   // Section titles
-  static const String routeManagement = 'Route Management';
+  static const String airlineManagement = 'Airline Management';
   static const String systemConfiguration = 'System Configuration';
   static const String systemOverview = 'System Overview'; // Removido de UI
 
   // Management cards
   static const String airlinesTitle = 'Airlines';
   static const String airlinesSubtitle = 'Activate or deactivate airlines';
-  static const String routesTitle = 'Routes';
-  static const String routesSubtitle = 'View all flight routes';
-  static const String airlineRoutesTitle = 'Airline Routes';
-  static const String airlineRoutesSubtitle =
-      'Activate or deactivate airline routes';
 
   // System configuration cards
   static const String airportsTitle = 'Airports';
@@ -38,7 +33,6 @@ class AdminMessages {
   // System Overview stats (Removidos de UI pero guardados para futuro)
   static const String usersLabel = 'Users';
   static const String airlinesLabel = 'Airlines';
-  static const String routesLabel = 'Routes';
 
   // Profile menu (Simplificado a solo logout en UI)
   static const String myProfileTitle = 'My Profile';

@@ -24,8 +24,7 @@ class TailNumberBloc extends Bloc<TailNumberEvent, TailNumberState> {
           InjectorApp.resolve<GetTailNumberByPlateUseCase>(),
       _getAircraftModelByIdUseCase =
           InjectorApp.resolve<GetAircraftModelByIdUseCase>(),
-      _createTailNumberUseCase =
-          InjectorApp.resolve<CreateTailNumberUseCase>(),
+      _createTailNumberUseCase = InjectorApp.resolve<CreateTailNumberUseCase>(),
       super(TailNumberInitial()) {
     on<SearchTailNumber>(_onSearch);
     on<CreateTailNumber>(_onCreate);

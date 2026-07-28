@@ -19,15 +19,13 @@ void main() {
     });
 
     test('section titles should be non-empty', () {
-      expect(AdminMessages.routeManagement, isNotEmpty);
+      expect(AdminMessages.airlineManagement, isNotEmpty);
       expect(AdminMessages.systemConfiguration, isNotEmpty);
       expect(AdminMessages.systemOverview, isNotEmpty);
     });
 
     test('management card titles should be non-empty', () {
       expect(AdminMessages.airlinesTitle, isNotEmpty);
-      expect(AdminMessages.routesTitle, isNotEmpty);
-      expect(AdminMessages.airlineRoutesTitle, isNotEmpty);
     });
 
     test('system configuration cards should be non-empty', () {

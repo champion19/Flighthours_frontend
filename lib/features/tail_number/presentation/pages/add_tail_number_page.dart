@@ -80,7 +80,9 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
   void _onSave() {
     final plate = _plateController.text.trim();
 
-    if (plate.isEmpty || _selectedModelId == null || _selectedAirlineId == null) {
+    if (plate.isEmpty ||
+        _selectedModelId == null ||
+        _selectedAirlineId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         _snack('Completa la matrícula, el modelo y la aerolínea.'),
       );
@@ -136,14 +138,15 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
           }
         },
         child: SafeArea(
-          child: _loadingLists
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: _primary,
-                    strokeWidth: 2.5,
-                  ),
-                )
-              : _loadError != null
+          child:
+              _loadingLists
+                  ? const Center(
+                    child: CircularProgressIndicator(
+                      color: _primary,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                  : _loadError != null
                   ? _buildLoadError()
                   : _buildForm(),
         ),
@@ -185,7 +188,11 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
         children: [
           const Text(
             'Esta matrícula no existe. Regístrala para poder usarla en el vuelo.',
-            style: TextStyle(color: Color(0xFF6c757d), fontSize: 14, height: 1.5),
+            style: TextStyle(
+              color: Color(0xFF6c757d),
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -200,9 +207,8 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
                 // Letters, digits and hyphens (backend requires ^[A-Z0-9-]+$)
                 FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\-]')),
                 TextInputFormatter.withFunction(
-                  (oldValue, newValue) => newValue.copyWith(
-                    text: newValue.text.toUpperCase(),
-                  ),
+                  (oldValue, newValue) =>
+                      newValue.copyWith(text: newValue.text.toUpperCase()),
                 ),
               ],
               style: const TextStyle(
@@ -219,8 +225,10 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
                 ),
                 prefixIcon: Icon(Icons.flight, color: _primary),
                 border: InputBorder.none,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
               ),
             ),
           ),
@@ -237,14 +245,18 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
                   value: _selectedModelId,
                   hint: const Text('Selecciona un modelo'),
                   icon: const Icon(Icons.arrow_drop_down, color: _primary),
-                  items: _models
-                      .map(
-                        (m) => DropdownMenuItem(
-                          value: m.id,
-                          child: Text(m.name, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
+                  items:
+                      _models
+                          .map(
+                            (m) => DropdownMenuItem(
+                              value: m.id,
+                              child: Text(
+                                m.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (v) => setState(() => _selectedModelId = v),
                 ),
               ),
@@ -263,14 +275,18 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
                   value: _selectedAirlineId,
                   hint: const Text('Selecciona una aerolínea'),
                   icon: const Icon(Icons.arrow_drop_down, color: _primary),
-                  items: _airlines
-                      .map(
-                        (a) => DropdownMenuItem(
-                          value: a.id,
-                          child: Text(a.name, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
+                  items:
+                      _airlines
+                          .map(
+                            (a) => DropdownMenuItem(
+                              value: a.id,
+                              child: Text(
+                                a.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (v) => setState(() => _selectedAirlineId = v),
                 ),
               ),
@@ -295,37 +311,39 @@ class _AddTailNumberPageState extends State<AddTailNumberPage> {
               ),
               child: Ink(
                 decoration: BoxDecoration(
-                  gradient: _submitted
-                      ? null
-                      : const LinearGradient(colors: [_primary, _accent]),
+                  gradient:
+                      _submitted
+                          ? null
+                          : const LinearGradient(colors: [_primary, _accent]),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
-                  child: _submitted
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save, color: Colors.white, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'Guardar matrícula',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
+                  child:
+                      _submitted
+                          ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
                             ),
-                          ],
-                        ),
+                          )
+                          : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.save, color: Colors.white, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Guardar matrícula',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                 ),
               ),
             ),

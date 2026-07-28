@@ -5,7 +5,6 @@ import 'package:flight_hours_app/features/employee/data/models/employee_update_m
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 
 void main() {
   group('EmployeeState', () {
@@ -37,11 +36,6 @@ void main() {
 
     test('EmployeeAirlineLoading should be a valid state', () {
       final state = EmployeeAirlineLoading();
-      expect(state, isA<EmployeeState>());
-    });
-
-    test('EmployeeAirlineRoutesLoading should be a valid state', () {
-      final state = EmployeeAirlineRoutesLoading();
       expect(state, isA<EmployeeState>());
     });
 
@@ -129,22 +123,6 @@ void main() {
         );
 
         final state = EmployeeAirlineUpdateSuccess(response);
-
-        expect(state.response, equals(response));
-        expect(state.props.length, equals(1));
-      });
-    });
-
-    group('EmployeeAirlineRoutesSuccess', () {
-      test('should create with response', () {
-        final response = EmployeeAirlineRoutesResponseModel(
-          success: true,
-          code: 'OK',
-          message: 'Routes loaded',
-          data: [],
-        );
-
-        final state = EmployeeAirlineRoutesSuccess(response);
 
         expect(state.response, equals(response));
         expect(state.props.length, equals(1));
