@@ -3,7 +3,6 @@ import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -32,8 +31,4 @@ abstract class EmployeeRepository {
   Future<Either<Failure, EmployeeAirlineResponseModel>> updateEmployeeAirline(
     EmployeeAirlineUpdateRequest request,
   );
-
-  /// Fetches the airline routes for the employee's airline
-  Future<Either<Failure, EmployeeAirlineRoutesResponseModel>>
-  getEmployeeAirlineRoutes();
 }

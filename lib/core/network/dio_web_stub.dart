@@ -4,6 +4,7 @@
 /// `configureWebCredentials` is a no-op because `BrowserHttpClientAdapter`
 /// doesn't exist outside of web.
 library;
+
 // ignore_for_file: avoid_unused_constructor_parameters
 import 'package:dio/dio.dart';
 

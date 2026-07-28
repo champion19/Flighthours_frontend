@@ -11,7 +11,8 @@ class FlightEntity extends Equatable {
   final DateTime? flightRealDate;
 
   // Route info
-  final String? airlineRouteId;
+  final String? originAirportId;
+  final String? destinationAirportId;
   final String? routeCode;
   final String? originIataCode;
   final String? destinationIataCode;
@@ -45,7 +46,8 @@ class FlightEntity extends Equatable {
     this.dailyLogbookId,
     this.flightNumber,
     this.flightRealDate,
-    this.airlineRouteId,
+    this.originAirportId,
+    this.destinationAirportId,
     this.routeCode,
     this.originIataCode,
     this.destinationIataCode,
@@ -122,7 +124,8 @@ class FlightEntity extends Equatable {
     dailyLogbookId,
     flightNumber,
     flightRealDate,
-    airlineRouteId,
+    originAirportId,
+    destinationAirportId,
     routeCode,
     originIataCode,
     destinationIataCode,

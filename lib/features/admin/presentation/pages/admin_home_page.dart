@@ -32,115 +32,21 @@ class AdminHomePage extends StatelessWidget {
                           _buildWelcomeCard(),
                           const SizedBox(height: 24),
 
-                          // Route Management Section
-                          _buildSectionTitle(AdminMessages.routeManagement),
+                          // Airline Management Section
+                          _buildSectionTitle(AdminMessages.airlineManagement),
                           const SizedBox(height: 12),
-                          if (isWide)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildManagementCard(
-                                    context,
-                                    icon: Icons.flight,
-                                    title: AdminMessages.airlinesTitle,
-                                    subtitle: AdminMessages.airlinesSubtitle,
-                                    gradientColors: [
-                                      const Color(0xFF4facfe),
-                                      const Color(0xFF00f2fe),
-                                    ],
-                                    onTap:
-                                        () => Navigator.pushNamed(
-                                          context,
-                                          '/airlines',
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildManagementCard(
-                                    context,
-                                    icon: Icons.route,
-                                    title: AdminMessages.routesTitle,
-                                    subtitle: AdminMessages.routesSubtitle,
-                                    gradientColors: [
-                                      const Color(0xFF11998e),
-                                      const Color(0xFF38ef7d),
-                                    ],
-                                    onTap:
-                                        () => Navigator.pushNamed(
-                                          context,
-                                          '/flight-routes',
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildManagementCard(
-                                    context,
-                                    icon: Icons.alt_route,
-                                    title: AdminMessages.airlineRoutesTitle,
-                                    subtitle:
-                                        AdminMessages.airlineRoutesSubtitle,
-                                    gradientColors: [
-                                      const Color(0xFFf093fb),
-                                      const Color(0xFFf5576c),
-                                    ],
-                                    onTap:
-                                        () => Navigator.pushNamed(
-                                          context,
-                                          '/airline-routes',
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else ...[
-                            _buildManagementCard(
-                              context,
-                              icon: Icons.flight,
-                              title: AdminMessages.airlinesTitle,
-                              subtitle: AdminMessages.airlinesSubtitle,
-                              gradientColors: [
-                                const Color(0xFF4facfe),
-                                const Color(0xFF00f2fe),
-                              ],
-                              onTap:
-                                  () =>
-                                      Navigator.pushNamed(context, '/airlines'),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildManagementCard(
-                              context,
-                              icon: Icons.route,
-                              title: AdminMessages.routesTitle,
-                              subtitle: AdminMessages.routesSubtitle,
-                              gradientColors: [
-                                const Color(0xFF11998e),
-                                const Color(0xFF38ef7d),
-                              ],
-                              onTap:
-                                  () => Navigator.pushNamed(
-                                    context,
-                                    '/flight-routes',
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildManagementCard(
-                              context,
-                              icon: Icons.alt_route,
-                              title: AdminMessages.airlineRoutesTitle,
-                              subtitle: AdminMessages.airlineRoutesSubtitle,
-                              gradientColors: [
-                                const Color(0xFFf093fb),
-                                const Color(0xFFf5576c),
-                              ],
-                              onTap:
-                                  () => Navigator.pushNamed(
-                                    context,
-                                    '/airline-routes',
-                                  ),
-                            ),
-                          ],
+                          _buildManagementCard(
+                            context,
+                            icon: Icons.flight,
+                            title: AdminMessages.airlinesTitle,
+                            subtitle: AdminMessages.airlinesSubtitle,
+                            gradientColors: [
+                              const Color(0xFF4facfe),
+                              const Color(0xFF00f2fe),
+                            ],
+                            onTap:
+                                () => Navigator.pushNamed(context, '/airlines'),
+                          ),
                           const SizedBox(height: 24),
 
                           // System Configuration Section

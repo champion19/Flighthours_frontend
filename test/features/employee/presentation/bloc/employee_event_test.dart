@@ -102,12 +102,6 @@ void main() {
       expect(event.props, isEmpty);
     });
 
-    test('LoadEmployeeAirlineRoutes should be a valid event', () {
-      final event = LoadEmployeeAirlineRoutes();
-      expect(event, isA<EmployeeEvent>());
-      expect(event.props, isEmpty);
-    });
-
     test('ResetEmployeeState should be a valid event', () {
       final event = ResetEmployeeState();
       expect(event, isA<EmployeeEvent>());

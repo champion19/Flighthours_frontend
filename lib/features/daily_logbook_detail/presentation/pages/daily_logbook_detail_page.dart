@@ -539,7 +539,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
             editArgs['detail_id'] = _detail!.uuid ?? _detail!.id;
             editArgs['flight_number'] = _detail!.flightNumber;
             editArgs['flight_real_date'] = _detail!.flightRealDate;
-            editArgs['airline_route_id'] = _detail!.airlineRouteId;
             editArgs['origin_iata_code'] = _detail!.originIataCode;
             editArgs['destination_iata_code'] = _detail!.destinationIataCode;
             editArgs['airline_name'] = _detail!.airlineCode;
@@ -570,9 +569,12 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                       result['flight_real_date']?.toString() ?? '',
                     ) ??
                     _detail!.flightRealDate,
-                airlineRouteId:
-                    result['airline_route_id']?.toString() ??
-                    _detail!.airlineRouteId,
+                originAirportId:
+                    result['origin_airport_id']?.toString() ??
+                    _detail!.originAirportId,
+                destinationAirportId:
+                    result['destination_airport_id']?.toString() ??
+                    _detail!.destinationAirportId,
                 tailNumberId:
                     result['tail_number_id']?.toString() ??
                     _detail!.tailNumberId,
@@ -757,8 +759,16 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           _buildSummaryRow('Route', route),
           _buildSummaryRow('Aircraft', aircraft),
           _buildSummaryRow('Date', date),
-          _buildSummaryRow('Departure', departure, valueKey: const Key('departureValue')),
-          _buildSummaryRow('Arrival', arrival, valueKey: const Key('arrivalValue')),
+          _buildSummaryRow(
+            'Departure',
+            departure,
+            valueKey: const Key('departureValue'),
+          ),
+          _buildSummaryRow(
+            'Arrival',
+            arrival,
+            valueKey: const Key('arrivalValue'),
+          ),
         ],
       ),
     );
@@ -1356,8 +1366,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     // 8. Approach category + subtype + autoland (optional)
     if (_selectedApproachCategory != null &&
         !_approachCategories.contains(_selectedApproachCategory)) {
-      errors['ApproachCategory'] =
-          'Invalid: ${_approachCategories.join(", ")}';
+      errors['ApproachCategory'] = 'Invalid: ${_approachCategories.join(", ")}';
     } else {
       final allowedSubtypes =
           _approachSubtypesByCategory[_selectedApproachCategory];

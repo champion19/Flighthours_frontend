@@ -5,7 +5,6 @@ import 'package:flight_hours_app/features/employee/data/datasources/employee_rem
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -337,55 +336,6 @@ void main() {
 
         // Act
         final result = await datasource.updateEmployeeAirline(request);
-
-        // Assert
-        expect(result.success, isFalse);
-      });
-    });
-
-    group('getEmployeeAirlineRoutes', () {
-      test(
-        'should return EmployeeAirlineRoutesResponseModel on success',
-        () async {
-          // Arrange
-          when(() => mockDio.get(any())).thenAnswer(
-            (_) async => Response(
-              data: {
-                'success': true,
-                'code': 'OK',
-                'message': 'Routes retrieved',
-                'data': [],
-              },
-              statusCode: 200,
-              requestOptions: RequestOptions(path: '/employees/airline-routes'),
-            ),
-          );
-
-          // Act
-          final result = await datasource.getEmployeeAirlineRoutes();
-
-          // Assert
-          expect(result, isA<EmployeeAirlineRoutesResponseModel>());
-          expect(result.success, isTrue);
-        },
-      );
-
-      test('should return error response on DioException', () async {
-        // Arrange
-        when(() => mockDio.get(any())).thenThrow(
-          DioException(
-            type: DioExceptionType.badResponse,
-            response: Response(
-              data: {'success': false, 'code': 'ERR', 'message': 'Not found'},
-              statusCode: 404,
-              requestOptions: RequestOptions(path: '/employees/airline-routes'),
-            ),
-            requestOptions: RequestOptions(path: '/employees/airline-routes'),
-          ),
-        );
-
-        // Act
-        final result = await datasource.getEmployeeAirlineRoutes();
 
         // Assert
         expect(result.success, isFalse);

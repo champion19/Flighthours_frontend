@@ -6,7 +6,6 @@ import 'package:flight_hours_app/features/employee/data/datasources/employee_rem
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/repositories/employee_repository.dart';
@@ -91,16 +90,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   ) async {
     try {
       return Right(await _dataSource.updateEmployeeAirline(request));
-    } catch (e) {
-      return Left(_handleError(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, EmployeeAirlineRoutesResponseModel>>
-  getEmployeeAirlineRoutes() async {
-    try {
-      return Right(await _dataSource.getEmployeeAirlineRoutes());
     } catch (e) {
       return Left(_handleError(e));
     }

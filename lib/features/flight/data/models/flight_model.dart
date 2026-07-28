@@ -7,7 +7,8 @@ class FlightModel extends FlightEntity {
     super.dailyLogbookId,
     super.flightNumber,
     super.flightRealDate,
-    super.airlineRouteId,
+    super.originAirportId,
+    super.destinationAirportId,
     super.routeCode,
     super.originIataCode,
     super.destinationIataCode,
@@ -36,7 +37,8 @@ class FlightModel extends FlightEntity {
       dailyLogbookId: json['daily_logbook_id']?.toString(),
       flightNumber: json['flight_number']?.toString(),
       flightRealDate: _parseDate(json['flight_real_date']),
-      airlineRouteId: json['airline_route_id']?.toString(),
+      originAirportId: json['origin_airport_id']?.toString(),
+      destinationAirportId: json['destination_airport_id']?.toString(),
       routeCode: json['route_code']?.toString(),
       originIataCode: json['origin_iata_code']?.toString(),
       destinationIataCode: json['destination_iata_code']?.toString(),
@@ -76,7 +78,8 @@ class FlightModel extends FlightEntity {
   static Map<String, dynamic> createRequest({
     required String flightRealDate,
     required String flightNumber,
-    required String airlineRouteId,
+    required String originAirportId,
+    required String destinationAirportId,
     required String tailNumberId,
     int? passengers,
     String? outTime,
@@ -94,7 +97,8 @@ class FlightModel extends FlightEntity {
     final map = <String, dynamic>{
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
-      'airline_route_id': airlineRouteId,
+      'origin_airport_id': originAirportId,
+      'destination_airport_id': destinationAirportId,
       'tail_number_id': tailNumberId,
     };
     if (passengers != null) map['passengers'] = passengers;
@@ -116,7 +120,8 @@ class FlightModel extends FlightEntity {
   static Map<String, dynamic> updateRequest({
     required String flightRealDate,
     required String flightNumber,
-    required String airlineRouteId,
+    required String originAirportId,
+    required String destinationAirportId,
     required String tailNumberId,
     int? passengers,
     String? outTime,
@@ -134,7 +139,8 @@ class FlightModel extends FlightEntity {
     return createRequest(
       flightRealDate: flightRealDate,
       flightNumber: flightNumber,
-      airlineRouteId: airlineRouteId,
+      originAirportId: originAirportId,
+      destinationAirportId: destinationAirportId,
       tailNumberId: tailNumberId,
       passengers: passengers,
       outTime: outTime,

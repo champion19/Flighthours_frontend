@@ -3,16 +3,13 @@ import 'package:dartz/dartz.dart';
 import 'package:flight_hours_app/core/error/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flight_hours_app/features/airline_route/domain/usecases/resolve_airline_route_use_case.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';
-import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_airline_use_case.dart';
@@ -35,12 +32,6 @@ class MockGetEmployeeAirlineUseCase extends Mock
 class MockUpdateEmployeeAirlineUseCase extends Mock
     implements UpdateEmployeeAirlineUseCase {}
 
-class MockGetEmployeeAirlineRoutesUseCase extends Mock
-    implements GetEmployeeAirlineRoutesUseCase {}
-
-class MockResolveAirlineRouteUseCase extends Mock
-    implements ResolveAirlineRouteUseCase {}
-
 void main() {
   group('EmployeeEvent', () {
     test('LoadCurrentEmployee should be a valid event', () {
@@ -56,11 +47,6 @@ void main() {
 
     test('DeleteEmployee should be a valid event', () {
       final event = DeleteEmployee();
-      expect(event, isA<EmployeeEvent>());
-    });
-
-    test('LoadEmployeeAirlineRoutes should be a valid event', () {
-      final event = LoadEmployeeAirlineRoutes();
       expect(event, isA<EmployeeEvent>());
     });
 
@@ -152,11 +138,6 @@ void main() {
       expect(state, isA<EmployeeState>());
     });
 
-    test('EmployeeAirlineRoutesLoading should be a valid state', () {
-      final state = EmployeeAirlineRoutesLoading();
-      expect(state, isA<EmployeeState>());
-    });
-
     group('EmployeeError', () {
       test('should create with message', () {
         const state = EmployeeError(message: 'Error occurred');
@@ -205,8 +186,6 @@ void main() {
     late MockDeleteEmployeeUseCase mockDeleteUseCase;
     late MockGetEmployeeAirlineUseCase mockGetAirlineUseCase;
     late MockUpdateEmployeeAirlineUseCase mockUpdateAirlineUseCase;
-    late MockGetEmployeeAirlineRoutesUseCase mockGetRoutesUseCase;
-    late MockResolveAirlineRouteUseCase mockResolveAirlineRouteUseCase;
 
     setUpAll(() {
       registerFallbackValue(
@@ -237,8 +216,6 @@ void main() {
       mockDeleteUseCase = MockDeleteEmployeeUseCase();
       mockGetAirlineUseCase = MockGetEmployeeAirlineUseCase();
       mockUpdateAirlineUseCase = MockUpdateEmployeeAirlineUseCase();
-      mockGetRoutesUseCase = MockGetEmployeeAirlineRoutesUseCase();
-      mockResolveAirlineRouteUseCase = MockResolveAirlineRouteUseCase();
     });
 
     EmployeeBloc buildBloc() {
@@ -249,8 +226,6 @@ void main() {
         deleteEmployeeUseCase: mockDeleteUseCase,
         getEmployeeAirlineUseCase: mockGetAirlineUseCase,
         updateEmployeeAirlineUseCase: mockUpdateAirlineUseCase,
-        getEmployeeAirlineRoutesUseCase: mockGetRoutesUseCase,
-        resolveAirlineRouteUseCase: mockResolveAirlineRouteUseCase,
       );
     }
 
@@ -344,61 +319,6 @@ void main() {
       build: () => buildBloc(),
       act: (bloc) => bloc.add(LoadEmployeeAirline()),
       expect: () => [isA<EmployeeAirlineLoading>(), isA<EmployeeError>()],
-    );
-
-    // --- LoadEmployeeAirlineRoutes ---
-    blocTest<EmployeeBloc, EmployeeState>(
-      'emits [RoutesLoading, RoutesSuccess] when LoadEmployeeAirlineRoutes succeeds',
-      setUp: () {
-        when(() => mockGetRoutesUseCase.call()).thenAnswer(
-          (_) async => Right(
-            EmployeeAirlineRoutesResponseModel(
-              success: true,
-              code: 'OK',
-              message: 'Routes loaded',
-              data: const [],
-            ),
-          ),
-        );
-      },
-      build: () => buildBloc(),
-      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
-      expect:
-          () => [
-            isA<EmployeeAirlineRoutesLoading>(),
-            isA<EmployeeAirlineRoutesSuccess>(),
-          ],
-    );
-
-    blocTest<EmployeeBloc, EmployeeState>(
-      'emits [RoutesLoading, Error] when LoadEmployeeAirlineRoutes fails with success=false',
-      setUp: () {
-        when(() => mockGetRoutesUseCase.call()).thenAnswer(
-          (_) async => Right(
-            EmployeeAirlineRoutesResponseModel(
-              success: false,
-              code: 'ERROR',
-              message: 'Routes error',
-              data: const [],
-            ),
-          ),
-        );
-      },
-      build: () => buildBloc(),
-      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
-      expect: () => [isA<EmployeeAirlineRoutesLoading>(), isA<EmployeeError>()],
-    );
-
-    blocTest<EmployeeBloc, EmployeeState>(
-      'emits [RoutesLoading, Error] when LoadEmployeeAirlineRoutes returns Left',
-      setUp: () {
-        when(() => mockGetRoutesUseCase.call()).thenAnswer(
-          (_) async => const Left(Failure(message: 'Network error')),
-        );
-      },
-      build: () => buildBloc(),
-      act: (bloc) => bloc.add(LoadEmployeeAirlineRoutes()),
-      expect: () => [isA<EmployeeAirlineRoutesLoading>(), isA<EmployeeError>()],
     );
 
     // --- UpdateEmployee ---

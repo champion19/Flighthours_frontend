@@ -51,9 +51,7 @@ void main() {
       home: Navigator(
         onGenerateRoute:
             (settings) => MaterialPageRoute(
-              settings: RouteSettings(
-                arguments: {'detail': existingDetail},
-              ),
+              settings: RouteSettings(arguments: {'detail': existingDetail}),
               builder:
                   (_) => BlocProvider<LogbookBloc>.value(
                     value: mockBloc,
@@ -77,9 +75,15 @@ void main() {
       expect(valueOf(const Key('arrivalValue')).data, '11:30');
 
       // Edit OUT and IN like a pilot correcting the saved times.
-      await tester.enterText(find.widgetWithText(TextField, 'HH:MM').at(0), '0930');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'HH:MM').at(0),
+        '0930',
+      );
       await tester.pump();
-      await tester.enterText(find.widgetWithText(TextField, 'HH:MM').at(3), '1200');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'HH:MM').at(3),
+        '1200',
+      );
       await tester.pump();
 
       // Departure/Arrival must reflect the new values immediately — no
@@ -109,10 +113,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(
-          of: appBarTitle,
-          matching: find.text('July 22, 2026'),
-        ),
+        find.descendant(of: appBarTitle, matching: find.text('July 22, 2026')),
         findsOneWidget,
       );
     },

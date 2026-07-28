@@ -13,7 +13,8 @@ class LogbookDetailEntity extends Equatable {
   final DateTime? logDate; // Logbook date
 
   // Route information (denormalized from airline_route)
-  final String? airlineRouteId;
+  final String? originAirportId;
+  final String? destinationAirportId;
   final String? routeCode; // e.g., "MDE-BOG"
   final String? originIataCode; // e.g., "MDE"
   final String? destinationIataCode; // e.g., "BOG"
@@ -51,7 +52,8 @@ class LogbookDetailEntity extends Equatable {
     this.flightNumber,
     this.flightRealDate,
     this.logDate,
-    this.airlineRouteId,
+    this.originAirportId,
+    this.destinationAirportId,
     this.routeCode,
     this.originIataCode,
     this.destinationIataCode,
@@ -154,7 +156,8 @@ class LogbookDetailEntity extends Equatable {
     flightNumber,
     flightRealDate,
     logDate,
-    airlineRouteId,
+    originAirportId,
+    destinationAirportId,
     routeCode,
     originIataCode,
     destinationIataCode,

@@ -9,7 +9,8 @@ class DailyLogbookEntity extends Equatable {
   final DateTime? logDate; // Date of the logbook
   final int? bookPage; // Physical page number in the logbook
   final bool? status; // Active/Inactive status
-  final String? tailNumberId; // Tail number used for all flights in this book page
+  final String?
+  tailNumberId; // Tail number used for all flights in this book page
   final String? tailNumber; // Denormalized plate, for display
 
   const DailyLogbookEntity({

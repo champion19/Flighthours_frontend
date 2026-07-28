@@ -11,10 +11,6 @@ import 'package:flight_hours_app/features/login/presentation/pages/hello_employe
 import 'package:flight_hours_app/features/login/presentation/pages/login_page.dart';
 import 'package:flight_hours_app/features/register/presentation/pages/email_info_page.dart';
 import 'package:flight_hours_app/features/reset_password/presentation/pages/reset_password_page.dart';
-import 'package:flight_hours_app/features/route/presentation/bloc/route_bloc.dart';
-import 'package:flight_hours_app/features/route/presentation/pages/flight_routes_page.dart';
-import 'package:flight_hours_app/features/airline_route/presentation/bloc/airline_route_bloc.dart';
-import 'package:flight_hours_app/features/airline_route/presentation/pages/airline_routes_page.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
 import 'package:flight_hours_app/features/logbook/presentation/pages/logbook_page.dart';
 import 'package:flight_hours_app/features/logbook/presentation/pages/new_flight_page.dart';
@@ -76,8 +72,6 @@ void main() async {
         BlocProvider(create: (_) => AirlineBloc()),
         BlocProvider(create: (_) => EmailVerificationBloc()),
         BlocProvider(create: (_) => EmployeeBloc()),
-        BlocProvider(create: (_) => RouteBloc()),
-        BlocProvider(create: (_) => AirlineRouteBloc()),
         BlocProvider(create: (_) => LogbookBloc()),
         BlocProvider(create: (_) => AirportBloc()),
         BlocProvider(create: (_) => ManufacturerBloc()),
@@ -103,8 +97,6 @@ void main() async {
           '/reset-password': (context) => const ResetPasswordPage(),
           '/employee-profile': (context) => const EmployeeProfilePage(),
           '/change-password': (context) => const ChangePasswordPage(),
-          '/flight-routes': (context) => const FlightRoutesPage(),
-          '/airline-routes': (context) => const AirlineRoutesPage(),
           '/logbook': (context) => const LogbookPage(),
           '/new-flight': (context) => const NewFlightPage(),
           '/admin-home': (context) => const AdminHomePage(),
