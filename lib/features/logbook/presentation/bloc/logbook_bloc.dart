@@ -381,7 +381,8 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       flightRealDate:
           detail.flightRealDate?.toIso8601String().split('T').first ?? '',
       flightNumber: detail.flightNumber ?? '',
-      airlineRouteId: detail.airlineRouteId ?? '',
+      originAirportId: detail.originAirportId ?? '',
+      destinationAirportId: detail.destinationAirportId ?? '',
       tailNumberId: detail.tailNumberId ?? '',
       passengers: event.passengers,
       outTime: event.outTime,

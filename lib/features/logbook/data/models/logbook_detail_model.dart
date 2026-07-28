@@ -10,7 +10,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
     super.flightNumber,
     super.flightRealDate,
     super.logDate,
-    super.airlineRouteId,
+    super.originAirportId,
+    super.destinationAirportId,
     super.routeCode,
     super.originIataCode,
     super.destinationIataCode,
@@ -43,7 +44,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
   ///   "daily_logbook_id": "RZDtPJJtD3JCEZ4HDr2fZMxiD8PtQLL",
   ///   "flight_real_date": "2025-12-14T00:00:00-05:00",
   ///   "flight_number": "4043",
-  ///   "airline_route_id": "Z26wt6QYsMY2UZz9ioXoiXktz8NuaJK",
+  ///   "origin_airport_id": "Z26wt6QYsMY2UZz9ioXoiXktz8NuaJK",
+  ///   "destination_airport_id": "P8vXt9QYsMY2UZz9ioXoiXktz8NuaJK",
   ///   "actual_aircraft_registration_id": "RrydfpW2u8QGhKYoH8LptV3JcJ5NCGQ5",
   ///   "passengers": 174,
   ///   "out_time": "21:17:00",
@@ -75,7 +77,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
       flightNumber: json['flight_number']?.toString(),
       flightRealDate: _parseDate(json['flight_real_date']),
       logDate: _parseDate(json['log_date']),
-      airlineRouteId: json['airline_route_id']?.toString(),
+      originAirportId: json['origin_airport_id']?.toString(),
+      destinationAirportId: json['destination_airport_id']?.toString(),
       routeCode: json['route_code']?.toString(),
       originIataCode: json['origin_iata_code']?.toString(),
       destinationIataCode: json['destination_iata_code']?.toString(),
@@ -128,7 +131,9 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (flightNumber != null) 'flight_number': flightNumber,
       if (flightRealDate != null)
         'flight_real_date': _formatDate(flightRealDate!),
-      if (airlineRouteId != null) 'airline_route_id': airlineRouteId,
+      if (originAirportId != null) 'origin_airport_id': originAirportId,
+      if (destinationAirportId != null)
+        'destination_airport_id': destinationAirportId,
       if (tailNumberId != null) 'tail_number_id': tailNumberId,
       if (passengers != null) 'passengers': passengers,
       if (outTime != null) 'out_time': outTime,
@@ -156,7 +161,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
   static Map<String, dynamic> createRequest({
     required String flightRealDate,
     required String flightNumber,
-    required String airlineRouteId,
+    required String originAirportId,
+    required String destinationAirportId,
     required String tailNumberId,
     required int passengers,
     required String outTime,
@@ -176,7 +182,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
     return {
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
-      'airline_route_id': airlineRouteId,
+      'origin_airport_id': originAirportId,
+      'destination_airport_id': destinationAirportId,
       'tail_number_id': tailNumberId,
       'passengers': passengers,
       'out_time': outTime,
@@ -200,7 +207,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
   static Map<String, dynamic> updateRequest({
     required String flightRealDate,
     required String flightNumber,
-    required String airlineRouteId,
+    required String originAirportId,
+    required String destinationAirportId,
     required String tailNumberId,
     int? passengers,
     String? outTime,
@@ -222,7 +230,8 @@ class LogbookDetailModel extends LogbookDetailEntity {
       // Required fields (always sent)
       'flight_real_date': flightRealDate,
       'flight_number': flightNumber,
-      'airline_route_id': airlineRouteId,
+      'origin_airport_id': originAirportId,
+      'destination_airport_id': destinationAirportId,
       'tail_number_id': tailNumberId,
     };
 

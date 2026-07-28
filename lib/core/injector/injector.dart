@@ -9,7 +9,6 @@ import 'package:flight_hours_app/features/employee/data/repositories/employee_re
 import 'package:flight_hours_app/features/employee/domain/repositories/employee_repository.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/change_password_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/delete_employee_use_case.dart';
-import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_routes_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_airline_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/get_employee_use_case.dart';
 import 'package:flight_hours_app/features/employee/domain/usecases/update_employee_airline_use_case.dart';
@@ -47,17 +46,6 @@ import 'package:flight_hours_app/features/reset_password/data/datasources/reset_
 import 'package:flight_hours_app/features/reset_password/data/repositories/reset_password_repository_impl.dart';
 import 'package:flight_hours_app/features/reset_password/domain/repositories/reset_password_repository.dart';
 import 'package:flight_hours_app/features/reset_password/domain/usecases/reset_password_use_case.dart';
-import 'package:flight_hours_app/features/route/data/datasources/route_remote_data_source.dart';
-import 'package:flight_hours_app/features/route/data/repositories/route_repository_impl.dart';
-import 'package:flight_hours_app/features/route/domain/repositories/route_repository.dart';
-import 'package:flight_hours_app/features/route/domain/usecases/list_routes_use_case.dart';
-import 'package:flight_hours_app/features/route/domain/usecases/get_route_by_id_use_case.dart';
-import 'package:flight_hours_app/features/airline_route/data/datasources/airline_route_remote_data_source.dart';
-import 'package:flight_hours_app/features/airline_route/data/repositories/airline_route_repository_impl.dart';
-import 'package:flight_hours_app/features/airline_route/domain/repositories/airline_route_repository.dart';
-import 'package:flight_hours_app/features/airline_route/domain/usecases/list_airline_routes_use_case.dart';
-import 'package:flight_hours_app/features/airline_route/domain/usecases/get_airline_route_by_id_use_case.dart';
-import 'package:flight_hours_app/features/airline_route/domain/usecases/resolve_airline_route_use_case.dart';
 import 'package:flight_hours_app/features/logbook/data/datasources/logbook_remote_data_source.dart';
 import 'package:flight_hours_app/features/logbook/data/repositories/logbook_repository_impl.dart';
 import 'package:flight_hours_app/features/logbook/domain/repositories/logbook_repository.dart';
@@ -161,22 +149,7 @@ abstract class InjectorApp {
   @Register.factory(ChangePasswordUseCase)
   @Register.factory(DeleteEmployeeUseCase)
   @Register.factory(GetEmployeeAirlineUseCase)
-  @Register.factory(GetEmployeeAirlineRoutesUseCase)
   @Register.factory(UpdateEmployeeAirlineUseCase)
-  // Route
-  @Register.factory(ListRoutesUseCase)
-  @Register.factory(GetRouteByIdUseCase)
-  @Register.factory(RouteRepository, from: RouteRepositoryImpl)
-  @Register.factory(RouteRemoteDataSource, from: RouteRemoteDataSourceImpl)
-  // Airline Route
-  @Register.factory(ListAirlineRoutesUseCase)
-  @Register.factory(GetAirlineRouteByIdUseCase)
-  @Register.factory(ResolveAirlineRouteUseCase)
-  @Register.factory(AirlineRouteRepository, from: AirlineRouteRepositoryImpl)
-  @Register.factory(
-    AirlineRouteRemoteDataSource,
-    from: AirlineRouteRemoteDataSourceImpl,
-  )
   // Logbook
   @Register.factory(ListDailyLogbooksUseCase)
   @Register.factory(ListLogbookDetailsUseCase)

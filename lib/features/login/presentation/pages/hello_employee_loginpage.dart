@@ -5,7 +5,6 @@ import 'package:flight_hours_app/core/responsive/responsive_breakpoints.dart';
 import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
 import 'package:flight_hours_app/core/services/session_service.dart';
 import 'package:flight_hours_app/core/services/token_refresh_service.dart';
-import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_bloc.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_event.dart';
 import 'package:flight_hours_app/features/employee/presentation/bloc/employee_state.dart';
@@ -28,10 +27,7 @@ class HelloEmployee extends StatefulWidget {
 
 class _HelloEmployeeState extends State<HelloEmployee> {
   int _selectedIndex = 0;
-  String _currentAirline = '';
   String _pilotName = 'Pilot';
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
 
   // Flight summary data from backend
   FlightHoursSummaryData? _summaryData;
@@ -42,7 +38,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
   void initState() {
     super.initState();
     context.read<EmployeeBloc>().add(LoadCurrentEmployee());
-    context.read<EmployeeBloc>().add(LoadEmployeeAirlineRoutes());
     // Load flight data — overall summary is always annual (donut)
     _refreshFlightSummary();
   }
@@ -56,7 +51,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -95,7 +89,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
               setState(() {
                 final data = state.response.data!;
                 _pilotName = data.name;
-                _currentAirline = data.airline ?? '';
               });
             }
           },
@@ -510,7 +503,8 @@ class _HelloEmployeeState extends State<HelloEmployee> {
               flight.logDate != null
                   ? DateTime.tryParse(flight.logDate!)
                   : null,
-          airlineRouteId: flight.airlineRouteId,
+          originAirportId: flight.originAirportId,
+          destinationAirportId: flight.destinationAirportId,
           routeCode: flight.routeCode,
           originIataCode: flight.originIataCode,
           destinationIataCode: flight.destinationIataCode,
@@ -605,248 +599,6 @@ class _HelloEmployeeState extends State<HelloEmployee> {
             const Icon(Icons.chevron_right, color: Color(0xFF6c757d), size: 20),
           ],
         ),
-      ),
-    );
-  }
-
-  // ==================== ROUTES PAGE ====================
-  Widget _buildRoutesPage() {
-    return BlocBuilder<EmployeeBloc, EmployeeState>(
-      builder: (context, state) {
-        if (state is EmployeeAirlineRoutesLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF4facfe)),
-          );
-        }
-
-        List<AirlineRouteEntity> allRoutes = [];
-
-        if (state is EmployeeAirlineRoutesSuccess) {
-          allRoutes = state.response.data;
-        }
-
-        // Filter routes by search query
-        final filteredRoutes =
-            _searchQuery.isEmpty
-                ? allRoutes
-                : allRoutes.where((route) {
-                  final origin = (route.originAirportCode ?? '').toLowerCase();
-                  final dest =
-                      (route.destinationAirportCode ?? '').toLowerCase();
-                  final airlineName = (route.airlineName ?? '').toLowerCase();
-                  final routeName = (route.routeName ?? '').toLowerCase();
-                  final query = _searchQuery.toLowerCase();
-                  return origin.contains(query) ||
-                      dest.contains(query) ||
-                      airlineName.contains(query) ||
-                      routeName.contains(query);
-                }).toList();
-
-        return Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'My Routes',
-                        style: TextStyle(
-                          color: Color(0xFF1a1a2e),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${filteredRoutes.length} routes',
-                        style: const TextStyle(
-                          color: Color(0xFF6c757d),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Search bar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() => _searchQuery = value);
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search routes...',
-                        hintStyle: const TextStyle(color: Color(0xFF6c757d)),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Color(0xFF6c757d),
-                        ),
-                        suffixIcon:
-                            _searchQuery.isNotEmpty
-                                ? IconButton(
-                                  icon: const Icon(
-                                    Icons.clear,
-                                    color: Color(0xFF6c757d),
-                                  ),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() => _searchQuery = '');
-                                  },
-                                )
-                                : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Routes list
-            Expanded(
-              child:
-                  filteredRoutes.isEmpty
-                      ? _buildEmptyRoutesState()
-                      : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: filteredRoutes.length,
-                        itemBuilder: (context, index) {
-                          return _buildRouteCard(filteredRoutes[index]);
-                        },
-                      ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyRoutesState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.flight, color: Color(0xFF6c757d), size: 64),
-          const SizedBox(height: 16),
-          Text(
-            _searchQuery.isNotEmpty
-                ? 'No routes matching "$_searchQuery"'
-                : (_currentAirline.isNotEmpty
-                    ? 'No routes found for $_currentAirline'
-                    : 'No airline assigned'),
-            style: const TextStyle(color: Color(0xFF6c757d), fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          if (_searchQuery.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: TextButton(
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() => _searchQuery = '');
-                },
-                child: const Text('Clear search'),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRouteCard(AirlineRouteEntity airlineRoute) {
-    // Get route details
-    String originCode = airlineRoute.originAirportCode ?? '???';
-    String destCode = airlineRoute.destinationAirportCode ?? '???';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFe0e0e0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Route icon
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4facfe).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.flight, color: Color(0xFF4facfe), size: 24),
-          ),
-          const SizedBox(width: 16),
-
-          // Route info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$originCode → $destCode',
-                  style: const TextStyle(
-                    color: Color(0xFF1a1a2e),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  airlineRoute.airlineName ?? 'Unknown Airline',
-                  style: const TextStyle(
-                    color: Color(0xFF6c757d),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Status badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color:
-                  airlineRoute.isActive
-                      ? const Color(0xFF00b894).withValues(alpha: 0.1)
-                      : const Color(0xFFe17055).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              airlineRoute.displayStatus,
-              style: TextStyle(
-                color:
-                    airlineRoute.isActive
-                        ? const Color(0xFF00b894)
-                        : const Color(0xFFe17055),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -664,7 +664,8 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
         'tail_number_name': tailNumber.tailNumber,
         'flight_real_date': flightData['flight_real_date'],
         'flight_number': flightData['flight_number'],
-        'airline_route_id': flightData['airline_route_id'],
+        'origin_airport_id': flightData['origin_airport_id'],
+        'destination_airport_id': flightData['destination_airport_id'],
         'daily_logbook_id': logbookId,
       });
     } else {
@@ -672,7 +673,8 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
       final completeData = <String, dynamic>{
         'flight_real_date': flightData['flight_real_date'],
         'flight_number': flightData['flight_number'],
-        'airline_route_id': flightData['airline_route_id'],
+        'origin_airport_id': flightData['origin_airport_id'],
+        'destination_airport_id': flightData['destination_airport_id'],
         'tail_number_id': tailNumber.id,
       };
 
@@ -697,7 +699,8 @@ class _TailNumberLookupPageState extends State<TailNumberLookupPage> {
       dailyLogbookId: flight.dailyLogbookId,
       flightNumber: flight.flightNumber,
       flightRealDate: flight.flightRealDate,
-      airlineRouteId: flight.airlineRouteId,
+      originAirportId: flight.originAirportId,
+      destinationAirportId: flight.destinationAirportId,
       routeCode: flight.routeCode,
       originIataCode: flight.originIataCode,
       destinationIataCode: flight.destinationIataCode,

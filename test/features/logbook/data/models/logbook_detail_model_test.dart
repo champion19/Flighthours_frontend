@@ -11,7 +11,8 @@ void main() {
         'daily_logbook_id': 'RZDtPJJtD3JCEZ4HDr2fZMxiD8PtQLL',
         'flight_real_date': '2025-12-14T00:00:00-05:00',
         'flight_number': '4043',
-        'airline_route_id': 'Z26wt6QYsMY2UZz9ioXoiXktz8NuaJK',
+        'origin_airport_id': 'Z26wt6QYsMY2UZz9ioXoiXktz8NuaJK',
+        'destination_airport_id': 'P8vXt9QYsMY2UZz9ioXoiXktz8NuaJK',
         'route_code': 'MDE-BOG',
         'origin_iata_code': 'MDE',
         'destination_iata_code': 'BOG',
@@ -136,7 +137,8 @@ void main() {
         id: 'test123',
         uuid: 'uuid-1234',
         flightNumber: '4043',
-        airlineRouteId: 'route123',
+        originAirportId: 'airport-o',
+        destinationAirportId: 'airport-d',
         passengers: 150,
         outTime: '21:17:00',
         takeoffTime: '21:35:00',
@@ -181,7 +183,8 @@ void main() {
       final result = LogbookDetailModel.createRequest(
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
-        airlineRouteId: 'route123',
+        originAirportId: 'airport-o',
+        destinationAirportId: 'airport-d',
         tailNumberId: 'aircraft123',
         passengers: 150,
         outTime: '21:17:00',
@@ -200,7 +203,8 @@ void main() {
       // Assert
       expect(result['flight_real_date'], equals('2025-12-14'));
       expect(result['flight_number'], equals('4043'));
-      expect(result['airline_route_id'], equals('route123'));
+      expect(result['origin_airport_id'], equals('airport-o'));
+      expect(result['destination_airport_id'], equals('airport-d'));
       expect(result['passengers'], equals(150));
       expect(result['pilot_role'], equals('PM'));
     });
@@ -217,7 +221,8 @@ void main() {
       final result = LogbookDetailModel.updateRequest(
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
-        airlineRouteId: 'r1',
+        originAirportId: 'o1',
+        destinationAirportId: 'd1',
         tailNumberId: 't1',
         crewRole: 'captain',
       );
@@ -228,7 +233,8 @@ void main() {
       final result = LogbookDetailModel.updateRequest(
         flightRealDate: '2025-12-14',
         flightNumber: '4043',
-        airlineRouteId: 'r1',
+        originAirportId: 'o1',
+        destinationAirportId: 'd1',
         tailNumberId: 't1',
         crewRole: '',
       );

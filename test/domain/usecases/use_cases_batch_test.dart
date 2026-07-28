@@ -45,7 +45,8 @@ void main() {
             id: any(named: 'id'),
             flightRealDate: any(named: 'flightRealDate'),
             flightNumber: any(named: 'flightNumber'),
-            airlineRouteId: any(named: 'airlineRouteId'),
+            originAirportId: any(named: 'originAirportId'),
+            destinationAirportId: any(named: 'destinationAirportId'),
             tailNumberId: any(named: 'tailNumberId'),
           ),
         ).thenAnswer((_) async => const Left(Failure(message: 'err')));
@@ -54,7 +55,8 @@ void main() {
           id: '1',
           flightRealDate: '2024-01-01',
           flightNumber: 'AV1',
-          airlineRouteId: 'r1',
+          originAirportId: 'o1',
+          destinationAirportId: 'd1',
           tailNumberId: 't1',
         );
         expect(result, isA<Left>());

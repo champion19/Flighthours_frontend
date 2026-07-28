@@ -1,9 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:flight_hours_app/features/airline_route/domain/entities/airline_route_entity.dart';
 import 'package:flight_hours_app/features/employee/data/models/change_password_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/delete_employee_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_airline_model.dart';
-import 'package:flight_hours_app/features/employee/data/models/employee_airline_routes_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_response_model.dart';
 import 'package:flight_hours_app/features/employee/data/models/employee_update_model.dart';
 
@@ -91,34 +89,6 @@ class EmployeeDeleteSuccess extends EmployeeState {
 
   @override
   List<Object?> get props => [response];
-}
-
-/// Success state for loading employee airline routes
-class EmployeeAirlineRoutesSuccess extends EmployeeState {
-  final EmployeeAirlineRoutesResponseModel response;
-
-  const EmployeeAirlineRoutesSuccess(this.response);
-
-  @override
-  List<Object?> get props => [response];
-}
-
-/// Loading state for airline routes
-class EmployeeAirlineRoutesLoading extends EmployeeState {}
-
-/// Loading state while resolving/auto-requesting an airline route link
-class AirlineRouteResolving extends EmployeeState {}
-
-/// Success state for resolving an airline route link — check
-/// `airlineRoute.isPending` to know whether it was just auto-created and is
-/// awaiting admin approval, versus an existing active link.
-class AirlineRouteResolved extends EmployeeState {
-  final AirlineRouteEntity airlineRoute;
-
-  const AirlineRouteResolved(this.airlineRoute);
-
-  @override
-  List<Object?> get props => [airlineRoute];
 }
 
 /// Error state with error details

@@ -28,16 +28,6 @@ void main() {
         expect(AdminMessages.airlinesTitle, equals('Airlines'));
         expect(AdminMessages.airlinesSubtitle, isNotEmpty);
       });
-
-      test('should have routes title and subtitle', () {
-        expect(AdminMessages.routesTitle, equals('Routes'));
-        expect(AdminMessages.routesSubtitle, isNotEmpty);
-      });
-
-      test('should have airline routes title and subtitle', () {
-        expect(AdminMessages.airlineRoutesTitle, equals('Airline Routes'));
-        expect(AdminMessages.airlineRoutesSubtitle, isNotEmpty);
-      });
     });
 
     group('system configuration constants', () {
