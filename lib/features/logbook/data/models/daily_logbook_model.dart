@@ -12,6 +12,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
     super.status,
     super.tailNumberId,
     super.tailNumber,
+    super.crewRole,
   });
 
   /// Factory constructor to create DailyLogbookModel from JSON
@@ -35,6 +36,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
       status: _parseBool(json['status']),
       tailNumberId: json['tail_number_id']?.toString(),
       tailNumber: json['tail_number']?.toString(),
+      crewRole: json['crew_role']?.toString(),
     );
   }
 
@@ -82,6 +84,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
       if (bookPage != null) 'book_page': bookPage,
       if (status != null) 'status': status,
       if (tailNumberId != null) 'tail_number_id': tailNumberId,
+      if (crewRole != null) 'crew_role': crewRole,
     };
   }
 
@@ -95,11 +98,13 @@ class DailyLogbookModel extends DailyLogbookEntity {
     required DateTime logDate,
     required int bookPage,
     String? tailNumberId,
+    String? crewRole,
   }) {
     return {
       'log_date': _formatDate(logDate),
       'book_page': bookPage,
       if (tailNumberId != null) 'tail_number_id': tailNumberId,
+      if (crewRole != null) 'crew_role': crewRole,
     };
   }
 }

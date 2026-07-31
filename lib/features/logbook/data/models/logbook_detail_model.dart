@@ -1,3 +1,4 @@
+import 'package:flight_hours_app/features/logbook/domain/entities/crew_assignment_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 
 /// Model class for Logbook Detail (flight segment) that extends the entity
@@ -27,12 +28,13 @@ class LogbookDetailModel extends LogbookDetailEntity {
     super.blockTime,
     super.dutyTime,
     super.pilotRole,
-    super.companionName,
+    super.crewRole,
     super.passengers,
     super.approachCategory,
     super.approachSubtype,
     super.autoland,
     super.flightType,
+    super.crew,
   });
 
   /// Factory constructor to create LogbookDetailModel from JSON
@@ -53,7 +55,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
   ///   "landing_time": "22:04:00",
   ///   "in_time": "22:07:00",
   ///   "pilot_role": "PM",
-  ///   "companion_name": "David Ramirez",
   ///   "air_time": "00:29:00",
   ///   "block_time": "00:50:00",
   ///   "duty_time": "10:14:00",
@@ -94,13 +95,32 @@ class LogbookDetailModel extends LogbookDetailEntity {
       blockTime: json['block_time']?.toString(),
       dutyTime: json['duty_time']?.toString(),
       pilotRole: json['pilot_role']?.toString(),
-      companionName: json['companion_name']?.toString(),
+      crewRole: json['crew_role']?.toString(),
       passengers: _parseInt(json['passengers']),
       approachCategory: json['approach_category']?.toString(),
       approachSubtype: json['approach_subtype']?.toString(),
       autoland: json['autoland'] is bool ? json['autoland'] as bool : null,
       flightType: json['flight_type']?.toString(),
+      crew: _parseCrew(json['crew']),
     );
+  }
+
+  /// Parses the `crew` array (First Officer + cabin crew) from a detail response.
+  /// Returns null if the key is absent (vs. an empty list if present-but-empty).
+  static List<CrewAssignmentEntity>? _parseCrew(dynamic value) {
+    if (value is! List) return null;
+    return value
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (e) => CrewAssignmentEntity(
+            id: e['id']?.toString() ?? '',
+            crewMemberId: e['crew_member_id']?.toString() ?? '',
+            name: e['name']?.toString() ?? '',
+            bp: e['bp']?.toString(),
+            role: e['role']?.toString() ?? '',
+          ),
+        )
+        .toList();
   }
 
   /// Parse date from various formats
@@ -141,7 +161,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (landingTime != null) 'landing_time': landingTime,
       if (inTime != null) 'in_time': inTime,
       if (pilotRole != null) 'pilot_role': pilotRole,
-      if (companionName != null) 'companion_name': companionName,
       if (airTime != null) 'air_time': airTime,
       if (blockTime != null) 'block_time': blockTime,
       if (dutyTime != null) 'duty_time': dutyTime,
@@ -149,7 +168,12 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (approachSubtype != null) 'approach_subtype': approachSubtype,
       if (autoland != null) 'autoland': autoland,
       if (flightType != null) 'flight_type': flightType,
+      if (crew != null) 'crew': crew!.map(_crewAssignmentToJson).toList(),
     };
+  }
+
+  static Map<String, dynamic> _crewAssignmentToJson(CrewAssignmentEntity a) {
+    return {'crew_member_id': a.crewMemberId, 'role': a.role};
   }
 
   /// Format date for API (YYYY-MM-DD)
@@ -170,7 +194,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
     required String landingTime,
     required String inTime,
     required String pilotRole,
-    required String companionName,
     required String airTime,
     required String blockTime,
     required String dutyTime,
@@ -178,6 +201,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
     required String flightType,
     String? approachSubtype,
     bool? autoland,
+    List<Map<String, String>>? crew,
   }) {
     return {
       'flight_real_date': flightRealDate,
@@ -191,7 +215,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
       'landing_time': landingTime,
       'in_time': inTime,
       'pilot_role': pilotRole,
-      'companion_name': companionName,
       'air_time': airTime,
       'block_time': blockTime,
       'duty_time': dutyTime,
@@ -199,6 +222,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
       if (approachSubtype != null) 'approach_subtype': approachSubtype,
       if (autoland != null) 'autoland': autoland,
       'flight_type': flightType,
+      if (crew != null) 'crew': crew,
     };
   }
 
@@ -217,7 +241,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
     String? inTime,
     String? pilotRole,
     String? crewRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -225,6 +248,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
     String? approachSubtype,
     bool? autoland,
     String? flightType,
+    List<Map<String, String>>? crew,
   }) {
     final map = <String, dynamic>{
       // Required fields (always sent)
@@ -255,9 +279,6 @@ class LogbookDetailModel extends LogbookDetailEntity {
     if (crewRole != null && crewRole.isNotEmpty) {
       map['crew_role'] = crewRole;
     }
-    if (companionName != null && companionName.isNotEmpty) {
-      map['companion_name'] = companionName;
-    }
     if (airTime != null && airTime.isNotEmpty) {
       map['air_time'] = _toHHMM(airTime);
     }
@@ -278,6 +299,12 @@ class LogbookDetailModel extends LogbookDetailEntity {
     }
     if (flightType != null && flightType.isNotEmpty) {
       map['flight_type'] = flightType;
+    }
+    // crew == null means "don't touch existing assignments"; crew == []
+    // (non-null, empty) means "explicitly clear them" — both are meaningful,
+    // so unlike the string fields above this is NOT gated on isNotEmpty.
+    if (crew != null) {
+      map['crew'] = crew;
     }
 
     return map;

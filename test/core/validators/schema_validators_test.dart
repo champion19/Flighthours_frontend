@@ -156,24 +156,6 @@ void main() {
     });
   });
 
-  group('CompanionNameValidator (optional, max 100)', () {
-    const validator = CompanionNameValidator();
-
-    test('should accept null and empty (optional)', () {
-      expect(validator.validate(null), isNull);
-      expect(validator.validate(''), isNull);
-    });
-
-    test('should accept names up to 100 characters', () {
-      expect(validator.validate('Juan Pérez'), isNull);
-      expect(validator.validate('a' * 100), isNull);
-    });
-
-    test('should reject names longer than 100 characters', () {
-      expect(validator.validate('a' * 101), isNotNull);
-    });
-  });
-
   group('BpValidator (optional, max 16)', () {
     const validator = BpValidator();
 
@@ -302,7 +284,6 @@ void main() {
 
     test('logbook detail constraints match schema', () {
       expect(SchemaConstants.flightNumberMaxLength, 20);
-      expect(SchemaConstants.companionNameMaxLength, 100);
       expect(SchemaConstants.passengersMinimum, 0);
       expect(SchemaConstants.timePattern.hasMatch('12:30'), isTrue);
       expect(SchemaConstants.timePattern.hasMatch('1230'), isFalse);

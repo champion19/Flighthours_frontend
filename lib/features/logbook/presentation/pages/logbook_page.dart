@@ -24,6 +24,16 @@ class LogbookPage extends StatefulWidget {
 }
 
 class _LogbookPageState extends State<LogbookPage> {
+  // Crew role options offered as a default for the whole book page; each
+  // flight can still override it individually in Daily Logbook Detail.
+  static const List<String> _newLogbookCrewRoles = [
+    'captain',
+    'first officer',
+    'instructor',
+    'line check captain',
+    'safety pilot',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -930,11 +940,6 @@ class _LogbookPageState extends State<LogbookPage> {
             _buildDetailRow('Air Time', _formatTimeDisplay(detail.airTime)),
             _buildDetailRow('Block Time', _formatTimeDisplay(detail.blockTime)),
 
-            if (detail.companionName != null) ...[
-              const SizedBox(height: 16),
-              _buildDetailRow('Companion', detail.companionName!),
-            ],
-
             const SizedBox(height: 24),
 
             // Close button
@@ -1398,6 +1403,7 @@ class _LogbookPageState extends State<LogbookPage> {
     TailNumberEntity? selectedTailNumber;
     bool isSearchingTailNumber = false;
     bool tailNumberNotFound = false;
+    String? selectedCrewRole;
 
     // Auto-increment: find max book_page from existing logbooks
     final state = context.read<LogbookBloc>().state;
@@ -1778,6 +1784,59 @@ class _LogbookPageState extends State<LogbookPage> {
                             ),
                           ),
                       ],
+                      const SizedBox(height: 16),
+                      // Crew role field — captured once here as a default for
+                      // every flight added under this book page; each flight
+                      // can still override it individually in its own detail.
+                      const Text(
+                        'Crew Role (optional)',
+                        style: TextStyle(
+                          color: Color(0xFF6c757d),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFe9ecef)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedCrewRole,
+                            isExpanded: true,
+                            hint: const Text(
+                              'Select crew role',
+                              style: TextStyle(
+                                color: Color(0xFFadb5bd),
+                                fontSize: 14,
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Color(0xFF4facfe),
+                            ),
+                            style: const TextStyle(
+                              color: Color(0xFF1a1a2e),
+                              fontSize: 14,
+                            ),
+                            items:
+                                _newLogbookCrewRoles
+                                    .map(
+                                      (role) => DropdownMenuItem(
+                                        value: role,
+                                        child: Text(role),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged:
+                                (v) =>
+                                    setDialogState(() => selectedCrewRole = v),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1829,6 +1888,7 @@ class _LogbookPageState extends State<LogbookPage> {
                           logDate: selectedDate!,
                           bookPage: bookPage,
                           tailNumberId: selectedTailNumber?.id,
+                          crewRole: selectedCrewRole,
                         ),
                       );
                     },

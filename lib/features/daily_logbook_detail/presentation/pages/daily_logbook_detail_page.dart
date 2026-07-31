@@ -1,6 +1,9 @@
+import 'package:flight_hours_app/core/injector/injector.dart';
 import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
+import 'package:flight_hours_app/features/daily_logbook_detail/presentation/widgets/crew_section.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
+import 'package:flight_hours_app/features/logbook/domain/usecases/list_logbook_details_use_case.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_state.dart';
@@ -25,7 +28,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   final _onController = TextEditingController();
   final _outController = TextEditingController();
   final _offController = TextEditingController();
-  final _companionNameController = TextEditingController();
 
   // Dropdown selections
   String? _selectedCrewRole; // Captain / Copilot
@@ -39,7 +41,13 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   String _calculatedAirTime = '--:--';
   String _calculatedBlockTime = '--:--';
 
-  final List<String> _crewRoles = ['captain', 'first officer'];
+  final List<String> _crewRoles = [
+    'captain',
+    'first officer',
+    'instructor',
+    'line check captain',
+    'safety pilot',
+  ];
   final List<String> _pilotRoles = ['PF', 'PM', 'PFTO', 'PFL'];
   final List<String> _approachCategories = ['RNP', 'ILS', 'VISUAL'];
   final Map<String, List<String>> _approachSubtypesByCategory = {
@@ -54,16 +62,17 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     'POSITIONING',
   ];
 
-  /// Companion name regex — matches backend pattern: letters (incl. accented) and spaces only
-  static final _companionNameRegex = RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]+$');
-  static const _companionNameMaxLength = 100;
-
   // Route arguments
   DailyLogbookEntity? _logbook;
   LogbookDetailEntity? _detail;
   bool _isEditMode = false;
   bool _initialized = false;
   bool _hasChanges = false; // Tracks if user modified any field
+
+  // Additional crew (First Officer + cabin crew). null = not touched by this
+  // form yet, so it won't overwrite existing crew on save.
+  final _crewSectionKey = GlobalKey<CrewSectionState>();
+  List<Map<String, String>>? _crewPayload;
 
   /// Per-field validation errors — keys match field labels (OUT, OFF, ON, IN,
   /// PAX, Companion, CrewRole, PilotRole, ApproachCategory, ApproachSubtype, FlightType, AirTime, BlockTime)
@@ -95,7 +104,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     _onController.addListener(markDirty);
     _inController.addListener(markDirty);
     _paxController.addListener(markDirty);
-    _companionNameController.addListener(markDirty);
   }
 
   @override
@@ -123,7 +131,66 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
 
     if (_isEditMode) {
       _prefillFields();
+      if (_logbook == null) {
+        // Landed here right after creating a new flight (new_flight_page.dart
+        // pushes this route with only 'detail', no 'logbook' — see
+        // _navigateToLogbookDetailForm there). If this daily logbook already
+        // has other flights, offer to reuse their First Officer + cabin crew.
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _maybeOfferKeepCrew(),
+        );
+      }
     }
+  }
+
+  /// Feature: keep-or-change crew between flights of the same daily logbook.
+  /// Only First Officer + cabin crew are offered — the captain is the pilot
+  /// themselves, unrelated to this prompt.
+  Future<void> _maybeOfferKeepCrew() async {
+    final dailyLogbookId = _detail?.dailyLogbookId;
+    if (dailyLogbookId == null || dailyLogbookId.isEmpty) return;
+
+    LogbookDetailEntity? previousLeg;
+    try {
+      final result = await InjectorApp.resolve<ListLogbookDetailsUseCase>()
+          .call(dailyLogbookId);
+      previousLeg = result.fold<LogbookDetailEntity?>((failure) => null, (
+        details,
+      ) {
+        final others = details.where((d) => d.id != _detail!.id).toList();
+        return others.isEmpty ? null : others.last;
+      });
+    } catch (_) {
+      // Best-effort prompt — if it can't be resolved/fetched, just skip it
+      // rather than blocking the rest of the form.
+      return;
+    }
+
+    if (previousLeg == null || !mounted) return;
+
+    final keep = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Tripulación'),
+            content: const Text(
+              '¿Mantener la tripulación (Primer Oficial y Cabina) del vuelo anterior de esta bitácora?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('No, cambiar'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Sí, mantener'),
+              ),
+            ],
+          ),
+    );
+
+    if (!mounted || keep != true) return;
+    _crewSectionKey.currentState?.applyCrew(previousLeg.crew ?? []);
   }
 
   void _prefillFields() {
@@ -133,7 +200,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     _offController.text = _formatTimeForField(d.takeoffTime);
     _onController.text = _formatTimeForField(d.landingTime);
     _inController.text = _formatTimeForField(d.inTime);
-    _companionNameController.text = d.companionName ?? '';
 
     // Map pilot role
     if (d.pilotRole != null &&
@@ -141,9 +207,10 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       _selectedPilotRole = d.pilotRole!.toUpperCase();
     }
 
-    // Map crew role — backend sends 'captain'/'first_officer'
-    if (d.companionName != null || d.pilotRole != null) {
-      _selectedCrewRole = 'captain';
+    // Map crew role (inherited from the daily logbook's default when the
+    // flight didn't specify its own, or the flight's own saved value).
+    if (d.crewRole != null && _crewRoles.contains(d.crewRole!.toLowerCase())) {
+      _selectedCrewRole = d.crewRole!.toLowerCase();
     }
 
     // Approach category + subtype
@@ -251,7 +318,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
     _onController.dispose();
     _outController.dispose();
     _offController.dispose();
-    _companionNameController.dispose();
     super.dispose();
   }
 
@@ -407,6 +473,21 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // ── Additional crew (First Officer + cabin crew) ──
+                  _buildSectionLabel('Tripulación'),
+                  const SizedBox(height: 8),
+                  CrewSection(
+                    key: _crewSectionKey,
+                    initialCrew: _detail?.crew,
+                    onChanged: (payload) {
+                      _crewPayload = payload;
+                      if (!_hasChanges) {
+                        setState(() => _hasChanges = true);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
                   // ── PF / PNF select ──
                   _buildSectionLabel('Pilot Flying Role'),
                   const SizedBox(height: 8),
@@ -422,19 +503,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                           _hasChanges = true;
                           _fieldErrors.remove('PilotRole');
                         }),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── Companion Name ──
-                  _buildSectionLabel('Companion'),
-                  const SizedBox(height: 8),
-                  _buildInputField(
-                    fieldKey: 'Companion',
-                    label: 'Companion Name',
-                    hint: 'e.g. John Smith',
-                    controller: _companionNameController,
-                    icon: Icons.people_outline,
-                    maxLength: _companionNameMaxLength,
                   ),
                   const SizedBox(height: 24),
 
@@ -595,7 +663,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                 airTime: _detail!.airTime,
                 blockTime: _detail!.blockTime,
                 pilotRole: _detail!.pilotRole,
-                companionName: _detail!.companionName,
                 passengers: _detail!.passengers,
                 approachCategory: _detail!.approachCategory,
                 approachSubtype: _detail!.approachSubtype,
@@ -1353,16 +1420,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
       errors['BlockTime'] = 'Cannot calculate — check OUT / IN';
     }
 
-    // 7. Companion name (optional)
-    final companion = _companionNameController.text.trim();
-    if (companion.isNotEmpty) {
-      if (!_companionNameRegex.hasMatch(companion)) {
-        errors['Companion'] = 'Only letters and spaces allowed';
-      } else if (companion.length > _companionNameMaxLength) {
-        errors['Companion'] = 'Max $_companionNameMaxLength characters';
-      }
-    }
-
     // 8. Approach category + subtype + autoland (optional)
     if (_selectedApproachCategory != null &&
         !_approachCategories.contains(_selectedApproachCategory)) {
@@ -1468,10 +1525,6 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         inTime: _formatTimeForApi(_inController.text),
         pilotRole: _selectedPilotRole ?? _detail!.pilotRole ?? '',
         crewRole: _selectedCrewRole?.toLowerCase() ?? 'captain',
-        companionName:
-            _companionNameController.text.isNotEmpty
-                ? _companionNameController.text
-                : null,
         airTime: _calculatedAirTime != '--:--' ? _calculatedAirTime : null,
         blockTime:
             _calculatedBlockTime != '--:--' ? _calculatedBlockTime : null,
@@ -1479,6 +1532,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         approachSubtype: _selectedApproachSubtype,
         autoland: _selectedApproachCategory == 'ILS' ? _autoland : null,
         flightType: _selectedFlightType,
+        crew: _crewPayload,
       ),
     );
   }

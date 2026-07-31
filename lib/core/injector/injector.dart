@@ -69,6 +69,11 @@ import 'package:flight_hours_app/features/crew_member_type/data/datasources/crew
 import 'package:flight_hours_app/features/crew_member_type/data/repositories/crew_member_type_repository_impl.dart';
 import 'package:flight_hours_app/features/crew_member_type/domain/repositories/crew_member_type_repository.dart';
 import 'package:flight_hours_app/features/crew_member_type/domain/usecases/list_crew_member_types_use_case.dart';
+import 'package:flight_hours_app/features/crew_member/data/datasources/crew_member_remote_data_source.dart';
+import 'package:flight_hours_app/features/crew_member/data/repositories/crew_member_repository_impl.dart';
+import 'package:flight_hours_app/features/crew_member/domain/repositories/crew_member_repository.dart';
+import 'package:flight_hours_app/features/crew_member/domain/usecases/create_crew_member_use_case.dart';
+import 'package:flight_hours_app/features/crew_member/domain/usecases/search_crew_members_use_case.dart';
 import 'package:kiwi/kiwi.dart';
 
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -180,6 +185,14 @@ abstract class InjectorApp {
   @Register.factory(
     CrewMemberTypeRemoteDataSource,
     from: CrewMemberTypeRemoteDataSourceImpl,
+  )
+  // Crew Member (roster)
+  @Register.factory(SearchCrewMembersUseCase)
+  @Register.factory(CreateCrewMemberUseCase)
+  @Register.factory(CrewMemberRepository, from: CrewMemberRepositoryImpl)
+  @Register.factory(
+    CrewMemberRemoteDataSource,
+    from: CrewMemberRemoteDataSourceImpl,
   )
   void _configureAuthFactories();
   // comando para crear el archivo que genera el paquete injector: flutter pub run build_runner build --delete-conflicting-outputs

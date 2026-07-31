@@ -24,7 +24,6 @@ class UpdateLogbookDetailUseCase {
     String? inTime,
     String? pilotRole,
     String? crewRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -32,6 +31,7 @@ class UpdateLogbookDetailUseCase {
     String? approachSubtype,
     bool? autoland,
     String? flightType,
+    List<Map<String, String>>? crew,
   }) async {
     return await _repository.updateLogbookDetail(
       id: id,
@@ -47,7 +47,6 @@ class UpdateLogbookDetailUseCase {
       inTime: inTime,
       pilotRole: pilotRole,
       crewRole: crewRole,
-      companionName: companionName,
       airTime: airTime,
       blockTime: blockTime,
       dutyTime: dutyTime,
@@ -55,6 +54,7 @@ class UpdateLogbookDetailUseCase {
       approachSubtype: approachSubtype,
       autoland: autoland,
       flightType: flightType,
+      crew: crew,
     );
   }
 }
