@@ -26,6 +26,7 @@ import 'package:flight_hours_app/features/tail_number/presentation/pages/tail_nu
 import 'package:flight_hours_app/features/flight/presentation/bloc/flight_bloc.dart';
 import 'package:flight_hours_app/features/aircraft_model/presentation/pages/aircraft_families_page.dart';
 import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_bloc.dart';
+import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_bloc.dart';
 import 'package:flight_hours_app/features/daily_logbook_detail/presentation/pages/daily_logbook_detail_page.dart';
 import 'package:flight_hours_app/features/daily_logbook_detail/presentation/pages/flight_records_list_page.dart';
 import 'package:flight_hours_app/features/crew_member_type/presentation/pages/crew_member_type_list_page.dart';
@@ -79,6 +80,7 @@ void main() async {
         BlocProvider(create: (_) => TailNumberBloc()),
         BlocProvider(create: (_) => FlightBloc()),
         BlocProvider(create: (_) => CrewMemberTypeBloc()),
+        BlocProvider(create: (_) => CrewMemberBloc()),
         BlocProvider(create: (_) => FlightSummaryBloc()),
       ],
       child: MaterialApp(

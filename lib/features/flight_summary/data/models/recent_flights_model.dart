@@ -52,7 +52,6 @@ class RecentFlightData {
   // Pilot info
   final String? pilotRole;
   final String? crewRole;
-  final String? companionName;
 
   // Flight details
   final int? passengers;
@@ -84,7 +83,6 @@ class RecentFlightData {
     this.blockTime,
     this.pilotRole,
     this.crewRole,
-    this.companionName,
     this.passengers,
     this.approachType,
     this.flightType,
@@ -114,7 +112,6 @@ class RecentFlightData {
         blockTime: json["block_time"],
         pilotRole: json["pilot_role"],
         crewRole: json["crew_role"],
-        companionName: json["companion_name"],
         passengers: json["passengers"],
         approachType: json["approach_type"],
         flightType: json["flight_type"],

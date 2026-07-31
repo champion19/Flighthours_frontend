@@ -74,15 +74,17 @@ class CreateDailyLogbookEvent extends LogbookEvent {
   final DateTime logDate;
   final int? bookPage;
   final String? tailNumberId;
+  final String? crewRole;
 
   const CreateDailyLogbookEvent({
     required this.logDate,
     this.bookPage,
     this.tailNumberId,
+    this.crewRole,
   });
 
   @override
-  List<Object?> get props => [logDate, bookPage, tailNumberId];
+  List<Object?> get props => [logDate, bookPage, tailNumberId, crewRole];
 }
 
 /// Event to activate a daily logbook
@@ -127,7 +129,6 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   final String inTime;
   final String pilotRole;
   final String crewRole;
-  final String? companionName;
   final String? airTime;
   final String? blockTime;
   final String? dutyTime;
@@ -135,6 +136,8 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   final String? approachSubtype;
   final bool? autoland;
   final String? flightType;
+  // First Officer + cabin crew. null = don't touch; [] = clear.
+  final List<Map<String, String>>? crew;
 
   const UpdateLogbookDetailEvent({
     required this.originalDetail,
@@ -146,7 +149,6 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     required this.inTime,
     required this.pilotRole,
     required this.crewRole,
-    this.companionName,
     this.airTime,
     this.blockTime,
     this.dutyTime,
@@ -154,6 +156,7 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     this.approachSubtype,
     this.autoland,
     this.flightType,
+    this.crew,
   });
 
   @override
@@ -167,7 +170,6 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     inTime,
     pilotRole,
     crewRole,
-    companionName,
     airTime,
     blockTime,
     dutyTime,
@@ -175,5 +177,6 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
     approachSubtype,
     autoland,
     flightType,
+    crew,
   ];
 }

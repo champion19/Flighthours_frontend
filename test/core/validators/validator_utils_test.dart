@@ -142,13 +142,6 @@ void main() {
       });
     });
 
-    group('companionName', () {
-      test('should return CompanionNameValidator', () {
-        final validator = ValidatorUtils.companionName();
-        expect(validator.validate('John'), isNull);
-      });
-    });
-
     group('bp', () {
       test('should return BpValidator', () {
         final validator = ValidatorUtils.bp();

@@ -972,7 +972,7 @@ class _NewFlightPageState extends State<NewFlightPage> {
       airTime: flight.airTime,
       blockTime: flight.blockTime,
       pilotRole: flight.pilotRole,
-      companionName: flight.companionName,
+      crewRole: flight.crewRole,
       passengers: flight.passengers,
       approachCategory: flight.approachType,
       flightType: flight.flightType,

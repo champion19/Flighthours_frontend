@@ -267,21 +267,6 @@ class FlightNumberValidator extends BaseValidator {
   }
 }
 
-/// Validador para nombre de acompañante
-/// Backend: companion_name maxLength 100 (optional)
-class CompanionNameValidator extends BaseValidator {
-  const CompanionNameValidator({super.customMessage});
-
-  @override
-  String? validate(String? value) {
-    if (value != null &&
-        value.length > SchemaConstants.companionNameMaxLength) {
-      return getMessage(ValidationMessages.companionNameTooLong);
-    }
-    return null;
-  }
-}
-
 /// Validador para código Business Partner (bp)
 /// Backend: bp maxLength 16 (optional)
 class BpValidator extends BaseValidator {

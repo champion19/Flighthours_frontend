@@ -34,7 +34,7 @@ class FlightEntity extends Equatable {
 
   // Crew
   final String? pilotRole;
-  final String? companionName;
+  final String? crewRole;
 
   // Details
   final int? passengers;
@@ -63,7 +63,7 @@ class FlightEntity extends Equatable {
     this.blockTime,
     this.dutyTime,
     this.pilotRole,
-    this.companionName,
+    this.crewRole,
     this.passengers,
     this.approachType,
     this.flightType,
@@ -141,7 +141,7 @@ class FlightEntity extends Equatable {
     blockTime,
     dutyTime,
     pilotRole,
-    companionName,
+    crewRole,
     passengers,
     approachType,
     flightType,

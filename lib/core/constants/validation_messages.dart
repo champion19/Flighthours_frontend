@@ -78,9 +78,6 @@ class ValidationMessages {
   // Flight number validations
   static const String flightNumberRequired = 'Flight number is required';
 
-  // Companion name validations
-  static const String companionNameTooLong = 'Name is too long';
-
   // Business partner validations
   static const String bpTooLong = 'BP code is too long';
 
