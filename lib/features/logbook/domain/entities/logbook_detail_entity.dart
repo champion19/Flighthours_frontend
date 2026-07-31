@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flight_hours_app/features/logbook/domain/entities/crew_assignment_entity.dart';
 
 /// Represents a flight segment (detail) within a Daily Logbook
 /// Contains all flight information: times, route, aircraft, pilot role, etc.
@@ -36,7 +37,7 @@ class LogbookDetailEntity extends Equatable {
 
   // Pilot information
   final String? pilotRole; // PF, PM, PFL, PFTO
-  final String? companionName; // Name of the other pilot
+  final String? crewRole; // captain, first officer, instructor, line check captain, safety pilot
 
   // Flight details
   final int? passengers;
@@ -44,6 +45,11 @@ class LogbookDetailEntity extends Equatable {
   final String? approachSubtype; // e.g. LNAV, CAT I — null for VISUAL
   final bool? autoland; // only meaningful when approachCategory is ILS
   final String? flightType; // Comercial, Training, etc.
+
+  // Additional crew (First Officer + cabin crew). Null means "not sent by the
+  // API / not touched by this form submission" — distinct from an empty list,
+  // which means "explicitly no additional crew for this flight".
+  final List<CrewAssignmentEntity>? crew;
 
   const LogbookDetailEntity({
     required this.id,
@@ -69,12 +75,13 @@ class LogbookDetailEntity extends Equatable {
     this.blockTime,
     this.dutyTime,
     this.pilotRole,
-    this.companionName,
+    this.crewRole,
     this.passengers,
     this.approachCategory,
     this.approachSubtype,
     this.autoland,
     this.flightType,
+    this.crew,
   });
 
   /// Returns a display-friendly detail ID
@@ -173,11 +180,12 @@ class LogbookDetailEntity extends Equatable {
     blockTime,
     dutyTime,
     pilotRole,
-    companionName,
+    crewRole,
     passengers,
     approachCategory,
     approachSubtype,
     autoland,
     flightType,
+    crew,
   ];
 }

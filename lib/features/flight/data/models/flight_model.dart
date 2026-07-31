@@ -24,7 +24,7 @@ class FlightModel extends FlightEntity {
     super.blockTime,
     super.dutyTime,
     super.pilotRole,
-    super.companionName,
+    super.crewRole,
     super.passengers,
     super.approachType,
     super.flightType,
@@ -54,7 +54,7 @@ class FlightModel extends FlightEntity {
       blockTime: json['block_time']?.toString(),
       dutyTime: json['duty_time']?.toString(),
       pilotRole: json['pilot_role']?.toString(),
-      companionName: json['companion_name']?.toString(),
+      crewRole: json['crew_role']?.toString(),
       passengers:
           json['passengers'] is int
               ? json['passengers']
@@ -87,7 +87,6 @@ class FlightModel extends FlightEntity {
     String? landingTime,
     String? inTime,
     String? pilotRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -107,7 +106,6 @@ class FlightModel extends FlightEntity {
     if (landingTime != null) map['landing_time'] = landingTime;
     if (inTime != null) map['in_time'] = inTime;
     if (pilotRole != null) map['pilot_role'] = pilotRole;
-    if (companionName != null) map['companion_name'] = companionName;
     if (airTime != null) map['air_time'] = airTime;
     if (blockTime != null) map['block_time'] = blockTime;
     if (dutyTime != null) map['duty_time'] = dutyTime;
@@ -129,7 +127,6 @@ class FlightModel extends FlightEntity {
     String? landingTime,
     String? inTime,
     String? pilotRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -148,7 +145,6 @@ class FlightModel extends FlightEntity {
       landingTime: landingTime,
       inTime: inTime,
       pilotRole: pilotRole,
-      companionName: companionName,
       airTime: airTime,
       blockTime: blockTime,
       dutyTime: dutyTime,

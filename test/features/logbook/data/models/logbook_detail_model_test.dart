@@ -26,7 +26,6 @@ void main() {
         'landing_time': '22:04:00',
         'in_time': '22:07:00',
         'pilot_role': 'PM',
-        'companion_name': 'David Ramirez',
         'air_time': '00:29:00',
         'block_time': '00:50:00',
         'duty_time': '10:14:00',
@@ -57,7 +56,6 @@ void main() {
       expect(result.landingTime, equals('22:04:00'));
       expect(result.inTime, equals('22:07:00'));
       expect(result.pilotRole, equals('PM'));
-      expect(result.companionName, equals('David Ramirez'));
       expect(result.airTime, equals('00:29:00'));
       expect(result.blockTime, equals('00:50:00'));
       expect(result.dutyTime, equals('10:14:00'));
@@ -145,7 +143,6 @@ void main() {
         landingTime: '22:04:00',
         inTime: '22:07:00',
         pilotRole: 'PM',
-        companionName: 'John Doe',
         airTime: '00:29:00',
         blockTime: '00:50:00',
         dutyTime: '10:14:00',
@@ -192,7 +189,6 @@ void main() {
         landingTime: '22:04:00',
         inTime: '22:07:00',
         pilotRole: 'PM',
-        companionName: 'John Doe',
         airTime: '00:29:00',
         blockTime: '00:50:00',
         dutyTime: '10:14:00',
@@ -239,6 +235,81 @@ void main() {
         crewRole: '',
       );
       expect(result.containsKey('crew_role'), isFalse);
+    });
+
+    test('fromJson should parse crew array when present', () {
+      final json = {
+        'id': 'd1',
+        'crew': [
+          {
+            'id': 'a1',
+            'crew_member_id': 'cm1',
+            'name': 'Jane Doe',
+            'role': 'first_officer',
+          },
+          {
+            'id': 'a2',
+            'crew_member_id': 'cm2',
+            'name': 'John Smith',
+            'role': 'purser',
+          },
+        ],
+      };
+
+      final model = LogbookDetailModel.fromJson(json);
+
+      expect(model.crew, isNotNull);
+      expect(model.crew!.length, equals(2));
+      expect(model.crew![0].crewMemberId, equals('cm1'));
+      expect(model.crew![0].name, equals('Jane Doe'));
+      expect(model.crew![0].role, equals('first_officer'));
+      expect(model.crew![1].role, equals('purser'));
+    });
+
+    test('fromJson should leave crew null when absent', () {
+      final model = LogbookDetailModel.fromJson({'id': 'd1'});
+      expect(model.crew, isNull);
+    });
+
+    test('updateRequest should omit crew key when not provided (null)', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        originAirportId: 'o1',
+        destinationAirportId: 'd1',
+        tailNumberId: 't1',
+      );
+      expect(result.containsKey('crew'), isFalse);
+    });
+
+    test(
+      'updateRequest should send an explicit empty crew list to clear it',
+      () {
+        final result = LogbookDetailModel.updateRequest(
+          flightRealDate: '2025-12-14',
+          flightNumber: '4043',
+          originAirportId: 'o1',
+          destinationAirportId: 'd1',
+          tailNumberId: 't1',
+          crew: const [],
+        );
+        expect(result.containsKey('crew'), isTrue);
+        expect(result['crew'], isEmpty);
+      },
+    );
+
+    test('updateRequest should include populated crew list as-is', () {
+      final result = LogbookDetailModel.updateRequest(
+        flightRealDate: '2025-12-14',
+        flightNumber: '4043',
+        originAirportId: 'o1',
+        destinationAirportId: 'd1',
+        tailNumberId: 't1',
+        crew: const [
+          {'crew_member_id': 'cm1', 'role': 'first_officer'},
+        ],
+      );
+      expect(result['crew'], equals([{'crew_member_id': 'cm1', 'role': 'first_officer'}]));
     });
   });
 }

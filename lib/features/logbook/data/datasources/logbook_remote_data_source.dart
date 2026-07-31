@@ -18,6 +18,7 @@ abstract class LogbookRemoteDataSource {
     required DateTime logDate,
     required int bookPage,
     String? tailNumberId,
+    String? crewRole,
   });
 
   /// Activate a daily logbook → PATCH /daily-logbooks/:id/activate
@@ -106,6 +107,7 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
     required DateTime logDate,
     required int bookPage,
     String? tailNumberId,
+    String? crewRole,
   }) async {
     try {
       final response = await _dio.post(
@@ -114,6 +116,7 @@ class LogbookRemoteDataSourceImpl implements LogbookRemoteDataSource {
           logDate: logDate,
           bookPage: bookPage,
           tailNumberId: tailNumberId,
+          crewRole: crewRole,
         ),
       );
       return _parseLogbookFromMap(response.data);

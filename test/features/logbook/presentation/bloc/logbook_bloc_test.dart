@@ -117,7 +117,7 @@ void main() {
         bookPage: 1,
       );
       expect(event, isA<LogbookEvent>());
-      expect(event.props.length, equals(3));
+      expect(event.props.length, equals(4));
       expect(event.logDate, DateTime(2024, 1, 15));
       expect(event.bookPage, 1);
     });
@@ -947,7 +947,6 @@ void main() {
             inTime: any(named: 'inTime'),
             pilotRole: any(named: 'pilotRole'),
             crewRole: any(named: 'crewRole'),
-            companionName: any(named: 'companionName'),
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
             dutyTime: any(named: 'dutyTime'),
@@ -994,7 +993,6 @@ void main() {
             inTime: any(named: 'inTime'),
             pilotRole: any(named: 'pilotRole'),
             crewRole: any(named: 'crewRole'),
-            companionName: any(named: 'companionName'),
             airTime: any(named: 'airTime'),
             blockTime: any(named: 'blockTime'),
             dutyTime: any(named: 'dutyTime'),

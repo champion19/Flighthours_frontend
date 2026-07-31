@@ -134,11 +134,6 @@ class ValidatorUtils {
     return FlightNumberValidator(customMessage: customMessage);
   }
 
-  /// Nombre del acompañante: max 100, optional
-  static BaseValidator companionName({String? customMessage}) {
-    return CompanionNameValidator(customMessage: customMessage);
-  }
-
   /// Código Business Partner: max 16, optional
   static BaseValidator bp({String? customMessage}) {
     return BpValidator(customMessage: customMessage);

@@ -61,9 +61,6 @@ class SchemaConstants {
   static const int flightNumberMinLength = 1;
   static const int flightNumberMaxLength = 20;
 
-  /// Companion pilot name
-  static const int companionNameMaxLength = 100;
-
   /// Passengers: integer >= 0
   static const int passengersMinimum = 0;
 

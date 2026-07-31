@@ -1,4 +1,10 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_bloc.dart';
+import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_event.dart';
+import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_state.dart';
+import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_bloc.dart';
+import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_event.dart';
+import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_state.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_event.dart';
@@ -14,8 +20,17 @@ class MockLogbookBloc extends MockBloc<LogbookEvent, LogbookState>
 
 class FakeLogbookEvent extends Fake implements LogbookEvent {}
 
+class MockCrewMemberBloc extends MockBloc<CrewMemberEvent, CrewMemberState>
+    implements CrewMemberBloc {}
+
+class MockCrewMemberTypeBloc
+    extends MockBloc<CrewMemberTypeEvent, CrewMemberTypeState>
+    implements CrewMemberTypeBloc {}
+
 void main() {
   late MockLogbookBloc mockBloc;
+  late MockCrewMemberBloc mockCrewMemberBloc;
+  late MockCrewMemberTypeBloc mockCrewMemberTypeBloc;
 
   setUpAll(() {
     registerFallbackValue(FakeLogbookEvent());
@@ -24,6 +39,14 @@ void main() {
   setUp(() {
     mockBloc = MockLogbookBloc();
     when(() => mockBloc.state).thenReturn(const LogbookInitial());
+    mockCrewMemberBloc = MockCrewMemberBloc();
+    when(
+      () => mockCrewMemberBloc.state,
+    ).thenReturn(const CrewMemberInitial());
+    mockCrewMemberTypeBloc = MockCrewMemberTypeBloc();
+    when(
+      () => mockCrewMemberTypeBloc.state,
+    ).thenReturn(const CrewMemberTypeInitial());
   });
 
   final existingDetail = LogbookDetailEntity(
@@ -53,8 +76,16 @@ void main() {
             (settings) => MaterialPageRoute(
               settings: RouteSettings(arguments: {'detail': existingDetail}),
               builder:
-                  (_) => BlocProvider<LogbookBloc>.value(
-                    value: mockBloc,
+                  (_) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider<LogbookBloc>.value(value: mockBloc),
+                      BlocProvider<CrewMemberBloc>.value(
+                        value: mockCrewMemberBloc,
+                      ),
+                      BlocProvider<CrewMemberTypeBloc>.value(
+                        value: mockCrewMemberTypeBloc,
+                      ),
+                    ],
                     child: const DailyLogbookDetailPage(),
                   ),
             ),

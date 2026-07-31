@@ -15,6 +15,7 @@ abstract class LogbookRepository {
     required DateTime logDate,
     required int bookPage,
     String? tailNumberId,
+    String? crewRole,
   });
 
   Future<Either<Failure, bool>> deleteDailyLogbook(String id);
@@ -46,7 +47,6 @@ abstract class LogbookRepository {
     required String landingTime,
     required String inTime,
     required String pilotRole,
-    required String companionName,
     required String airTime,
     required String blockTime,
     required String dutyTime,
@@ -70,7 +70,6 @@ abstract class LogbookRepository {
     String? inTime,
     String? pilotRole,
     String? crewRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -78,6 +77,7 @@ abstract class LogbookRepository {
     String? approachSubtype,
     bool? autoland,
     String? flightType,
+    List<Map<String, String>>? crew,
   });
 
   Future<Either<Failure, bool>> deleteLogbookDetail(String id);

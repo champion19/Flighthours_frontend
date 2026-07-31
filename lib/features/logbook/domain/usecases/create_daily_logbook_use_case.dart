@@ -14,11 +14,13 @@ class CreateDailyLogbookUseCase {
     required DateTime logDate,
     int? bookPage,
     String? tailNumberId,
+    String? crewRole,
   }) async {
     return await _repository.createDailyLogbook(
       logDate: logDate,
       bookPage: bookPage ?? 1,
       tailNumberId: tailNumberId,
+      crewRole: crewRole,
     );
   }
 }

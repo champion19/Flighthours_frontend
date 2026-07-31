@@ -12,6 +12,8 @@ class DailyLogbookEntity extends Equatable {
   final String?
   tailNumberId; // Tail number used for all flights in this book page
   final String? tailNumber; // Denormalized plate, for display
+  final String?
+  crewRole; // Default crew role for every flight in this book page (editable per flight)
 
   const DailyLogbookEntity({
     required this.id,
@@ -22,6 +24,7 @@ class DailyLogbookEntity extends Equatable {
     this.status,
     this.tailNumberId,
     this.tailNumber,
+    this.crewRole,
   });
 
   /// Returns a display-friendly logbook ID
@@ -74,5 +77,6 @@ class DailyLogbookEntity extends Equatable {
     status,
     tailNumberId,
     tailNumber,
+    crewRole,
   ];
 }

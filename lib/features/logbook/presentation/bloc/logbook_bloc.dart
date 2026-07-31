@@ -239,6 +239,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       logDate: event.logDate,
       bookPage: event.bookPage,
       tailNumberId: event.tailNumberId,
+      crewRole: event.crewRole,
     );
     await result.fold(
       (failure) async {
@@ -391,7 +392,6 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       inTime: event.inTime,
       pilotRole: event.pilotRole,
       crewRole: event.crewRole,
-      companionName: event.companionName,
       airTime: event.airTime,
       blockTime: event.blockTime,
       dutyTime: event.dutyTime,
@@ -399,6 +399,7 @@ class LogbookBloc extends Bloc<LogbookEvent, LogbookState> {
       approachSubtype: event.approachSubtype,
       autoland: event.autoland,
       flightType: event.flightType,
+      crew: event.crew,
     );
 
     result.fold(

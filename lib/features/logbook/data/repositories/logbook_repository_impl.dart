@@ -65,12 +65,14 @@ class LogbookRepositoryImpl implements LogbookRepository {
     required DateTime logDate,
     required int bookPage,
     String? tailNumberId,
+    String? crewRole,
   }) async {
     try {
       final result = await _remoteDataSource.createDailyLogbook(
         logDate: logDate,
         bookPage: bookPage,
         tailNumberId: tailNumberId,
+        crewRole: crewRole,
       );
       return Right(result!);
     } catch (e) {
@@ -157,7 +159,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
     required String landingTime,
     required String inTime,
     required String pilotRole,
-    required String companionName,
     required String airTime,
     required String blockTime,
     required String dutyTime,
@@ -179,7 +180,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
         landingTime: landingTime,
         inTime: inTime,
         pilotRole: pilotRole,
-        companionName: companionName,
         airTime: airTime,
         blockTime: blockTime,
         dutyTime: dutyTime,
@@ -217,7 +217,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
     String? inTime,
     String? pilotRole,
     String? crewRole,
-    String? companionName,
     String? airTime,
     String? blockTime,
     String? dutyTime,
@@ -225,6 +224,7 @@ class LogbookRepositoryImpl implements LogbookRepository {
     String? approachSubtype,
     bool? autoland,
     String? flightType,
+    List<Map<String, String>>? crew,
   }) async {
     try {
       final data = LogbookDetailModel.updateRequest(
@@ -240,7 +240,6 @@ class LogbookRepositoryImpl implements LogbookRepository {
         inTime: inTime,
         pilotRole: pilotRole,
         crewRole: crewRole,
-        companionName: companionName,
         airTime: airTime,
         blockTime: blockTime,
         dutyTime: dutyTime,
@@ -248,6 +247,7 @@ class LogbookRepositoryImpl implements LogbookRepository {
         approachSubtype: approachSubtype,
         autoland: autoland,
         flightType: flightType,
+        crew: crew,
       );
 
       final result = await _remoteDataSource.updateLogbookDetail(
