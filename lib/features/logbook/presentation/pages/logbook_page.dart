@@ -1,7 +1,4 @@
 import 'package:flight_hours_app/core/responsive/responsive_padding.dart';
-import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_bloc.dart';
-import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_event.dart';
-import 'package:flight_hours_app/features/flight_summary/presentation/bloc/flight_summary_state.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/daily_logbook_entity.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/logbook_detail_entity.dart';
 import 'package:flight_hours_app/features/logbook/presentation/bloc/logbook_bloc.dart';
@@ -1397,15 +1394,17 @@ class _LogbookPageState extends State<LogbookPage> {
     );
   }
 
-  /// Returns the crew_role of the most recently saved flight, skipping any
-  /// with no crew_role set. Recent flights already come sorted newest-first
-  /// from the backend (see GET /employees/recent-flights).
-  String? _lastCrewRoleFrom(FlightSummaryState state) {
-    if (state is! RecentFlightsSuccess) return null;
-    for (final flight in state.flights) {
-      if (flight.crewRole != null &&
-          _newLogbookCrewRoles.contains(flight.crewRole)) {
-        return flight.crewRole;
+  /// Returns the crew_role of the most recently created bitácora, skipping
+  /// any with no crew_role set. `daily_logbook` rows come sorted newest-first
+  /// from the backend (`ORDER BY log_date DESC`), so the first match is the
+  /// role to default to — this reads directly off the bitácora header field
+  /// the pilot picks on this very form, so it updates the instant a new
+  /// bitácora is created, even before any flight is logged under it.
+  String? _lastCrewRoleFrom(List<DailyLogbookEntity> logbooks) {
+    for (final logbook in logbooks) {
+      if (logbook.crewRole != null &&
+          _newLogbookCrewRoles.contains(logbook.crewRole)) {
+        return logbook.crewRole;
       }
     }
     return null;
@@ -1420,19 +1419,11 @@ class _LogbookPageState extends State<LogbookPage> {
     TailNumberEntity? selectedTailNumber;
     bool isSearchingTailNumber = false;
     bool tailNumberNotFound = false;
+    String? selectedCrewRole;
 
-    // Default Crew Role to whatever the pilot last flew as — pulled from the
-    // recent-flights cache (already loaded at login) so new logbooks don't
+    // Auto-increment book_page + default Crew Role to whatever the pilot
+    // used on their most recently created bitácora, so new logbooks don't
     // start with the field empty every time. Still fully overridable below.
-    final flightSummaryState = context.read<FlightSummaryBloc>().state;
-    String? selectedCrewRole = _lastCrewRoleFrom(flightSummaryState);
-    if (flightSummaryState is! RecentFlightsSuccess) {
-      // Not loaded yet (e.g. bloc was reset) — fetch it and apply the
-      // default once it arrives, via the BlocListener below.
-      context.read<FlightSummaryBloc>().add(LoadRecentFlights());
-    }
-
-    // Auto-increment: find max book_page from existing logbooks
     final state = context.read<LogbookBloc>().state;
     if (state is DailyLogbooksLoaded) {
       int maxPage = 0;
@@ -1442,6 +1433,7 @@ class _LogbookPageState extends State<LogbookPage> {
         }
       }
       bookPageController.text = (maxPage + 1).toString();
+      selectedCrewRole = _lastCrewRoleFrom(state.logbooks);
     }
 
     // Start from a clean slate — the TailNumberBloc is a global singleton
@@ -1453,41 +1445,23 @@ class _LogbookPageState extends State<LogbookPage> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return MultiBlocListener(
-              listeners: [
-                BlocListener<TailNumberBloc, TailNumberState>(
-                  listener: (context, tailNumberState) {
-                    if (tailNumberState is TailNumberSuccess) {
-                      setDialogState(() {
-                        selectedTailNumber = tailNumberState.tailNumber;
-                        isSearchingTailNumber = false;
-                        tailNumberNotFound = false;
-                      });
-                    } else if (tailNumberState is TailNumberError) {
-                      setDialogState(() {
-                        isSearchingTailNumber = false;
-                        tailNumberNotFound = true;
-                      });
-                    } else if (tailNumberState is TailNumberLoading) {
-                      setDialogState(() => isSearchingTailNumber = true);
-                    }
-                  },
-                ),
-                BlocListener<FlightSummaryBloc, FlightSummaryState>(
-                  listener: (context, flightSummaryState) {
-                    // Applies the last-used-crew-role default if it wasn't
-                    // ready yet when the dialog opened. Only fills the field
-                    // in — never overwrites a role the pilot already picked.
-                    if (selectedCrewRole == null &&
-                        flightSummaryState is RecentFlightsSuccess) {
-                      final lastRole = _lastCrewRoleFrom(flightSummaryState);
-                      if (lastRole != null) {
-                        setDialogState(() => selectedCrewRole = lastRole);
-                      }
-                    }
-                  },
-                ),
-              ],
+            return BlocListener<TailNumberBloc, TailNumberState>(
+              listener: (context, tailNumberState) {
+                if (tailNumberState is TailNumberSuccess) {
+                  setDialogState(() {
+                    selectedTailNumber = tailNumberState.tailNumber;
+                    isSearchingTailNumber = false;
+                    tailNumberNotFound = false;
+                  });
+                } else if (tailNumberState is TailNumberError) {
+                  setDialogState(() {
+                    isSearchingTailNumber = false;
+                    tailNumberNotFound = true;
+                  });
+                } else if (tailNumberState is TailNumberLoading) {
+                  setDialogState(() => isSearchingTailNumber = true);
+                }
+              },
               child: AlertDialog(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
