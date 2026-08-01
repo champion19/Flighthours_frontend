@@ -136,7 +136,7 @@ void main() {
         status: true,
       );
 
-      expect(entity.props.length, equals(9));
+      expect(entity.props.length, equals(10));
     });
   });
 }
