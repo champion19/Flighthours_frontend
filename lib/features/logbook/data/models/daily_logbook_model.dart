@@ -13,6 +13,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
     super.tailNumberId,
     super.tailNumber,
     super.crewRole,
+    super.createdAt,
   });
 
   /// Factory constructor to create DailyLogbookModel from JSON
@@ -37,6 +38,7 @@ class DailyLogbookModel extends DailyLogbookEntity {
       tailNumberId: json['tail_number_id']?.toString(),
       tailNumber: json['tail_number']?.toString(),
       crewRole: json['crew_role']?.toString(),
+      createdAt: _parseDate(json['created_at']),
     );
   }
 

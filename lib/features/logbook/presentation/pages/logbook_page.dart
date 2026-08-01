@@ -1394,6 +1394,31 @@ class _LogbookPageState extends State<LogbookPage> {
     );
   }
 
+  /// Returns the crew_role of the most recently created bitácora, skipping
+  /// any with no crew_role set. Neither `log_date` (a calendar date the pilot
+  /// picks freely, including past dates when backfilling a flight) nor
+  /// `book_page` (a physical logbook page code, not a sequential app
+  /// counter) reliably reflects real creation order — both are editable by
+  /// the pilot and can end up "out of order" relative to when a bitácora was
+  /// actually saved. `created_at` is a DB-assigned timestamp the pilot never
+  /// touches, so it's the only field that can't be thrown off this way.
+  String? _lastCrewRoleFrom(List<DailyLogbookEntity> logbooks) {
+    DailyLogbookEntity? latest;
+    for (final logbook in logbooks) {
+      if (logbook.crewRole == null ||
+          !_newLogbookCrewRoles.contains(logbook.crewRole)) {
+        continue;
+      }
+      if (latest == null ||
+          (logbook.createdAt ?? DateTime(0)).isAfter(
+            latest.createdAt ?? DateTime(0),
+          )) {
+        latest = logbook;
+      }
+    }
+    return latest?.crewRole;
+  }
+
   /// Show the create logbook form dialog
   void _showLogbookFormDialog() {
     final dateController = TextEditingController();
@@ -1405,7 +1430,9 @@ class _LogbookPageState extends State<LogbookPage> {
     bool tailNumberNotFound = false;
     String? selectedCrewRole;
 
-    // Auto-increment: find max book_page from existing logbooks
+    // Auto-increment book_page + default Crew Role to whatever the pilot
+    // used on their most recently created bitácora, so new logbooks don't
+    // start with the field empty every time. Still fully overridable below.
     final state = context.read<LogbookBloc>().state;
     if (state is DailyLogbooksLoaded) {
       int maxPage = 0;
@@ -1415,6 +1442,7 @@ class _LogbookPageState extends State<LogbookPage> {
         }
       }
       bookPageController.text = (maxPage + 1).toString();
+      selectedCrewRole = _lastCrewRoleFrom(state.logbooks);
     }
 
     // Start from a clean slate — the TailNumberBloc is a global singleton
