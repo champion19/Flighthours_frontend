@@ -1395,13 +1395,13 @@ class _LogbookPageState extends State<LogbookPage> {
   }
 
   /// Returns the crew_role of the most recently created bitácora, skipping
-  /// any with no crew_role set. The backend sorts `daily_logbook` rows by
-  /// `log_date DESC`, but log_date is the calendar date the pilot picked for
-  /// that book page — not a creation timestamp — so a bitácora logged out of
-  /// date order (e.g. catching up on an earlier flight) can sort ahead of
-  /// one created afterward. `book_page` increases monotonically as bitácoras
-  /// are created (it's the same signal the auto-increment above relies on),
-  /// so it's the reliable "most recent" indicator here, not list order.
+  /// any with no crew_role set. Neither `log_date` (a calendar date the pilot
+  /// picks freely, including past dates when backfilling a flight) nor
+  /// `book_page` (a physical logbook page code, not a sequential app
+  /// counter) reliably reflects real creation order — both are editable by
+  /// the pilot and can end up "out of order" relative to when a bitácora was
+  /// actually saved. `created_at` is a DB-assigned timestamp the pilot never
+  /// touches, so it's the only field that can't be thrown off this way.
   String? _lastCrewRoleFrom(List<DailyLogbookEntity> logbooks) {
     DailyLogbookEntity? latest;
     for (final logbook in logbooks) {
@@ -1410,7 +1410,9 @@ class _LogbookPageState extends State<LogbookPage> {
         continue;
       }
       if (latest == null ||
-          (logbook.bookPage ?? -1) > (latest.bookPage ?? -1)) {
+          (logbook.createdAt ?? DateTime(0)).isAfter(
+            latest.createdAt ?? DateTime(0),
+          )) {
         latest = logbook;
       }
     }

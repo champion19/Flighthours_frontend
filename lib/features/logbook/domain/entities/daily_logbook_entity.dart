@@ -14,6 +14,8 @@ class DailyLogbookEntity extends Equatable {
   final String? tailNumber; // Denormalized plate, for display
   final String?
   crewRole; // Default crew role for every flight in this book page (editable per flight)
+  final DateTime?
+  createdAt; // DB-assigned creation timestamp, not editable by the pilot
 
   const DailyLogbookEntity({
     required this.id,
@@ -25,6 +27,7 @@ class DailyLogbookEntity extends Equatable {
     this.tailNumberId,
     this.tailNumber,
     this.crewRole,
+    this.createdAt,
   });
 
   /// Returns a display-friendly logbook ID
@@ -78,5 +81,6 @@ class DailyLogbookEntity extends Equatable {
     tailNumberId,
     tailNumber,
     crewRole,
+    createdAt,
   ];
 }
