@@ -136,7 +136,7 @@ class UpdateLogbookDetailEvent extends LogbookEvent {
   final String? approachSubtype;
   final bool? autoland;
   final String? flightType;
-  // First Officer + cabin crew. null = don't touch; [] = clear.
+  // Tripulación de Mando + cabin crew. null = don't touch; [] = clear.
   final List<Map<String, String>>? crew;
 
   const UpdateLogbookDetailEvent({

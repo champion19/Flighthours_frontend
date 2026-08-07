@@ -10,12 +10,31 @@ import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/cre
 import 'package:flight_hours_app/features/crew_member_type/presentation/bloc/crew_member_type_state.dart';
 import 'package:flight_hours_app/features/logbook/domain/entities/crew_assignment_entity.dart';
 
-const String kFirstOfficerRole = 'first_officer';
+/// Legacy role value from before the "Tripulación de Mando" redesign — old
+/// flights may still have a row saved with this. Treated as a command crew
+/// row on load (normalized to [kDefaultCommandCrewRole]); no longer written.
+const String kLegacyFirstOfficerRole = 'first_officer';
 
-/// One row in the crew section: either the single "Primer Oficial" slot
-/// (role fixed) or one of the dynamic "Tripulación de cabina" rows (role
-/// pickable from the cabin_crew catalog). A row is either resolved to an
-/// existing roster member ([selected] set, picked from search) or holds a
+/// The 5 command crew role values — same vocabulary as the per-flight Crew
+/// Role field (`daily_logbook_detail.crew_role`). Kept in sync with
+/// `_crewRoles` in `daily_logbook_detail_page.dart`.
+const List<String> kCommandCrewRoles = [
+  'captain',
+  'first officer',
+  'instructor',
+  'line check captain',
+  'safety pilot',
+];
+
+const String kDefaultCommandCrewRole = 'first officer';
+
+bool _isCommandCrewRole(String role) =>
+    role == kLegacyFirstOfficerRole || kCommandCrewRoles.contains(role);
+
+/// One row in the crew section: either a "Tripulación de Mando" row (role
+/// pickable from the 5 crew_role values) or a "Tripulación de cabina" row
+/// (role pickable from the cabin_crew catalog). A row is either resolved to
+/// an existing roster member ([selected] set, picked from search) or holds a
 /// brand-new person's name/BP — resolved/created by the backend in the same
 /// transaction as the flight save, not before.
 class _CrewRow {
@@ -38,13 +57,14 @@ class _CrewRow {
   }
 }
 
-/// Optional "Tripulación" section for the Daily Logbook Detail form: Primer
-/// Oficial (0-1) + Tripulación de cabina (0-N). Each row just needs a name
-/// (typed or picked from a search suggestion) + cargo — nothing is sent to
-/// the backend until the whole flight is saved, at which point every row
-/// (existing people and brand-new ones alike) is persisted together in one
-/// request via [onChanged]'s payload (`crew_member_id` for existing people,
-/// `name`/`bp` for new ones — resolved server-side in the same transaction).
+/// Optional "Tripulación" section for the Daily Logbook Detail form:
+/// Tripulación de Mando (0-N, realistically 2-4) + Tripulación de cabina
+/// (0-N). Each row just needs a name (typed or picked from a search
+/// suggestion) + role — nothing is sent to the backend until the whole
+/// flight is saved, at which point every row (existing people and brand-new
+/// ones alike) is persisted together in one request via [onChanged]'s
+/// payload (`crew_member_id` for existing people, `name`/`bp` for new ones —
+/// resolved server-side in the same transaction).
 class CrewSection extends StatefulWidget {
   final List<CrewAssignmentEntity>? initialCrew;
   final ValueChanged<List<Map<String, String>>> onChanged;
@@ -56,7 +76,7 @@ class CrewSection extends StatefulWidget {
 }
 
 class CrewSectionState extends State<CrewSection> {
-  _CrewRow? _firstOfficerRow;
+  final List<_CrewRow> _commandCrewRows = [];
   final List<_CrewRow> _cabinCrewRows = [];
 
   List<CrewMemberEntity> _roster = [];
@@ -75,7 +95,9 @@ class CrewSectionState extends State<CrewSection> {
 
   @override
   void dispose() {
-    _firstOfficerRow?.dispose();
+    for (final row in _commandCrewRows) {
+      row.dispose();
+    }
     for (final row in _cabinCrewRows) {
       row.dispose();
     }
@@ -91,10 +113,12 @@ class CrewSectionState extends State<CrewSection> {
         name: a.name,
         bp: a.bp,
       );
-      if (a.role == kFirstOfficerRole) {
-        _firstOfficerRow = _CrewRow(role: a.role, selected: member);
+      final role =
+          a.role == kLegacyFirstOfficerRole ? kDefaultCommandCrewRole : a.role;
+      if (_isCommandCrewRole(role)) {
+        _commandCrewRows.add(_CrewRow(role: role, selected: member));
       } else {
-        _cabinCrewRows.add(_CrewRow(role: a.role, selected: member));
+        _cabinCrewRows.add(_CrewRow(role: role, selected: member));
       }
     }
   }
@@ -103,11 +127,13 @@ class CrewSectionState extends State<CrewSection> {
   /// crew from the previous flight"). Replaces whatever is currently set.
   void applyCrew(List<CrewAssignmentEntity> crew) {
     setState(() {
-      _firstOfficerRow?.dispose();
+      for (final row in _commandCrewRows) {
+        row.dispose();
+      }
       for (final row in _cabinCrewRows) {
         row.dispose();
       }
-      _firstOfficerRow = null;
+      _commandCrewRows.clear();
       _cabinCrewRows.clear();
       for (final a in crew) {
         final member = CrewMemberEntity(
@@ -115,10 +141,14 @@ class CrewSectionState extends State<CrewSection> {
           name: a.name,
           bp: a.bp,
         );
-        if (a.role == kFirstOfficerRole) {
-          _firstOfficerRow = _CrewRow(role: a.role, selected: member);
+        final role =
+            a.role == kLegacyFirstOfficerRole
+                ? kDefaultCommandCrewRole
+                : a.role;
+        if (_isCommandCrewRole(role)) {
+          _commandCrewRows.add(_CrewRow(role: role, selected: member));
         } else {
-          _cabinCrewRows.add(_CrewRow(role: a.role, selected: member));
+          _cabinCrewRows.add(_CrewRow(role: role, selected: member));
         }
       }
     });
@@ -128,11 +158,13 @@ class CrewSectionState extends State<CrewSection> {
   /// Clears every row (Feature 2: "start this flight's crew from scratch").
   void clearCrew() {
     setState(() {
-      _firstOfficerRow?.dispose();
+      for (final row in _commandCrewRows) {
+        row.dispose();
+      }
       for (final row in _cabinCrewRows) {
         row.dispose();
       }
-      _firstOfficerRow = null;
+      _commandCrewRows.clear();
       _cabinCrewRows.clear();
     });
     _notifyChange();
@@ -154,8 +186,8 @@ class CrewSectionState extends State<CrewSection> {
 
   void _notifyChange() {
     final payload = <Map<String, String>>[];
-    if (_firstOfficerRow != null) {
-      final entry = _payloadFor(_firstOfficerRow!);
+    for (final row in _commandCrewRows) {
+      final entry = _payloadFor(row);
       if (entry != null) payload.add(entry);
     }
     for (final row in _cabinCrewRows) {
@@ -198,9 +230,13 @@ class CrewSectionState extends State<CrewSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLabel('Primer Oficial (opcional)'),
+          _buildLabel('Tripulación de Mando (opcional)'),
           const SizedBox(height: 8),
-          _buildFirstOfficerRow(),
+          ..._commandCrewRows.map(_buildCommandCrewRow),
+          const SizedBox(height: 8),
+          _buildAddCommandCrewButton(),
+          if (_buildCommandCrewCountWarning() != null)
+            _buildCommandCrewCountWarning()!,
           const SizedBox(height: 20),
           _buildLabel('Tripulación de cabina (opcional)'),
           const SizedBox(height: 8),
@@ -224,9 +260,107 @@ class CrewSectionState extends State<CrewSection> {
     );
   }
 
-  Widget _buildFirstOfficerRow() {
-    _firstOfficerRow ??= _CrewRow(role: kFirstOfficerRole);
-    return _buildPersonPicker(_firstOfficerRow!, showRoleDropdown: false);
+  /// Non-blocking hint shown when the command crew count falls outside the
+  /// realistic range the client described. This list is the OTHER pilots —
+  /// it does not include the bitácora's own owner (whoever picked a role in
+  /// the Crew Role field above). Total aircraft crew is 2-4, so this list
+  /// should realistically hold 1-3 people, not 2-4. Never prevents saving.
+  Widget? _buildCommandCrewCountWarning() {
+    final count = _commandCrewRows.length;
+    if (count == 0 || count <= 3) return null;
+    const message =
+        'Se registraron más de 3 tripulantes de mando adicionales al titular de la bitácora — verifica que sea correcto.';
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, size: 14, color: Color(0xFFf0a020)),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Color(0xFFf0a020), fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommandCrewRow(_CrewRow row) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: _buildPersonPicker(
+              row,
+              roleDropdownBuilder: _buildCommandRoleDropdown,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Color(0xFF6c757d), size: 20),
+            tooltip: 'Quitar',
+            onPressed: () {
+              setState(() {
+                row.dispose();
+                _commandCrewRows.remove(row);
+              });
+              _notifyChange();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddCommandCrewButton() {
+    return OutlinedButton.icon(
+      onPressed: () {
+        setState(
+          () => _commandCrewRows.add(_CrewRow(role: kDefaultCommandCrewRole)),
+        );
+      },
+      icon: const Icon(Icons.add, size: 18),
+      label: const Text('Agregar tripulante de mando'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF4facfe),
+        side: const BorderSide(color: Color(0xFF4facfe)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildCommandRoleDropdown(_CrewRow row) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: kCommandCrewRoles.contains(row.role) ? row.role : null,
+          isDense: true,
+          items:
+              kCommandCrewRoles
+                  .map(
+                    (r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(r, style: const TextStyle(fontSize: 13)),
+                    ),
+                  )
+                  .toList(),
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() => row.role = value);
+            _notifyChange();
+          },
+        ),
+      ),
+    );
   }
 
   Widget _buildCabinCrewRow(_CrewRow row) {
@@ -235,7 +369,12 @@ class CrewSectionState extends State<CrewSection> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _buildPersonPicker(row, showRoleDropdown: true)),
+          Expanded(
+            child: _buildPersonPicker(
+              row,
+              roleDropdownBuilder: _buildCabinRoleDropdown,
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.close, color: Color(0xFF6c757d), size: 20),
             tooltip: 'Quitar',
@@ -278,7 +417,7 @@ class CrewSectionState extends State<CrewSection> {
   /// "cabin-flight_attendant" — the suffix IS the role code this form sends.
   String _roleCodeFromCatalogId(String id) => id.replaceFirst('cabin-', '');
 
-  Widget _buildRoleDropdown(_CrewRow row) {
+  Widget _buildCabinRoleDropdown(_CrewRow row) {
     if (_cabinCrewTypes.isEmpty) {
       return const SizedBox(
         height: 20,
@@ -318,9 +457,12 @@ class CrewSectionState extends State<CrewSection> {
     );
   }
 
-  Widget _buildPersonPicker(_CrewRow row, {required bool showRoleDropdown}) {
+  Widget _buildPersonPicker(
+    _CrewRow row, {
+    required Widget Function(_CrewRow row) roleDropdownBuilder,
+  }) {
     if (row.selected != null) {
-      return _buildSelectedChip(row, showRoleDropdown: showRoleDropdown);
+      return _buildSelectedChip(row, roleDropdownBuilder: roleDropdownBuilder);
     }
 
     final query = row.query.toLowerCase();
@@ -334,10 +476,8 @@ class CrewSectionState extends State<CrewSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showRoleDropdown) ...[
-          _buildRoleDropdown(row),
-          const SizedBox(height: 8),
-        ],
+        roleDropdownBuilder(row),
+        const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             color: const Color(0xFFF5F5F5),
@@ -461,14 +601,15 @@ class CrewSectionState extends State<CrewSection> {
     );
   }
 
-  Widget _buildSelectedChip(_CrewRow row, {required bool showRoleDropdown}) {
+  Widget _buildSelectedChip(
+    _CrewRow row, {
+    required Widget Function(_CrewRow row) roleDropdownBuilder,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showRoleDropdown) ...[
-          _buildRoleDropdown(row),
-          const SizedBox(height: 8),
-        ],
+        roleDropdownBuilder(row),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(

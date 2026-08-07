@@ -105,7 +105,7 @@ class LogbookDetailModel extends LogbookDetailEntity {
     );
   }
 
-  /// Parses the `crew` array (First Officer + cabin crew) from a detail response.
+  /// Parses the `crew` array (Tripulación de Mando + cabin crew) from a detail response.
   /// Returns null if the key is absent (vs. an empty list if present-but-empty).
   static List<CrewAssignmentEntity>? _parseCrew(dynamic value) {
     if (value is! List) return null;

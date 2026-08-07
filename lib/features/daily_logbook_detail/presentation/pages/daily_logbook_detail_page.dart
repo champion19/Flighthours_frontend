@@ -69,8 +69,8 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   bool _initialized = false;
   bool _hasChanges = false; // Tracks if user modified any field
 
-  // Additional crew (First Officer + cabin crew). null = not touched by this
-  // form yet, so it won't overwrite existing crew on save.
+  // Additional crew (Tripulación de Mando + cabin crew). null = not touched
+  // by this form yet, so it won't overwrite existing crew on save.
   final _crewSectionKey = GlobalKey<CrewSectionState>();
   List<Map<String, String>>? _crewPayload;
 
@@ -135,7 +135,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
         // Landed here right after creating a new flight (new_flight_page.dart
         // pushes this route with only 'detail', no 'logbook' — see
         // _navigateToLogbookDetailForm there). If this daily logbook already
-        // has other flights, offer to reuse their First Officer + cabin crew.
+        // has other flights, offer to reuse their Tripulación de Mando + cabin crew.
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => _maybeOfferKeepCrew(),
         );
@@ -144,7 +144,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
   }
 
   /// Feature: keep-or-change crew between flights of the same daily logbook.
-  /// Only First Officer + cabin crew are offered — the captain is the pilot
+  /// Only Tripulación de Mando + cabin crew are offered — the captain is the pilot
   /// themselves, unrelated to this prompt.
   Future<void> _maybeOfferKeepCrew() async {
     final dailyLogbookId = _detail?.dailyLogbookId;
@@ -174,7 +174,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
           (context) => AlertDialog(
             title: const Text('Tripulación'),
             content: const Text(
-              '¿Mantener la tripulación (Primer Oficial y Cabina) del vuelo anterior de esta bitácora?',
+              '¿Mantener la tripulación (Mando y Cabina) del vuelo anterior de esta bitácora?',
             ),
             actions: [
               TextButton(
@@ -473,7 +473,7 @@ class _DailyLogbookDetailPageState extends State<DailyLogbookDetailPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Additional crew (First Officer + cabin crew) ──
+                  // ── Additional crew (Tripulación de Mando + cabin crew) ──
                   _buildSectionLabel('Tripulación'),
                   const SizedBox(height: 8),
                   CrewSection(
