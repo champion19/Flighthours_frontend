@@ -149,4 +149,95 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'Tripulación de Mando is a repeatable list (not a fixed Primer Oficial '
+    'slot), each row offers all 5 crew roles, and cabin crew is untouched',
+    (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // New section label present, old fixed-slot label gone.
+      expect(find.text('TRIPULACIÓN DE MANDO (OPCIONAL)'), findsOneWidget);
+      expect(find.text('PRIMER OFICIAL (OPCIONAL)'), findsNothing);
+      // Cabin crew section is untouched by the redesign.
+      expect(find.text('TRIPULACIÓN DE CABINA (OPCIONAL)'), findsOneWidget);
+      expect(find.text('Agregar tripulante de cabina'), findsOneWidget);
+
+      // Starts with zero rows — add two, like the client's real 2-4 person crew.
+      final addCommandCrewButton = find.text('Agregar tripulante de mando');
+      expect(addCommandCrewButton, findsOneWidget);
+      await tester.ensureVisible(addCommandCrewButton);
+      await tester.tap(addCommandCrewButton);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(addCommandCrewButton);
+      await tester.tap(addCommandCrewButton);
+      await tester.pumpAndSettle();
+
+      // Two rows, each with a name search field and a BP field.
+      expect(find.text('Nombre del tripulante'), findsNWidgets(2));
+      expect(find.text('BP (opcional)'), findsNWidgets(2));
+
+      // Both rows default to 'first officer' and offer all 5 crew_role values.
+      expect(find.text('first officer'), findsNWidgets(2));
+      final roleDropdown = find.byType(DropdownButton<String>).first;
+      await tester.ensureVisible(roleDropdown);
+      await tester.tap(roleDropdown);
+      await tester.pumpAndSettle();
+      for (final role in [
+        'captain',
+        'instructor',
+        'line check captain',
+        'safety pilot',
+      ]) {
+        expect(find.text(role), findsOneWidget);
+      }
+      // Pick 'captain' for the first row (closes the menu without error).
+      final captainMenuItem = find.text('captain').last;
+      await tester.ensureVisible(captainMenuItem);
+      await tester.tap(captainMenuItem);
+      await tester.pumpAndSettle();
+
+      // This list is the OTHER pilots — it does NOT include the bitácora
+      // owner (whoever picked a role in Crew Role above). With 2 rows here
+      // (owner + 2 = 3 total, within 2-4), no count warning is shown.
+      expect(find.textContaining('tripulantes de mando adicionales'), findsNothing);
+
+      // Add two more rows: 4 others + the owner = 5 total, over the limit —
+      // the non-blocking warning appears.
+      await tester.ensureVisible(addCommandCrewButton);
+      await tester.tap(addCommandCrewButton);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(addCommandCrewButton);
+      await tester.tap(addCommandCrewButton);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Se registraron más de 3 tripulantes de mando adicionales al titular de la bitácora — verifica que sea correcto.',
+        ),
+        findsOneWidget,
+      );
+
+      // Removing one row brings it back to 3 others (owner + 3 = 4 total,
+      // still within range) — the warning goes away again.
+      final closeIcon = find.byIcon(Icons.close).first;
+      await tester.ensureVisible(closeIcon);
+      await tester.tap(closeIcon);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('tripulantes de mando adicionales'), findsNothing);
+
+      // Finally, confirm the name/BP fields actually accept input (typing
+      // opens the roster suggestion box, so no pumpAndSettle after this —
+      // its loading spinner never resolves in this mocked-bloc test setup).
+      final nameField = find.widgetWithText(TextField, 'Nombre del tripulante').at(0);
+      await tester.ensureVisible(nameField);
+      await tester.enterText(nameField, 'Ana Captain');
+      final bpField = find.widgetWithText(TextField, 'BP (opcional)').at(0);
+      await tester.ensureVisible(bpField);
+      await tester.enterText(bpField, '1001');
+      await tester.pump();
+      expect(find.text('Ana Captain'), findsOneWidget);
+      expect(find.text('1001'), findsOneWidget);
+    },
+  );
 }

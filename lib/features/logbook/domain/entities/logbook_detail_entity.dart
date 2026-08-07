@@ -46,7 +46,7 @@ class LogbookDetailEntity extends Equatable {
   final bool? autoland; // only meaningful when approachCategory is ILS
   final String? flightType; // Comercial, Training, etc.
 
-  // Additional crew (First Officer + cabin crew). Null means "not sent by the
+  // Additional crew (Tripulación de Mando + cabin crew). Null means "not sent by the
   // API / not touched by this form submission" — distinct from an empty list,
   // which means "explicitly no additional crew for this flight".
   final List<CrewAssignmentEntity>? crew;
