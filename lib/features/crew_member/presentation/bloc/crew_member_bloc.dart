@@ -6,7 +6,7 @@ import 'package:flight_hours_app/features/crew_member/domain/usecases/search_cre
 import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_event.dart';
 import 'package:flight_hours_app/features/crew_member/presentation/bloc/crew_member_state.dart';
 
-/// BLoC for the authenticated pilot's own crew roster (First Officer + cabin crew)
+/// BLoC for the authenticated pilot's own crew roster (Tripulación de Mando + cabin crew)
 class CrewMemberBloc extends Bloc<CrewMemberEvent, CrewMemberState> {
   final SearchCrewMembersUseCase _searchCrewMembersUseCase;
   final CreateCrewMemberUseCase _createCrewMemberUseCase;

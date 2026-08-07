@@ -1,14 +1,17 @@
 import 'package:equatable/equatable.dart';
 
-/// One First Officer/cabin crew assignment on a flight leg.
-/// The captain is NOT represented here — that's the logged-in pilot
-/// themselves, already covered by [LogbookDetailEntity.pilotRole]/companion.
+/// One command crew/cabin crew assignment on a flight leg.
+/// The logged-in pilot is NOT represented here — their own role is
+/// [LogbookDetailEntity.crewRole].
 class CrewAssignmentEntity extends Equatable {
   final String id;
   final String crewMemberId;
   final String name;
   final String? bp;
-  final String role; // first_officer, purser, flight_attendant
+  // Command crew: captain, first officer, instructor, line check captain,
+  // safety pilot (see kCommandCrewRoles in crew_section.dart). Cabin crew:
+  // purser, flight_attendant. Legacy rows may still say first_officer.
+  final String role;
 
   const CrewAssignmentEntity({
     this.id = '',
