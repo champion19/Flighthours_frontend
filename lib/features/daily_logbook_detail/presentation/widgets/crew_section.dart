@@ -208,6 +208,18 @@ class CrewSectionState extends State<CrewSection> {
                 _roster = state.members;
                 _isLoadingRoster = false;
               });
+            } else if (state is CrewMemberCreated) {
+              // A row's BP was just filled in on the roster (see _saveBpForRow) —
+              // reflect it on the matching row(s) so the field switches from
+              // editable to the read-only display.
+              setState(() {
+                _roster = state.members;
+                for (final row in [..._commandCrewRows, ..._cabinCrewRows]) {
+                  if (row.selected?.id == state.member.id) {
+                    row.selected = state.member;
+                  }
+                }
+              });
             } else if (state is CrewMemberError) {
               setState(() => _isLoadingRoster = false);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -616,37 +628,100 @@ class CrewSectionState extends State<CrewSection> {
             color: const Color(0xFFF5F5F5),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  row.selected!.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Color(0xFF1a1a2e),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      row.selected!.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Color(0xFF1a1a2e),
+                      ),
+                    ),
                   ),
-                ),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        row.selected = null;
+                        row.searchController.clear();
+                        row.bpController.clear();
+                      });
+                      _notifyChange();
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 18,
+                      color: Color(0xFF6c757d),
+                    ),
+                  ),
+                ],
               ),
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    row.selected = null;
-                    row.searchController.clear();
-                    row.bpController.clear();
-                  });
-                  _notifyChange();
-                },
-                child: const Icon(
-                  Icons.close,
-                  size: 18,
-                  color: Color(0xFF6c757d),
-                ),
-              ),
+              const SizedBox(height: 6),
+              _buildSelectedBp(row),
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// BP for an already-picked roster member: read-only display if it's on
+  /// record; an inline editable field if not, saved to the roster (not the
+  /// flight) as soon as the field loses focus — see [_saveBpForRow].
+  Widget _buildSelectedBp(_CrewRow row) {
+    final bp = row.selected!.bp;
+    if (bp != null && bp.isNotEmpty) {
+      return Row(
+        children: [
+          const Icon(Icons.badge_outlined, size: 14, color: Color(0xFF6c757d)),
+          const SizedBox(width: 4),
+          Text(
+            'BP: $bp',
+            style: const TextStyle(color: Color(0xFF6c757d), fontSize: 12),
+          ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        const Icon(Icons.badge_outlined, size: 14, color: Color(0xFF6c757d)),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Focus(
+            onFocusChange: (hasFocus) {
+              if (!hasFocus) _saveBpForRow(row);
+            },
+            child: TextField(
+              controller: row.bpController,
+              keyboardType: TextInputType.number,
+              onSubmitted: (_) => _saveBpForRow(row),
+              style: const TextStyle(fontSize: 12),
+              decoration: const InputDecoration(
+                isDense: true,
+                isCollapsed: true,
+                hintText: 'BP (agregar)',
+                hintStyle: TextStyle(color: Color(0xFF6c757d), fontSize: 12),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Persists a BP typed for an already-picked roster member who didn't have
+  /// one — reuses the roster's add-crew-member endpoint, which fills bp in
+  /// only when the matched person doesn't already have one on record.
+  void _saveBpForRow(_CrewRow row) {
+    final member = row.selected;
+    if (member == null) return;
+    final bp = row.bpController.text.trim();
+    if (bp.isEmpty || bp == member.bp) return;
+    context.read<CrewMemberBloc>().add(CreateCrewMember(member.name, bp: bp));
   }
 }
