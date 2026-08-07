@@ -50,7 +50,7 @@ class CrewMemberBloc extends Bloc<CrewMemberEvent, CrewMemberState> {
   ) async {
     emit(const CrewMemberLoading());
 
-    final result = await _createCrewMemberUseCase.call(event.name);
+    final result = await _createCrewMemberUseCase.call(event.name, bp: event.bp);
     result.fold(
       (failure) =>
           emit(CrewMemberError('Failed to add crew member: ${failure.message}')),

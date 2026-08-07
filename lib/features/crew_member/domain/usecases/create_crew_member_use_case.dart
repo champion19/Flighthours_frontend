@@ -10,7 +10,7 @@ class CreateCrewMemberUseCase {
   CreateCrewMemberUseCase({required CrewMemberRepository repository})
     : _repository = repository;
 
-  Future<Either<Failure, CrewMemberEntity>> call(String name) {
-    return _repository.createCrewMember(name);
+  Future<Either<Failure, CrewMemberEntity>> call(String name, {String? bp}) {
+    return _repository.createCrewMember(name, bp: bp);
   }
 }

@@ -7,8 +7,10 @@ abstract class CrewMemberRemoteDataSource {
   /// GET /crew-members?search= — the pilot's own roster, optionally filtered by name
   Future<List<CrewMemberModel>> getCrewMembers({String? search});
 
-  /// POST /crew-members — adds a person, or returns the existing match by name
-  Future<CrewMemberModel> createCrewMember(String name);
+  /// POST /crew-members — adds a person, or returns the existing match by name.
+  /// If bp is provided and the matched person doesn't have one on record yet,
+  /// the backend fills it in (never overwrites an existing bp).
+  Future<CrewMemberModel> createCrewMember(String name, {String? bp});
 }
 
 /// Implementation using Dio HTTP client
@@ -37,8 +39,11 @@ class CrewMemberRemoteDataSourceImpl implements CrewMemberRemoteDataSource {
   }
 
   @override
-  Future<CrewMemberModel> createCrewMember(String name) async {
-    final response = await _dio.post('/crew-members', data: {'name': name});
+  Future<CrewMemberModel> createCrewMember(String name, {String? bp}) async {
+    final response = await _dio.post(
+      '/crew-members',
+      data: {'name': name, if (bp != null && bp.isNotEmpty) 'bp': bp},
+    );
     final data = response.data;
 
     if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
