@@ -26,10 +26,11 @@ class CrewMemberRepositoryImpl implements CrewMemberRepository {
 
   @override
   Future<Either<Failure, CrewMemberEntity>> createCrewMember(
-    String name,
-  ) async {
+    String name, {
+    String? bp,
+  }) async {
     try {
-      final member = await _remoteDataSource.createCrewMember(name);
+      final member = await _remoteDataSource.createCrewMember(name, bp: bp);
       return Right(member);
     } catch (e) {
       return Left(_handleError(e));

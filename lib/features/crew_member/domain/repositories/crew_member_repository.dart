@@ -9,6 +9,11 @@ abstract class CrewMemberRepository {
     String? search,
   });
 
-  /// Add a person to the roster, or return the existing match by name
-  Future<Either<Failure, CrewMemberEntity>> createCrewMember(String name);
+  /// Add a person to the roster, or return the existing match by name.
+  /// If bp is provided and the matched person doesn't have one on record yet,
+  /// the backend fills it in (never overwrites an existing bp).
+  Future<Either<Failure, CrewMemberEntity>> createCrewMember(
+    String name, {
+    String? bp,
+  });
 }
